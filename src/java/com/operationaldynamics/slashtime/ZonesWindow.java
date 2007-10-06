@@ -267,13 +267,13 @@ class ZonesWindow
         window.showAll();
         window.hide();
 
-        // int s_w = window.getScreen().getWidth();
-        // int s_h = window.getScreen().getHeight();
-        //
-        // int w = window.getWindow().getWidth();
-        // int h = window.getWindow().getHeight();
-        //
-        // window.move(s_w - w - 15, s_h - h - 30);
+        int s_w = window.getScreen().getWidth();
+        int s_h = window.getScreen().getHeight();
+
+        int w = window.getWidth();
+        int h = window.getHeight();
+
+        window.move(s_w - w - 20, s_h - h - 30);
         window.present();
 
         /*
