@@ -17,6 +17,7 @@ import static org.gnome.gtk.Alignment.TOP;
 import java.io.FileNotFoundException;
 
 import org.gnome.gdk.Event;
+import org.gnome.gdk.EventFocus;
 import org.gnome.gdk.Pixbuf;
 import org.gnome.gtk.Alignment;
 import org.gnome.gtk.CellRendererPixbuf;
@@ -50,7 +51,7 @@ class ZonesWindow
     private VBox top;
 
     private TreeView view;
-    
+
     private TreeViewColumn vertical;
 
     private ListStore model;
@@ -180,7 +181,7 @@ class ZonesWindow
         text.setMarkup(offsetMarkup);
         text.setForeground(rowColor);
         text.setBackground(rowBackground);
-        
+
         sortByWallTime();
 
         /*
@@ -192,6 +193,18 @@ class ZonesWindow
         window.connect(new Window.DELETE_EVENT() {
             public boolean onDeleteEvent(Widget source, Event event) {
                 Gtk.mainQuit();
+                return false;
+            }
+        });
+
+        /*
+         * When focus leaves the ZonesWindow, deselect so that it's not left
+         * with a blue selected row for no terribly useful reason.
+         */
+
+        view.connect(new Widget.FOCUS_OUT_EVENT() {
+            public boolean onFocusOutEvent(Widget source, EventFocus event) {
+                selection.unselectAll();
                 return false;
             }
         });
@@ -303,7 +316,6 @@ class ZonesWindow
         clock.setDaemon(true);
         clock.start();
 
-        
         // AccelGroup ag = new AccelGroup();
         // window.addAccelGroup(ag);
 
