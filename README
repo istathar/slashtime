@@ -1,0 +1,87 @@
+This is slashtime, a small program which displays the time in various places.
+
+
+COMPILING AND RUNNING
+=====================
+
+To build this example, do the following:
+
+	$ ./configure
+	$ make
+
+The configure script will find the pre-requisites and select an appropriate
+java compiler. Make will then build both Java bytecode and a native executable.
+To run, do
+
+	$ ./slashtime-java
+
+or if you build a GCJ executable version, run
+
+	$ ./slashtime-native
+
+Tip: its not quite yet packaged properly for generic installation. But if you
+do this from your shell prompt:
+
+	$ ( cd ~/src/whatever/slashtime ; ./slashtime-java & )
+
+it'll background safely.
+
+
+HISTORY
+=======
+
+Circa 2002, a Debian package called gworldclock came with a short shell script
+called tzwatch which somewhat mimicked its output. Both programs were
+reasonable enough, but like most timezone things, they displayed the offset
+from GMT. I've always found that a little useless.  Telling me that I am in
+GMT+11 and someone I want to talk to is shown in GMT-4 still doesn't help me
+get an intuitive grasp of what the differential is.
+
+So Andrew Cowie wrote a small perl script called slashtime.  Named after the
+short cut on his employer's company website that gets you to an HTML version,
+operationaldynamics.com/time, it started out life as a perl script, and gained
+a bit of a cult following from people who would put it into their
+.bash_profiles to run when launching a terminal.
+
+Meanwhile, GNOME has long shipped a clock applet. This clock applet is fine
+enough, and pops a calendar when you click on it. Sometime in 2006, Andrew got
+the idea to write a GUI version of slashtime.
+
+
+FAQ
+===
+
+What's with the white, gray, and black?
+---------------------------------------
+
+White: business hours
+Gray: civil hours (it is still "civilized" to call someone at that hour)
+Black: night time
+
+What's with the day rolling over at 01:30?
+------------------------------------------
+
+Simple: that's when hackers go to bed! So black at the bottom means that
+someone hard core may still be reachable online if they're up working, whereas
+black on top really means they're asleep.
+
+
+STATUS
+======
+
+Lots to do yet. Basic program works. No customizing zones or such yet. Meeting
+functionality works well (try Ctrl+M). Still needs lots of love in
+documentation, installing to a DESTDIR, etc.
+
+And it's not an applet yet since java-gnome 2.x doesn't have an applet binding.
+The 4.0 Java bindings most certainly will, assuming someone steps up and funds
+the re-engineering project.
+
+
+MORE INFORMATION
+================
+
+See the HACKING file for further details about how equivalence works, how
+to checkout the sources, and how to send patches.
+
+AfC

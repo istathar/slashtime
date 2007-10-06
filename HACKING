@@ -1,0 +1,153 @@
+A guide to hacking on slashtime:
+
+RETRIEVING THE SOURCE CODE
+--------------------------
+
+Exciting times in version control land. For this project, we have 
+initially used the Git revision control tool, the one that the Linux kernel hackers wrote.
+If you haven't used Git, you will probably be a bit dazed by the complexity,
+but once you get the hang of it its evident power starts to show through.
+
+Since we're just trialing Git at this point, we haven't gone to elaborate
+lengths to set up a proper repostitory server. Git is does work from dumb
+hosting, albiet slowly, and we've used that for the time being.
+
+You can fetch the source code by doing the following:
+
+	git clone http://research.operationaldynamics.com/git/slashtime/
+	cd slashtime
+	./configure
+	make
+
+Finally, try
+
+	./slashtime-java
+
+to run the thing. If you build a GCJ version, then
+
+	./slashtime-native
+
+will be the executable.
+
+
+
+PREREQUISITES
+-------------
+
+slashtime is written in Java and uses uses:
+
+* java-gnome	Bindings around the GTK and GNOME libraries
+		http://java-gnome.sourceforge.net
+
+
+CONFIGURATION
+-------------
+
+The top level directory contains a custom ./configure which detects your
+Operating System variant, sets defaults accordingly, verifies the location of
+prerequisites (the various jars files), and finally chooses a Java bytecode
+compiler and Java virtual machine runtime environment.
+
+Your configuration is persistent across builds in that checkout - ie, `make
+clean` won't force you to reconfigure (though `make distclean` will). The
+configure script runs very quickly, so it's no big deal if you have to re run
+it. The configuration output is a makefile fragment which is written to .config
+and subsequently included by the top level Makefile.
+
+You can override the choices configure makes by listing parameters on the
+command line, like this:
+
+	./configure compiler=jikes runtime=jamvm
+
+This facilitates easily switching between runtimes and compilers for testing.
+At the moment, the available selections are:
+
+* compiler ->	javac, jikes, gcj
+
+* runtime  ->	java, cacao, jamvm, cacao, gij, kaffe
+
+* quiet		(don't output anything)
+
+Right now, Gentoo Linux, Debian Linux, Fedora Core Linux, and Solaris Unix are
+fully configured. If you are running a different operating system or
+distribution, please contact us and we'll add it - it's just a matter of
+identifying the location of a few things. Better yet, look in the configure
+Perl script - the places where OS is switched are obvious, and just add what
+you need to add, and send us a patch.
+
+The whole point of configure is to figure things out for you, but if it can't
+quite figure out where Java is, you can override it by specifying an alternate
+location to find a JDK and/or GCJ, using either of the following:
+
+* jdk			(where to find a traditional Java Development Kit,
+			 ie JAVA_HOME)
+
+* gcj			(prefix of an alternate GCJ install)
+
+* java-gnome		(prefix of an alternate java-gnome install)
+
+* jamvm			(path to the jamvm executable)
+
+* cacao			(path to the cacao executable)
+
+Examples:
+
+	./configure
+	./configure jdk=/opt/sun-jdk-bin-1.4.2.04 java-gnome=/opt/gnome2
+	./configure jamvm=/home/joe/custom/bin/jamvm runtime=jamvm
+
+If you're having trouble with something as Make runs and need to debug it, you
+can try:
+
+	V=1 make
+
+which will show you the actual commands being executed by Make (ie, Make's
+normal behaviour, which we override for appearances sake).
+
+
+A NOTE ABOUT GCJ GENERATED NATIVE CODE
+--------------------------------------
+
+slashtime has been written with GCJ compatibility in mind. The amazing thing
+about GCJ is that in addition to being able to generate class files (the -C
+argument), it can generate native object code!
+
+Given slashtime's simplicity, it could have been built in a single step, but 
+the Makefile shows an example of implicit make usage.
+
+Don't fret if you don't have GCJ. Despite its maturity, it's still a pretty
+radical and out-there approach to doing Java.
+
+
+RUNNING IN ECLIPSE
+------------------
+
+One of the significant reasons to ensure that the program still builds and runs
+with a conventional Java VM is so that it can be worked on in Eclipse. The
+build system, equivalence, is designed with this in mind.
+
+
+CONTRIBUTING
+------------
+
+We would welcome contributions back. If you'd like to do so, please either
+follow the code formatting conventions you see, or use something like Eclipse
+to autoformat things.
+
+In any event, please contact me and we'll talk about the best way to send
+patches. Given that Git is a fully distributed version control system, if you
+are intending to make a contribution, you can prepare patches by committing
+them to your local working copy, and then using FIXME git command to format
+a patch for emailing.
+
+	git diff
+
+to get started.
+
+One final note: I'd prefer patches that are complete and comprehensive; one
+liner bug fixes are fine when necessary (ie, if that's all it is) but if, say,
+you're adding support for a new distro to configure, record it as one complete
+patch rather than 5 small ones. For trivial fixes, just use a one line patch
+name; for more comprehensive patches please add a long comment (in addition to
+the one line summary).
+
