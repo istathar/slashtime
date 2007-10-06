@@ -158,14 +158,14 @@ class ZonesWindow
         /* Icon */
         image = new CellRendererPixbuf(vertical);
         image.setPixbuf(iconImage);
-        image.setCellBackground(rowBackground);
+        image.setBackground(rowBackground);
 
         /* Place */
         text = new CellRendererText(vertical);
         text.setAlignment(LEFT, TOP);
         text.setMarkup(placeMarkup);
         text.setForeground(rowColor);
-        text.setCellBackground(rowBackground);
+        text.setBackground(rowBackground);
 
         /* Date and Time */
         text = new CellRendererText(vertical);
@@ -173,7 +173,6 @@ class ZonesWindow
         text.setMarkup(timeMarkup);
         text.setForeground(rowColor);
         text.setBackground(rowBackground);
-        text.setCellBackground(rowBackground);
 
         /* Offset */
         text = new CellRendererText(vertical);
@@ -181,7 +180,6 @@ class ZonesWindow
         text.setMarkup(offsetMarkup);
         text.setForeground(rowColor);
         text.setBackground(rowBackground);
-        text.setCellBackground(rowBackground);
         
         sortByWallTime();
 
