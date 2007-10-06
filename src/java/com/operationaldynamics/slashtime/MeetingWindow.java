@@ -10,6 +10,9 @@
  */
 package com.operationaldynamics.slashtime;
 
+import static org.gnome.gtk.Alignment.CENTER;
+import static org.gnome.gtk.Alignment.LEFT;
+
 import java.io.FileNotFoundException;
 
 import org.gnome.gdk.Event;
@@ -25,18 +28,27 @@ import org.gnome.gtk.WindowPosition;
 
 class MeetingWindow
 {
-    private Window     window;
-    private VBox       top;
-    private Label      placeTime;
-    private Label      placeDate;
-    private Label      placeCity;
-    private Label      placeCountry;
-    private Calendar   calendar;
-    private HScale     hour;
-    private HScale     minute;
+    private Window window;
 
-    private Place      current;
-    private long       when = -1;
+    private VBox top;
+
+    private Label placeTime;
+
+    private Label placeDate;
+
+    private Label placeCity;
+
+    private Label placeCountry;
+
+    private Calendar calendar;
+
+    private HScale hour;
+
+    private HScale minute;
+
+    private Place current;
+
+    private long when = -1;
 
     private NativeTime nt;
 
@@ -51,13 +63,13 @@ class MeetingWindow
         }
         Label l = new Label(buf.toString());
         l.setUseMarkup(true);
-        l.setAlignment(0.0, 0.5);
+        l.setAlignment(LEFT, CENTER);
         return l;
     }
 
     private Label createDisplayLabel() {
         Label l = new Label("");
-        l.setAlignment(0.5, 0.5);
+        l.setAlignment(CENTER, CENTER);
         l.setWidthChars(20);
         l.setUseMarkup(true);
         return l;
@@ -118,18 +130,18 @@ class MeetingWindow
         top.packStart(l, false, false, 3);
 
         /*
-         * Initialize the calendar, and pack into an HBox so that it doesn't get
-         * stretched if the window becomes wider.
+         * Initialize the calendar, and pack into an HBox so that it doesn't
+         * get stretched if the window becomes wider.
          */
         calendar = new Calendar();
 
-        calendar.addListener(new CalendarListener() {
-            public void calendarEvent(CalendarEvent event) {
-                if (event.getType() == CalendarEvent.Type.DAY_SELECTED) {
-                    update();
-                }
-            }
-        });
+//        calendar.addListener(new CalendarListener() {
+//            public void calendarEvent(CalendarEvent event) {
+//                if (event.getType() == CalendarEvent.Type.DAY_SELECTED) {
+//                    update();
+//                }
+//            }
+//        });
 
         HBox spacer = new HBox(false, 0);
         spacer.packStart(calendar, true, false, 0);
@@ -140,28 +152,28 @@ class MeetingWindow
          * Sliders
          */
 
-        hour = new HScale(0, 23, 1);
-        minute = new HScale(0, 59, 15);
-        minute.setDigits(0);
+//        hour = new HScale(0, 23, 1);
+//        minute = new HScale(0, 59, 15);
+//        minute.setDigits(0);
 
-        hour.addListener(new RangeListener() {
-            public void rangeEvent(RangeEvent event) {
-                if (event.getType() == RangeEvent.Type.VALUE_CHANGED) {
-                    if (hour.hasFocus()) {
-                        update();
-                    }
-                }
-            }
-        });
-        minute.addListener(new RangeListener() {
-            public void rangeEvent(RangeEvent event) {
-                if (event.getType() == RangeEvent.Type.VALUE_CHANGED) {
-                    if (minute.hasFocus()) {
-                        update();
-                    }
-                }
-            }
-        });
+//        hour.addListener(new RangeListener() {
+//            public void rangeEvent(RangeEvent event) {
+//                if (event.getType() == RangeEvent.Type.VALUE_CHANGED) {
+//                    if (hour.hasFocus()) {
+//                        update();
+//                    }
+//                }
+//            }
+//        });
+//        minute.addListener(new RangeListener() {
+//            public void rangeEvent(RangeEvent event) {
+//                if (event.getType() == RangeEvent.Type.VALUE_CHANGED) {
+//                    if (minute.hasFocus()) {
+//                        update();
+//                    }
+//                }
+//            }
+//        });
 
         top.packStart(hour, false, false, 0);
         top.packStart(minute, false, false, 0);
@@ -213,7 +225,7 @@ class MeetingWindow
         buf.append("</span>");
         placeCity.setLabel(buf.toString());
 
-        placeCountry.setMarkup(country);
+        placeCountry.setLabel(country);
 
         this.current = p;
 
@@ -223,10 +235,10 @@ class MeetingWindow
 
         nt.setTimeZone(p.getZoneName());
 
-        int i = Integer.parseInt(nt.format("%H", when));
-        hour.setValue(i);
-        int j = Integer.parseInt(nt.format("%M", when));
-        minute.setValue(j);
+//        int i = Integer.parseInt(nt.format("%H", when));
+//        hour.setValue(i);
+//        int j = Integer.parseInt(nt.format("%M", when));
+//        minute.setValue(j);
 
         /*
          * and now that a place is set, reset the ZonesWindow.
@@ -235,17 +247,17 @@ class MeetingWindow
     }
 
     /**
-     * Update to the time data displayed ZonesWindow by propegating the settings
-     * from this Window.
+     * Update to the time data displayed ZonesWindow by propegating the
+     * settings from this Window.
      */
     private void update() {
-        double h = hour.getValue();
-        int i = (int) Math.round(h);
+//        double h = hour.getValue();
+//        int i = (int) Math.round(h);
 
-        double m = minute.getValue();
-        int j = (int) Math.round(m);
+//        double m = minute.getValue();
+//        int j = (int) Math.round(m);
 
-        int[] ymd = calendar.getDate();
+//        int[] ymd = calendar.getDate();
 
         /*
          * God knows what gtk_calendar_get_date() does to the environment, so
@@ -253,7 +265,7 @@ class MeetingWindow
          */
         nt.setTimeZone(current.getZoneName());
 
-        when = nt.makeTick(ymd[0], ymd[1], ymd[2], i, j);
+//        when = nt.makeTick(ymd[0], ymd[1], ymd[2], i, j);
 
         placeTime.setLabel("<big><b>" + nt.format("%H:%M", when) + "</b></big>");
         placeDate.setLabel(nt.format("%a, %e %b %y", when));
