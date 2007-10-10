@@ -111,7 +111,7 @@ class ZonesWindow
 
         window.setTitle("slashtime");
         window.setDecorated(false);
-        window.setBorderWidth(1);
+        window.setBorderWidth(2);
         // window.setBackgroundColor(StateType.NORMAL, Color.BLACK);
 
         top = new VBox(false, 0);
@@ -469,7 +469,7 @@ class ZonesWindow
                 new Place("Pacific/Auckland", "Auckland", "New Zealand"),
                 new Place("Pacific/Honolulu", "Hawaii", "USA"),
                 new Place("America/Los_Angeles", "Los Angeles", "USA"),
-                new Place("America/New_York", "New York", "USA"),
+                new Place("America/New_York", "Boston", "USA"),
                 new Place("America/Edmonton", "Calgary", "Canada"),
                 new Place("Australia/Adelaide", "Adelaide", "Australia"),
                 new Place("Asia/Tokyo", "Tokyo", "Japan"),
@@ -522,7 +522,7 @@ class ZonesWindow
         int center = nt.calculateOffset(when);
 
         TreeIter pointer = model.getIterFirst();
-        while (pointer != null) {
+        do {
             Place p = (Place) model.getValue(pointer, placeObject);
 
             nt.setTimeZone(p.getZoneName());
@@ -653,8 +653,7 @@ class ZonesWindow
             model.setValue(pointer, timeSort, halvesSinceMidnight);
             model.setValue(pointer, offsetSort, fromGMT);
 
-            pointer = model.iterNext(pointer);
-        }
+        } while (pointer.iterNext());
     }
 
     /**
