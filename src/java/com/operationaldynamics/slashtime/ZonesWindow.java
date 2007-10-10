@@ -16,6 +16,7 @@ import static org.gnome.gtk.Alignment.TOP;
 
 import java.io.FileNotFoundException;
 
+import org.gnome.gdk.Color;
 import org.gnome.gdk.Event;
 import org.gnome.gdk.EventFocus;
 import org.gnome.gdk.Pixbuf;
@@ -30,6 +31,7 @@ import org.gnome.gtk.DataColumnString;
 import org.gnome.gtk.Gtk;
 import org.gnome.gtk.ListStore;
 import org.gnome.gtk.Menu;
+import org.gnome.gtk.StateType;
 import org.gnome.gtk.TreeIter;
 import org.gnome.gtk.TreePath;
 import org.gnome.gtk.TreeSelection;
@@ -111,8 +113,8 @@ class ZonesWindow
 
         window.setTitle("slashtime");
         window.setDecorated(false);
-        window.setBorderWidth(2);
-        // window.setBackgroundColor(StateType.NORMAL, Color.BLACK);
+        window.setBorderWidth(1);
+        window.modifyBackground(StateType.NORMAL, Color.BLACK);
 
         top = new VBox(false, 0);
 
@@ -469,7 +471,7 @@ class ZonesWindow
                 new Place("Pacific/Auckland", "Auckland", "New Zealand"),
                 new Place("Pacific/Honolulu", "Hawaii", "USA"),
                 new Place("America/Los_Angeles", "Los Angeles", "USA"),
-                new Place("America/New_York", "Boston", "USA"),
+                new Place("America/New_York", "New York", "USA"),
                 new Place("America/Edmonton", "Calgary", "Canada"),
                 new Place("Australia/Adelaide", "Adelaide", "Australia"),
                 new Place("Asia/Tokyo", "Tokyo", "Japan"),
