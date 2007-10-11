@@ -10,6 +10,7 @@
  */
 package com.operationaldynamics.slashtime;
 
+import org.gnome.gdk.Pixbuf;
 import org.gnome.gtk.Gtk;
 
 /**
@@ -23,11 +24,24 @@ public final class Master
 
     static MeetingWindow meeting;
 
+    static DockedIndicator status;
+
+    /**
+     * The application icon.
+     */
+    /*
+     * I might prefer this to be wrapped by a UserInterface class so it could
+     * be encapsulated a bit better and reached via Master.ui.icon. It's less
+     * of an issue with static imports.
+     */
+    static Pixbuf marble;
+
     public static void main(String[] args) {
         Gtk.init(args);
 
         zones = new ZonesWindow();
         meeting = null;
+        status = new DockedIndicator();
 
         Gtk.main();
     }

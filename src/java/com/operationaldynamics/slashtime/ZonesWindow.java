@@ -10,6 +10,7 @@
  */
 package com.operationaldynamics.slashtime;
 
+import static com.operationaldynamics.slashtime.Master.marble;
 import static org.gnome.gtk.Alignment.CENTER;
 import static org.gnome.gtk.Alignment.LEFT;
 import static org.gnome.gtk.Alignment.TOP;
@@ -62,9 +63,7 @@ class ZonesWindow
 
     private Menu menu;
 
-    private Pixbuf icon;
-
-    private Pixbuf marble;
+    private Pixbuf gmt;
 
     private Pixbuf home;
 
@@ -101,10 +100,10 @@ class ZonesWindow
         window = new Window();
 
         try {
-            icon = new Pixbuf("share/pixmaps/marble.png");
-            window.setIcon(icon);
+            marble = new Pixbuf("share/pixmaps/marble.png");
+            window.setIcon(marble);
 
-            marble = new Pixbuf("share/pixmaps/marble.png", 23, 23, true);
+            gmt = new Pixbuf("share/pixmaps/marble.png", 23, 23, true);
             home = new Pixbuf("share/pixmaps/home.png", 24, 24, true);
             meeting = new Pixbuf("share/pixmaps/meeting.png", 20, 20, true);
         } catch (FileNotFoundException fnfe) {
@@ -504,7 +503,7 @@ class ZonesWindow
                 current = mock[i];
                 model.setValue(pointer, iconImage, home);
             } else if (mock[i].isZulu()) {
-                model.setValue(pointer, iconImage, marble);
+                model.setValue(pointer, iconImage, gmt);
             }
         }
 
@@ -517,6 +516,7 @@ class ZonesWindow
 
     void updateNow() {
         update(System.currentTimeMillis() / 1000);
+        window.present();
     }
 
     void update(long when) {
