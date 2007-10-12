@@ -10,7 +10,11 @@
  */
 package com.operationaldynamics.slashtime;
 
+import org.gnome.gtk.ImageMenuItem;
+import org.gnome.gtk.Menu;
 import org.gnome.gtk.StatusIcon;
+import org.gnome.gtk.Stock;
+
 import static com.operationaldynamics.slashtime.Master.marble;
 
 /**
@@ -23,6 +27,8 @@ import static com.operationaldynamics.slashtime.Master.marble;
 class DockedIndicator
 {
     private StatusIcon si;
+    
+    private Menu menu = null;
 
     DockedIndicator() {
         si = new StatusIcon(marble);
@@ -30,7 +36,22 @@ class DockedIndicator
         si.connect(new StatusIcon.ACTIVATE() {
             public void onActivate(StatusIcon source) {
                 Master.zones.updateNow();
+                Master.zones.toggle();
             }
         });
+
+        /*
+         * Establish the menu that pops up on when the StatusIcon is right
+         * clicked.
+         */
+
+        si.connect(new StatusIcon.POPUP_MENU() {
+            public void onPopupMenu(StatusIcon source, int button, int activateTime) {
+                menu.popup();
+            }
+        });
+
+        menu = new Menu();
+        menu.append(new ImageMenuItem(Stock.QUIT));
     }
 }

@@ -20,7 +20,9 @@ import java.io.FileNotFoundException;
 import org.gnome.gdk.Color;
 import org.gnome.gdk.Event;
 import org.gnome.gdk.EventFocus;
+import org.gnome.gdk.EventVisibility;
 import org.gnome.gdk.Pixbuf;
+import org.gnome.gdk.VisibilityState;
 import org.gnome.gtk.Alignment;
 import org.gnome.gtk.CellRendererPixbuf;
 import org.gnome.gtk.CellRendererText;
@@ -50,6 +52,12 @@ import org.gnome.gtk.Window;
 class ZonesWindow
 {
     private Window window;
+
+    /**
+     * Our perception of whether or not the ZonesWindow is currently on screen
+     * to front versus minimized or obscured.
+     */
+    private boolean up = false;
 
     private VBox top;
 
@@ -246,6 +254,26 @@ class ZonesWindow
         });
 
         nt = new NativeTime();
+
+        /*
+         * Deal with setting the up variable so we can react to activation on
+         * the DockedIndicator accordingly.
+         */
+
+        window.connect(new Widget.VISIBILITY_NOTIFY_EVENT() {
+            public boolean onVisibilityNotifyEvent(Widget source, EventVisibility event) {
+                final VisibilityState state;
+
+                state = event.getState();
+
+                if ((state == VisibilityState.FULLY_OBSCURED) || (state == VisibilityState.PARTIAL)) {
+                    up = false;
+                } else {
+                    up = true;
+                }
+                return false;
+            }
+        });
 
         window.add(top);
 
@@ -516,7 +544,6 @@ class ZonesWindow
 
     void updateNow() {
         update(System.currentTimeMillis() / 1000);
-        window.present();
     }
 
     void update(long when) {
@@ -678,5 +705,15 @@ class ZonesWindow
 
     Place getCurrent() {
         return current;
+    }
+
+    void toggle() {
+        if (up) {
+            window.hide();
+            up = false;
+        } else {
+            window.present();
+            up = true;
+        }
     }
 }
