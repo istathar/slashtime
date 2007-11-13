@@ -11,6 +11,8 @@
 package com.operationaldynamics.slashtime;
 
 import static com.operationaldynamics.slashtime.Master.marble;
+import static org.freedesktop.bindings.Time.formatTime;
+import static org.freedesktop.bindings.Time.setTimeZone;
 import static org.gnome.gtk.Alignment.CENTER;
 import static org.gnome.gtk.Alignment.LEFT;
 import static org.gnome.gtk.Alignment.TOP;
@@ -94,8 +96,6 @@ class ZonesWindow
     private DataColumnString rowBackground;
 
     private DataColumnReference placeObject;
-
-    private NativeTime nt;
 
     private Place current;
 
@@ -253,8 +253,6 @@ class ZonesWindow
             }
         });
 
-        nt = new NativeTime();
-
         /*
          * Deal with setting the up variable so we can react to activation on
          * the DockedIndicator accordingly.
@@ -271,6 +269,13 @@ class ZonesWindow
                 } else {
                     up = true;
                 }
+                return false;
+            }
+        });
+
+        window.connect(new Widget.UNMAP_EVENT() {
+            public boolean onUnmapEvent(Widget source, Event event) {
+                up = false;
                 return false;
             }
         });
@@ -547,21 +552,21 @@ class ZonesWindow
     }
 
     void update(long when) {
-        nt.setTimeZone(current.getZoneName());
-        int center = nt.calculateOffset(when);
+        setTimeZone(current.getZoneName());
+        int center = calculateOffset(when);
 
         TreeIter pointer = model.getIterFirst();
         do {
             Place p = (Place) model.getValue(pointer, placeObject);
 
-            nt.setTimeZone(p.getZoneName());
+            setTimeZone(p.getZoneName());
 
             /*
              * Time, day, and date
              */
 
             StringBuffer time = new StringBuffer();
-            time.append(nt.format("%H:%M", when));
+            time.append(formatTime("%H:%M", when));
 
             // before we go any further, extract hours and minutes
             int hours = Integer.parseInt(time.substring(0, 2));
@@ -583,7 +588,7 @@ class ZonesWindow
              * day of the month) if that day is the 10th of the month or
              * greater.
              */
-            time.append(nt.format("%a,%e %b %y", when));
+            time.append(formatTime("%a,%e %b %y", when));
             /*
              * The trailing space, on the other hand, acts as a spacer to
              * ensure that the date output and the timezone code aren't too
@@ -598,7 +603,7 @@ class ZonesWindow
              * Offset and zone code
              */
 
-            int fromGMT = nt.calculateOffset(when);
+            int fromGMT = calculateOffset(when);
             int halves = fromGMT - center;
 
             StringBuffer offset = new StringBuffer();
@@ -626,7 +631,7 @@ class ZonesWindow
             offset.append("<span size='x-small' font_desc='Mono' color='");
             offset.append(GRAY);
             offset.append("'>");
-            String code = nt.format("%Z", when);
+            String code = formatTime("%Z", when);
             if (code.length() == 3) {
                 offset.append(" ");
             }
@@ -716,4 +721,35 @@ class ZonesWindow
             up = true;
         }
     }
+
+    /**
+     * Work out the offset associated with this Place at a given time.
+     * 
+     * @param when
+     *            the Date for which you're needing the offset. This matters
+     *            because it has to figure out whether or not it's in DST.
+     * @return the number of <b>half</b> hours by which this timezone is
+     *         offset from UTC
+     */
+    static int calculateOffset(long when) {
+        String rfc822 = formatTime("%z", when);
+
+        // stupidity: parseInt doesn't understand + but it does understand -
+        if (rfc822.charAt(0) == '+') {
+            rfc822 = rfc822.substring(1);
+        }
+        int raw = Integer.parseInt(rfc822);
+
+        int hours = raw / 100;
+        int halves = hours * 2;
+        if ((raw % 100) != 0) {
+            if (raw > 0) {
+                halves++;
+            } else if (raw < 0) {
+                halves--;
+            }
+        }
+        return halves;
+    }
+
 }

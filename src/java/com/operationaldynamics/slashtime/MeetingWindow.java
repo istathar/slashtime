@@ -10,6 +10,9 @@
  */
 package com.operationaldynamics.slashtime;
 
+import static org.freedesktop.bindings.Time.formatTime;
+import static org.freedesktop.bindings.Time.setTimeZone;
+import static org.freedesktop.bindings.Time.makeTime;
 import static org.gnome.gtk.Alignment.CENTER;
 import static org.gnome.gtk.Alignment.LEFT;
 
@@ -49,8 +52,6 @@ class MeetingWindow
     private Place current;
 
     private long when = -1;
-
-    private NativeTime nt;
 
     private Label createTextLabel(String text, boolean italics) {
         StringBuffer buf = new StringBuffer();
@@ -181,7 +182,6 @@ class MeetingWindow
         /*
          * Initialize the date, hour and minute
          */
-        nt = new NativeTime();
         setPlace(where);
         update();
 
@@ -233,7 +233,7 @@ class MeetingWindow
             when = System.currentTimeMillis() / 1000;
         }
 
-        nt.setTimeZone(p.getZoneName());
+        setTimeZone(p.getZoneName());
 
 //        int i = Integer.parseInt(nt.format("%H", when));
 //        hour.setValue(i);
@@ -263,12 +263,12 @@ class MeetingWindow
          * God knows what gtk_calendar_get_date() does to the environment, so
          * reset the timezone here:
          */
-        nt.setTimeZone(current.getZoneName());
+        setTimeZone(current.getZoneName());
 
-//        when = nt.makeTick(ymd[0], ymd[1], ymd[2], i, j);
+//        when = makeTime(ymd[0], ymd[1], ymd[2], i, j);
 
-        placeTime.setLabel("<big><b>" + nt.format("%H:%M", when) + "</b></big>");
-        placeDate.setLabel(nt.format("%a, %e %b %y", when));
+        placeTime.setLabel("<big><b>" + formatTime("%H:%M", when) + "</b></big>");
+        placeDate.setLabel(formatTime("%a, %e %b %y", when));
 
         Master.zones.update(when);
     }
