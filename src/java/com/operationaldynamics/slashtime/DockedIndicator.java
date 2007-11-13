@@ -10,8 +10,10 @@
  */
 package com.operationaldynamics.slashtime;
 
+import org.gnome.gtk.Gtk;
 import org.gnome.gtk.ImageMenuItem;
 import org.gnome.gtk.Menu;
+import org.gnome.gtk.MenuItem;
 import org.gnome.gtk.StatusIcon;
 import org.gnome.gtk.Stock;
 
@@ -27,7 +29,7 @@ import static com.operationaldynamics.slashtime.Master.marble;
 class DockedIndicator
 {
     private StatusIcon si;
-    
+
     private Menu menu = null;
 
     DockedIndicator() {
@@ -47,11 +49,16 @@ class DockedIndicator
 
         si.connect(new StatusIcon.POPUP_MENU() {
             public void onPopupMenu(StatusIcon source, int button, int activateTime) {
-                menu.popup();
+                menu.popup(source);
             }
         });
 
         menu = new Menu();
-        menu.append(new ImageMenuItem(Stock.QUIT));
+        menu.append(new ImageMenuItem(Stock.QUIT, new MenuItem.ACTIVATE() {
+            public void onActivate(MenuItem source) {
+                Gtk.mainQuit();
+            }
+        }));
+        menu.showAll();
     }
 }
