@@ -53,7 +53,7 @@ import org.gnome.gtk.Window;
  */
 class ZonesWindow
 {
-    private Window window;
+    private final Window window;
 
     /**
      * Our perception of whether or not the ZonesWindow is currently on screen
@@ -61,15 +61,15 @@ class ZonesWindow
      */
     private boolean up = false;
 
-    private VBox top;
+    private final VBox top;
 
-    private TreeView view;
+    private final TreeView view;
 
-    private TreeViewColumn vertical;
+    private final TreeViewColumn vertical;
 
-    private ListStore model;
+    private final ListStore model;
 
-    private TreeSelection selection;
+    private final TreeSelection selection;
 
     private Menu menu;
 
@@ -79,23 +79,23 @@ class ZonesWindow
 
     private Pixbuf meeting;
 
-    private DataColumnPixbuf iconImage;
+    private final DataColumnPixbuf iconImage;
 
-    private DataColumnString placeMarkup;
+    private final DataColumnString placeMarkup;
 
-    private DataColumnString timeMarkup;
+    private final DataColumnString timeMarkup;
 
-    private DataColumnInteger timeSort;
+    private final DataColumnInteger timeSort;
 
-    private DataColumnString offsetMarkup;
+    private final DataColumnString offsetMarkup;
 
-    private DataColumnInteger offsetSort;
+    private final DataColumnInteger offsetSort;
 
-    private DataColumnString rowColor;
+    private final DataColumnString rowColor;
 
-    private DataColumnString rowBackground;
+    private final DataColumnString rowBackground;
 
-    private DataColumnReference placeObject;
+    private final DataColumnReference placeObject;
 
     private Place current;
 
@@ -105,6 +105,10 @@ class ZonesWindow
      * Build the main GUI window
      */
     ZonesWindow() {
+        CellRendererPixbuf image;
+        CellRendererText text;
+        final int s_w, s_h, w, h;
+
         window = new Window();
 
         try {
@@ -159,9 +163,6 @@ class ZonesWindow
          * between the former TreeViewColumns whose headings we weren't
          * looking at anyway.
          */
-
-        CellRendererPixbuf image;
-        CellRendererText text;
 
         vertical = view.appendColumn();
 
@@ -301,11 +302,11 @@ class ZonesWindow
         window.showAll();
         window.hide();
 
-        int s_w = window.getScreen().getWidth();
-        int s_h = window.getScreen().getHeight();
+        s_w = window.getScreen().getWidth();
+        s_h = window.getScreen().getHeight();
 
-        int w = window.getWidth();
-        int h = window.getHeight();
+        w = window.getWidth();
+        h = window.getHeight();
 
         window.move(s_w - w - 20, s_h - h - 30);
         window.present();
@@ -314,7 +315,9 @@ class ZonesWindow
          * Fire up the interrupt timer to update the time readouts.
          */
 
-        Thread clock = new Thread() {
+        final Thread clock;
+
+        clock = new Thread() {
             private long last = -1;
 
             public void run() {
@@ -488,9 +491,10 @@ class ZonesWindow
     private static final String BLACK = "black";
 
     private void populate() {
+        final Place[] mock;
         // mock data!
 
-        Place[] mock = new Place[] {
+        mock = new Place[] {
                 new Place("UTC", "Zulu", "Universal Time"),
                 new Place("America/Montreal", "Toronto", "Canada"),
                 new Place("America/Vancouver", "Vancouver", "Canada"),
@@ -513,13 +517,16 @@ class ZonesWindow
         };
 
         for (int i = 0; i < mock.length; i++) {
-            TreeIter pointer = model.appendRow();
+            final TreeIter pointer;
+            final StringBuffer place;
+
+            pointer = model.appendRow();
 
             /*
              * City and country
              */
 
-            StringBuffer place = new StringBuffer();
+            place = new StringBuffer();
             place.append(mock[i].getCity());
             place.append("\n");
             place.append("<span size='x-small' color='");
@@ -552,12 +559,21 @@ class ZonesWindow
     }
 
     void update(long when) {
-        setTimeZone(current.getZoneName());
-        int center = calculateOffset(when);
+        final int center;
+        final TreeIter pointer;
 
-        TreeIter pointer = model.getIterFirst();
+        setTimeZone(current.getZoneName());
+        center = calculateOffset(when);
+
+        pointer = model.getIterFirst();
         do {
-            Place p = (Place) model.getValue(pointer, placeObject);
+            final Place p;
+            final StringBuffer time, offset;
+            final int hours, minutes, fromGMT, halves;
+            final String code;
+            int halvesSinceMidnight;
+
+            p = (Place) model.getValue(pointer, placeObject);
 
             setTimeZone(p.getZoneName());
 
@@ -565,12 +581,12 @@ class ZonesWindow
              * Time, day, and date
              */
 
-            StringBuffer time = new StringBuffer();
+            time = new StringBuffer();
             time.append(formatTime("%H:%M", when));
 
             // before we go any further, extract hours and minutes
-            int hours = Integer.parseInt(time.substring(0, 2));
-            int minutes = Integer.parseInt(time.substring(3, 5));
+            hours = Integer.parseInt(time.substring(0, 2));
+            minutes = Integer.parseInt(time.substring(3, 5));
 
             time.append("\n");
 
@@ -603,10 +619,10 @@ class ZonesWindow
              * Offset and zone code
              */
 
-            int fromGMT = calculateOffset(when);
-            int halves = fromGMT - center;
+            fromGMT = calculateOffset(when);
+            halves = fromGMT - center;
 
-            StringBuffer offset = new StringBuffer();
+            offset = new StringBuffer();
 
             // switch to Times New Roman for a clearer +/-
             offset.append("<span font_desc='Times New Roman'>");
@@ -631,14 +647,14 @@ class ZonesWindow
             offset.append("<span size='x-small' font_desc='Mono' color='");
             offset.append(GRAY);
             offset.append("'>");
-            String code = formatTime("%Z", when);
+            code = formatTime("%Z", when);
             if (code.length() == 3) {
                 offset.append(" ");
             }
 
             offset.append(code);
 
-            int halvesSinceMidnight = hours * 2 + (minutes >= 30 ? 1 : 0);
+            halvesSinceMidnight = hours * 2 + (minutes >= 30 ? 1 : 0);
 
             String foreground;
             String background;
@@ -732,16 +748,19 @@ class ZonesWindow
      *         offset from UTC
      */
     static int calculateOffset(long when) {
-        String rfc822 = formatTime("%z", when);
+        String rfc822;
+        int raw, hours, halves;
+
+        rfc822 = formatTime("%z", when);
 
         // stupidity: parseInt doesn't understand + but it does understand -
         if (rfc822.charAt(0) == '+') {
             rfc822 = rfc822.substring(1);
         }
-        int raw = Integer.parseInt(rfc822);
+        raw = Integer.parseInt(rfc822);
 
-        int hours = raw / 100;
-        int halves = hours * 2;
+        hours = raw / 100;
+        halves = hours * 2;
         if ((raw % 100) != 0) {
             if (raw > 0) {
                 halves++;
@@ -751,5 +770,4 @@ class ZonesWindow
         }
         return halves;
     }
-
 }
