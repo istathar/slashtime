@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=slashtime
+GenericName="Time Zones"
+Comment=View the time at locations around the world
+Path=/home/andrew/workspace/SlashTime
+Exec=./slashtime-java
+Icon=/home/andrew/workspace/SlashTime/share/pixmaps/marble.png
+
