@@ -41,10 +41,6 @@ public class Place
 
     static {
         defaultZoneName = TimeZoneHelper.getUserTimeZone();
-        if (defaultZoneName == null) {
-            defaultZoneName = "";
-            throw new RuntimeException("Could not determine user's timezone.");
-        }
     }
 
     public Place(String zonename, String city, String country) {
