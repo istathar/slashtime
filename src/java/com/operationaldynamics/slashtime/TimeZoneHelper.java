@@ -35,29 +35,26 @@ class TimeZoneHelper
      * through a series of fallbacks:
      * 
      * <ul>
-     * <li>Java property "user.timezone", if set
-     * <li>Environment variable "TZ", if it exists
-     * <li>Contents of file /etc/timezone, if it exists
-     * <li>What zoneinfo file /etc/localtime is pointing at, if it is indeed
-     * a symlink into /usr/share/zoneinfo
+     * <li>Environment variable "<code>TZ</code>", if it is set.
+     * <li>Contents of file <code>/etc/timezone</code>, if it exists
+     * <li>What zoneinfo file <var>/etc/localtime</code> is pointing at, if
+     * it is indeed a symlink into <code>/usr/share/zoneinfo</code>
+     * <li>Java property "<code>user.timezone</code>", if set.
      * </ul>
+     * 
+     * We follow this sequence because the whole basis of slashtime's back end
+     * is that we <i>don't</i> trust Java to get anything TimeZone related
+     * correct. So use system settings as possible, degrading back to Java if
+     * they aren't usable. Doing <code>TZ</code> first allows a power-user
+     * to force the matter if executing from the command line.
      * 
      * @return an empty String if we were not able to find out the user's
      *         timezone, a String representating the timezone otherwise
      *         suitable for creating a Place.
      */
     static String getUserTimeZone() {
-
         /*
-         * 1. Check system property "user.timezone"
-         */
-        final String userTimezone = System.getProperty("user.timezone");
-        if ((userTimezone != null) && !userTimezone.equals("")) {
-            return userTimezone;
-        }
-
-        /*
-         * 2. Check for $TZ
+         * 1. Check for $TZ
          */
         final String tzEnv = System.getenv("TZ");
         if ((tzEnv != null) && !tzEnv.equals("")) {
@@ -65,7 +62,7 @@ class TimeZoneHelper
         }
 
         /*
-         * 3. Check /etc/timezone
+         * 2. Check /etc/timezone
          */
         try {
             final String osName = System.getProperty("os.name");
@@ -90,7 +87,7 @@ class TimeZoneHelper
         }
 
         /*
-         * 4. Check /etc/localtime
+         * 3. Check /etc/localtime
          */
         try {
             final String localtime = "/etc/localtime";
@@ -114,6 +111,14 @@ class TimeZoneHelper
             }
         } catch (final Exception e) {
             // ignore, although we shouldn't expect any.
+        }
+
+        /*
+         * 4. Check system property "user.timezone"
+         */
+        final String userTimezone = System.getProperty("user.timezone");
+        if ((userTimezone != null) && !userTimezone.equals("")) {
+            return userTimezone;
         }
 
         /*
