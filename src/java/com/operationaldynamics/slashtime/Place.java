@@ -1,7 +1,7 @@
 /*
  * Place.java
  * 
- * Copyright (c) 2006 Operational Dynamics Consulting Pty Ltd
+ * Copyright (c) 2006-2008 Operational Dynamics Consulting Pty Ltd, and Others
  * 
  * The code in this file, and the program it is a part of, are made available
  * to you by the authors under the terms of the "GNU General Public Licence,
@@ -10,9 +10,7 @@
  */
 package com.operationaldynamics.slashtime;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 
 /**
  * One of the geographical places for which you want to display information.
@@ -24,69 +22,25 @@ import java.io.FileReader;
  */
 public class Place
 {
-    private String              zoneName;
-    private String              city;
-    private String              country;
-    private static String       defaultZoneName;
+    private String zoneName;
+
+    private String city;
+
+    private String country;
+
+    private static String defaultZoneName;
 
     // halves
-    private int                 startCivilDay = 15;
-    private int                 startWorkDay  = 18;
-    private int                 endWorkDay    = 34;
-    private int                 endCivilDay   = 46;
+    private int startCivilDay = 15;
 
-    /**
-     * The parent directory where the tzfile zoneinfo time zone information
-     * files are stored. TZDIR is the name of the environment variable that
-     * glibc supposedly checks; we could reach through to native to get it I
-     * suppose.
-     */
-    private static final String TZDIR         = "/usr/share/zoneinfo";
+    private int startWorkDay = 18;
 
-    /**
-     * Assumes that /etc/localtime is a symlink to something in TZDIR, or,
-     * failing that, that /etc/timezone contains the name of a file in TZDIR.
-     */
+    private int endWorkDay = 34;
+
+    private int endCivilDay = 46;
+
     static {
-        try {
-            File localtime = new File("/etc/localtime");
-            File timezone = new File("/etc/timezone");
-
-            if (localtime.exists()) {
-                String canonical;
-                /*
-                 * File's getCanonicalPath() returns the absolute and resolved
-                 * filename of a symlink, so from /etc/localtime we get
-                 * /usr/share/zoneinfo/Australia/Sydney from which we can simply
-                 * extract the local zone name.
-                 */
-                canonical = localtime.getCanonicalPath();
-                defaultZoneName = canonical.substring(TZDIR.length() + 1);
-
-            } else if (timezone.exists()) {
-                BufferedReader in;
-                String read;
-                /*
-                 * If the system doesn't have the symlink but does have an
-                 * /etc/timezone file, that's fine, but we now need to verify
-                 * that it actually contains the name of an existing tzfile.
-                 */
-                in = new BufferedReader(new FileReader(timezone));
-                read = in.readLine();
-                if (new File(TZDIR + "/" + read).exists()) {
-                    defaultZoneName = read;
-                } else {
-                    throw new Exception("Warning: /etc/timezone doesn't indicate a valid tzfile in "
-                        + TZDIR);
-                }
-            } else {
-                throw new Exception("Warning: no /etc/localtime symlink or /etc/timezone file found");
-            }
-
-        } catch (Exception e) {
-            System.err.println(e.getMessage());
-            defaultZoneName = "";
-        }
+        defaultZoneName = TimeZoneHelper.getUserTimeZone();
     }
 
     public Place(String zonename, String city, String country) {
@@ -100,10 +54,10 @@ public class Place
     }
 
     /**
-     * Set the common name (typically the name of a city) that will be displayed
-     * for this place.
+     * Set the common name (typically the name of a city) that will be
+     * displayed for this place.
      */
-    public void setCity(String name) {
+    public void setCity(final String name) {
         if (name == null) {
             throw new NullArgumentException();
         }
@@ -135,7 +89,7 @@ public class Place
             throw new IllegalArgumentException();
         }
 
-        String tzfile = TZDIR + "/" + zonename;
+        String tzfile = TimeZoneHelper.TZDIR + "/" + zonename;
 
         if (new File(tzfile).exists()) {
             this.zoneName = zonename;
