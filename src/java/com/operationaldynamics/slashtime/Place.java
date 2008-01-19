@@ -1,7 +1,7 @@
 /*
  * Place.java
  * 
- * Copyright (c) 2006 Operational Dynamics Consulting Pty Ltd
+ * Copyright (c) 2006-2008 Operational Dynamics Consulting Pty Ltd, and Others
  * 
  * The code in this file, and the program it is a part of, are made available
  * to you by the authors under the terms of the "GNU General Public Licence,
@@ -10,9 +10,7 @@
  */
 package com.operationaldynamics.slashtime;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 
 /**
  * One of the geographical places for which you want to display information.
@@ -24,22 +22,28 @@ import java.io.FileReader;
  */
 public class Place
 {
-    private String              zoneName;
-    private String              city;
-    private String              country;
-    private static String       defaultZoneName;
+    private String zoneName;
+
+    private String city;
+
+    private String country;
+
+    private static String defaultZoneName;
 
     // halves
-    private int                 startCivilDay = 15;
-    private int                 startWorkDay  = 18;
-    private int                 endWorkDay    = 34;
-    private int                 endCivilDay   = 46;
+    private int startCivilDay = 15;
+
+    private int startWorkDay = 18;
+
+    private int endWorkDay = 34;
+
+    private int endCivilDay = 46;
 
     static {
         defaultZoneName = TimeZoneHelper.getUserTimeZone();
         if (defaultZoneName == null) {
             defaultZoneName = "";
-            throw new RuntimeException("Could not determine user's timezone.");        
+            throw new RuntimeException("Could not determine user's timezone.");
         }
     }
 
@@ -54,8 +58,8 @@ public class Place
     }
 
     /**
-     * Set the common name (typically the name of a city) that will be displayed
-     * for this place.
+     * Set the common name (typically the name of a city) that will be
+     * displayed for this place.
      */
     public void setCity(final String name) {
         if (name == null) {
