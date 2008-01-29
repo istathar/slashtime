@@ -21,10 +21,14 @@ import java.io.FileNotFoundException;
 
 import org.gnome.gdk.Color;
 import org.gnome.gdk.Event;
+import org.gnome.gdk.EventButton;
 import org.gnome.gdk.EventFocus;
 import org.gnome.gdk.EventVisibility;
+import org.gnome.gdk.MouseButton;
 import org.gnome.gdk.Pixbuf;
 import org.gnome.gdk.VisibilityState;
+import org.gnome.gtk.AboutDialog;
+import org.gnome.gtk.Action;
 import org.gnome.gtk.Alignment;
 import org.gnome.gtk.CellRendererPixbuf;
 import org.gnome.gtk.CellRendererText;
@@ -37,6 +41,7 @@ import org.gnome.gtk.Gtk;
 import org.gnome.gtk.ListStore;
 import org.gnome.gtk.Menu;
 import org.gnome.gtk.StateType;
+import org.gnome.gtk.Stock;
 import org.gnome.gtk.TreeIter;
 import org.gnome.gtk.TreePath;
 import org.gnome.gtk.TreeSelection;
@@ -108,6 +113,7 @@ class ZonesWindow
         CellRendererPixbuf image;
         CellRendererText text;
         final int s_w, s_h, w, h;
+        final Action popMeeting, closeDown, popAbout;
 
         window = new Window();
 
@@ -359,9 +365,7 @@ class ZonesWindow
         /*
          * Create the action to popup a MeetingWindow
          */
-        // final Action popMeeting = new Action("meeting", "Meeting", "Pop up
-        // the Meeting planner",
-        // GtkStockItem.GO_FORWARD.getString());
+        popMeeting = new Action("meeting", "Meeting", "Pop up the Meeting planner", Stock.GO_FORWARD);
         // AccelMap.changeEntry("<ZonesWindow>/Meeting", KeyValue.M,
         // ModifierType.CONTROL_MASK, true);
         //
@@ -369,26 +373,22 @@ class ZonesWindow
         // popMeeting.setAccelPath("<ZonesWindow>/Meeting");
         // popMeeting.connectAccelerator();
         //
-        // popMeeting.addListener(new ActionListener() {
-        // public void actionEvent(ActionEvent action) {
-        // if (action.getType() == ActionEvent.Type.ACTIVATE) {
-        // /*
-        // * And the logic to pop up a MeetingWindow. This seems
-        // * quite burried, and a bit odd to use Action's activate
-        // * to fire this. Perhaps we'll get something out of
-        // * leaving it here.
-        // */
-        // if (Master.meeting == null) {
-        // Master.meeting = new MeetingWindow(target);
-        // } else {
-        // Master.meeting.present();
-        // }
-        // }
-        // }
-        // });
-        //
-        // Action closeDown = new Action("quit", "Quit", "Exit the program",
-        // GtkStockItem.CLOSE.getString());
+        popMeeting.connect(new Action.ACTIVATE() {
+            public void onActivate(Action sourceObject) {
+                /*
+                 * And the logic to pop up a MeetingWindow. This seems quite
+                 * burried, and a bit odd to use Action's activate to fire
+                 * this. Perhaps we'll get something out of leaving it here.
+                 */
+                if (Master.meeting == null) {
+                    Master.meeting = new MeetingWindow(target);
+                } else {
+                    Master.meeting.present();
+                }
+            }
+        });
+
+        closeDown = new Action("quit", "Quit", "Exit the program", Stock.CLOSE);
         // AccelMap.changeEntry("<ZonesWindow>/Quit", KeyValue.Q,
         // ModifierType.CONTROL_MASK, true);
         //
@@ -396,81 +396,54 @@ class ZonesWindow
         // closeDown.setAccelPath("<ZonesWindow>/Quit");
         // closeDown.connectAccelerator();
         //
-        // closeDown.addListener(new ActionListener() {
-        // public void actionEvent(ActionEvent action) {
-        // if (action.getType() == ActionEvent.Type.ACTIVATE) {
-        // Gtk.mainQuit();
-        // }
-        // }
-        // });
-        //
-        // /*
-        // * And code the popup menu:
-        // */
-        //
-        // view.addListener(new MouseListener() {
-        // public boolean mouseEvent(MouseEvent event) {
-        // if (event.getType() == MouseEvent.Type.BUTTON_PRESS) {
-        // if (event.getButtonPressed() == MouseEvent.BUTTON3) {
-        // menu.popup();
-        // }
-        // }
-        // return false;
-        // }
-        // });
-        //
-        // menu = new Menu();
-        //
-        // Image meeting_image = new Image(meeting);
-        // ImageMenuItem meeting = new ImageMenuItem("Meeting...", false);
-        // meeting.setImage(meeting_image);
-        // meeting.addListener(new MenuItemListener() {
-        // public void menuItemEvent(MenuItemEvent event) {
-        // // use the action we created for the accelerator, rather than
-        // // duplicate that logic here.
-        // popMeeting.activate();
-        // }
-        // });
-        // menu.append(meeting);
-        //
-        // Image about_image = new Image(GtkStockItem.ABOUT, IconSize.MENU);
-        // ImageMenuItem about = new ImageMenuItem("About", false);
-        // about.setImage(about_image);
-        // about.addListener(new MenuItemListener() {
-        // public void menuItemEvent(MenuItemEvent event) {
-        // AboutDialog about_dialog = new AboutDialog();
-        // about_dialog.setName("slashtime");
-        // about_dialog.setVersion(Version.VERSION);
-        // about_dialog.setComments("Show the time in various places!");
-        // about_dialog.setCopyright("Copyright 2003-2007 Operational Dynamics
-        // Consulting Pty Ltd\n"
-        // + "Written in java-gnome by Andrew Cowie
-        // <andrew@operationaldynamics.com>\n");
-        // // about_dialog.setAuthors(new String[] {
-        // // "Andrew Cowie <andrew@operationaldynamics.com>",
-        // // });
-        // about_dialog.setLogo(icon);
-        // about_dialog.setIcon(icon);
-        //
-        // about_dialog.run();
-        //
-        // about_dialog.destroy();
-        // }
-        //
-        // });
-        // menu.append(about);
-        //
-        // Image quit_image = new Image(GtkStockItem.QUIT, IconSize.MENU);
-        // ImageMenuItem quit = new ImageMenuItem("Quit", false);
-        // quit.setImage(quit_image);
-        // quit.addListener(new MenuItemListener() {
-        // public void menuItemEvent(MenuItemEvent event) {
-        // Gtk.mainQuit();
-        // }
-        // });
-        // menu.append(quit);
-        //
-        // menu.showAll();
+        closeDown.connect(new Action.ACTIVATE() {
+            public void onActivate(Action source) {
+                Gtk.mainQuit();
+            }
+        });
+
+        popAbout = new Action("about", "About", "Details about this program", Stock.ABOUT);
+        popAbout.connect(new Action.ACTIVATE() {
+            public void onActivate(Action source) {
+                final AboutDialog dialog;
+
+                dialog = new AboutDialog();
+                dialog.setProgramName("slashtime");
+                dialog.setVersion(Version.VERSION);
+                dialog.setComments("Show the time in various places!");
+                dialog.setCopyright("Copyright 2003-2008 Operational Dynamics Consulting Pty Ltd, and Others\n"
+                        + "A tiny java-gnome application originally written by Andrew Cowie");
+                dialog.setAuthors(new String[] {
+                    "Andrew Cowie <andrew@operationaldynamics.com>",
+                });
+                dialog.setLogo(Master.marble);
+
+                dialog.run();
+
+                dialog.hide();
+            }
+        });
+
+        /*
+         * And code the popup menu:
+         */
+
+        view.connect(new Widget.BUTTON_PRESS_EVENT() {
+            public boolean onButtonPressEvent(Widget source, EventButton event) {
+                if (event.getButton() == MouseButton.RIGHT) {
+                    menu.popup();
+                }
+                return false;
+            }
+        });
+
+        menu = new Menu();
+
+        menu.append(popMeeting.createMenuItem());
+        menu.append(popAbout.createMenuItem());
+        menu.append(closeDown.createMenuItem());
+
+        menu.showAll();
         // has to be after map to screen
         selection.unselectAll();
         vertical.clicked();
