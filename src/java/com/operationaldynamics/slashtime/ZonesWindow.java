@@ -10,6 +10,7 @@
  */
 package com.operationaldynamics.slashtime;
 
+import static com.operationaldynamics.slashtime.Master.calendar;
 import static com.operationaldynamics.slashtime.Master.marble;
 import static org.freedesktop.bindings.Time.formatTime;
 import static org.freedesktop.bindings.Time.setTimeZone;
@@ -38,6 +39,8 @@ import org.gnome.gtk.DataColumnPixbuf;
 import org.gnome.gtk.DataColumnReference;
 import org.gnome.gtk.DataColumnString;
 import org.gnome.gtk.Gtk;
+import org.gnome.gtk.Image;
+import org.gnome.gtk.ImageMenuItem;
 import org.gnome.gtk.ListStore;
 import org.gnome.gtk.Menu;
 import org.gnome.gtk.StateType;
@@ -123,7 +126,7 @@ class ZonesWindow
 
             gmt = new Pixbuf("share/pixmaps/marble.png", 23, 23, true);
             home = new Pixbuf("share/pixmaps/home.png", 24, 24, true);
-            meeting = new Pixbuf("share/pixmaps/meeting.png", 20, 20, true);
+            calendar = new Pixbuf("share/pixmaps/meeting.png", 20, 20, true);
         } catch (FileNotFoundException fnfe) {
             System.err.println("Icon file not found");
         }
@@ -365,7 +368,10 @@ class ZonesWindow
         /*
          * Create the action to popup a MeetingWindow
          */
-        popMeeting = new Action("meeting", "Meeting", "Pop up the Meeting planner", Stock.GO_FORWARD);
+        popMeeting = new Action("meeting", "Meeting");
+        popMeeting.setTooltip("Pop up the Meeting planner");
+        // popMeeting = new Action("meeting", "Meeting", "Pop up the Meeting
+        // planner");
         // AccelMap.changeEntry("<ZonesWindow>/Meeting", KeyValue.M,
         // ModifierType.CONTROL_MASK, true);
         //
@@ -439,7 +445,12 @@ class ZonesWindow
 
         menu = new Menu();
 
-        menu.append(popMeeting.createMenuItem());
+        Image m = new Image(Master.calendar);
+
+        ImageMenuItem pm = new ImageMenuItem(m, "");
+        popMeeting.connectProxy(pm);
+
+        menu.append(pm);
         menu.append(popAbout.createMenuItem());
         menu.append(closeDown.createMenuItem());
 

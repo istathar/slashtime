@@ -1,7 +1,7 @@
 /*
  * MeetingWindow.java
  * 
- * Copyright (c) 2006-2007 Operational Dynamics Consulting Pty Ltd
+ * Copyright (c) 2006-2008 Operational Dynamics Consulting Pty Ltd
  * 
  * The code in this file, and the program it is a part of, are made available
  * to you by the authors under the terms of the "GNU General Public Licence,
@@ -11,8 +11,8 @@
 package com.operationaldynamics.slashtime;
 
 import static org.freedesktop.bindings.Time.formatTime;
-import static org.freedesktop.bindings.Time.setTimeZone;
 import static org.freedesktop.bindings.Time.makeTime;
+import static org.freedesktop.bindings.Time.setTimeZone;
 import static org.gnome.gtk.Alignment.CENTER;
 import static org.gnome.gtk.Alignment.LEFT;
 
@@ -24,6 +24,7 @@ import org.gnome.gtk.Calendar;
 import org.gnome.gtk.HBox;
 import org.gnome.gtk.HScale;
 import org.gnome.gtk.Label;
+import org.gnome.gtk.Range;
 import org.gnome.gtk.VBox;
 import org.gnome.gtk.Widget;
 import org.gnome.gtk.Window;
@@ -85,8 +86,8 @@ class MeetingWindow
         window.setPosition(WindowPosition.CENTER);
 
         try {
-            Pixbuf icon = new Pixbuf("share/pixmaps/meeting.png");
-            window.setIcon(icon);
+            Master.calendar = new Pixbuf("share/pixmaps/meeting.png");
+            window.setIcon(Master.calendar);
         } catch (FileNotFoundException fnfe) {
             System.err.println("Icon file not found");
         } catch (Exception e) {
@@ -136,13 +137,11 @@ class MeetingWindow
          */
         calendar = new Calendar();
 
-//        calendar.addListener(new CalendarListener() {
-//            public void calendarEvent(CalendarEvent event) {
-//                if (event.getType() == CalendarEvent.Type.DAY_SELECTED) {
-//                    update();
-//                }
-//            }
-//        });
+        calendar.connect(new Calendar.DAY_SELECTED() {
+            public void onDaySelected(Calendar source) {
+                update();
+            }
+        });
 
         HBox spacer = new HBox(false, 0);
         spacer.packStart(calendar, true, false, 0);
@@ -153,29 +152,23 @@ class MeetingWindow
          * Sliders
          */
 
-//        hour = new HScale(0, 23, 1);
-//        minute = new HScale(0, 59, 15);
-//        minute.setDigits(0);
-
-//        hour.addListener(new RangeListener() {
-//            public void rangeEvent(RangeEvent event) {
-//                if (event.getType() == RangeEvent.Type.VALUE_CHANGED) {
-//                    if (hour.hasFocus()) {
-//                        update();
-//                    }
-//                }
-//            }
-//        });
-//        minute.addListener(new RangeListener() {
-//            public void rangeEvent(RangeEvent event) {
-//                if (event.getType() == RangeEvent.Type.VALUE_CHANGED) {
-//                    if (minute.hasFocus()) {
-//                        update();
-//                    }
-//                }
-//            }
-//        });
-
+        hour = new HScale(0, 23, 1);
+        minute = new HScale(0, 59, 15);
+        minute.setDigits(0);
+        hour.connect(new Range.VALUE_CHANGED() {
+            public void onValueChanged(Range source) {
+                if (hour.getHasFocus()) {
+                    update();
+                }
+            }
+        });
+        minute.connect(new Range.VALUE_CHANGED() {
+            public void onValueChanged(Range source) {
+                if (minute.getHasFocus()) {
+                    update();
+                }
+            }
+        });
         top.packStart(hour, false, false, 0);
         top.packStart(minute, false, false, 0);
 
@@ -235,10 +228,10 @@ class MeetingWindow
 
         setTimeZone(p.getZoneName());
 
-//        int i = Integer.parseInt(nt.format("%H", when));
-//        hour.setValue(i);
-//        int j = Integer.parseInt(nt.format("%M", when));
-//        minute.setValue(j);
+        int i = Integer.parseInt(formatTime("%H", when));
+        hour.setValue(i);
+        int j = Integer.parseInt(formatTime("%M", when));
+        minute.setValue(j);
 
         /*
          * and now that a place is set, reset the ZonesWindow.
@@ -251,13 +244,15 @@ class MeetingWindow
      * settings from this Window.
      */
     private void update() {
-//        double h = hour.getValue();
-//        int i = (int) Math.round(h);
+        double h = hour.getValue();
+        int i = (int) Math.round(h);
 
-//        double m = minute.getValue();
-//        int j = (int) Math.round(m);
+        double m = minute.getValue();
+        int j = (int) Math.round(m);
 
-//        int[] ymd = calendar.getDate();
+        int year = calendar.getDateYear();
+        int month = calendar.getDateMonth();
+        int day = calendar.getDateDay();
 
         /*
          * God knows what gtk_calendar_get_date() does to the environment, so
@@ -265,7 +260,7 @@ class MeetingWindow
          */
         setTimeZone(current.getZoneName());
 
-//        when = makeTime(ymd[0], ymd[1], ymd[2], i, j);
+        when = makeTime(year, month, day, i, j, 0);
 
         placeTime.setLabel("<big><b>" + formatTime("%H:%M", when) + "</b></big>");
         placeDate.setLabel(formatTime("%a, %e %b %y", when));

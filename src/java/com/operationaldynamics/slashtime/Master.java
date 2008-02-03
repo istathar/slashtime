@@ -36,6 +36,8 @@ public final class Master
      */
     static Pixbuf marble;
 
+    static Pixbuf calendar;
+
     public static void main(String[] args) {
         Gtk.init(args);
 
