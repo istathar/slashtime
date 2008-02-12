@@ -1,7 +1,7 @@
 /*
  * DockedIndicator.java
  *
- * Copyright (c) 2007 Operational Dynamics Consulting Pty Ltd
+ * Copyright (c) 2008 Operational Dynamics Consulting Pty Ltd
  * 
  * The code in this file, and the library it is a part of, are made available
  * to you by the authors under the terms of the "GNU General Public Licence,
@@ -17,8 +17,6 @@ import org.gnome.gtk.MenuItem;
 import org.gnome.gtk.StatusIcon;
 import org.gnome.gtk.Stock;
 
-import static com.operationaldynamics.slashtime.Master.marble;
-
 /**
  * Wrapper around a StatusIcon in the notification area. This is somewhat a
  * temporary measure until we have a GNOME applet binding available, but in
@@ -33,12 +31,12 @@ class DockedIndicator
     private Menu menu = null;
 
     DockedIndicator() {
-        si = new StatusIcon(marble);
+        si = new StatusIcon(images.marble);
 
         si.connect(new StatusIcon.ACTIVATE() {
             public void onActivate(StatusIcon source) {
-                Master.zones.updateNow();
-                Master.zones.toggle();
+                ui.zones.updateNow();
+                ui.zones.toggle();
             }
         });
 

@@ -1,7 +1,7 @@
 /*
  * ZonesWindow.java
  * 
- * Copyright (c) 2006-2007 Operational Dynamics Consulting Pty Ltd
+ * Copyright (c) 2006-2008 Operational Dynamics Consulting Pty Ltd
  * 
  * The code in this file, and the program it is a part of, are made available
  * to you by the authors under the terms of the "GNU General Public Licence,
@@ -10,15 +10,11 @@
  */
 package com.operationaldynamics.slashtime;
 
-import static com.operationaldynamics.slashtime.Master.calendar;
-import static com.operationaldynamics.slashtime.Master.marble;
 import static org.freedesktop.bindings.Time.formatTime;
 import static org.freedesktop.bindings.Time.setTimeZone;
 import static org.gnome.gtk.Alignment.CENTER;
 import static org.gnome.gtk.Alignment.LEFT;
 import static org.gnome.gtk.Alignment.TOP;
-
-import java.io.FileNotFoundException;
 
 import org.gnome.gdk.Color;
 import org.gnome.gdk.Event;
@@ -26,7 +22,6 @@ import org.gnome.gdk.EventButton;
 import org.gnome.gdk.EventFocus;
 import org.gnome.gdk.EventVisibility;
 import org.gnome.gdk.MouseButton;
-import org.gnome.gdk.Pixbuf;
 import org.gnome.gdk.VisibilityState;
 import org.gnome.gtk.AboutDialog;
 import org.gnome.gtk.Action;
@@ -81,12 +76,6 @@ class ZonesWindow
 
     private Menu menu;
 
-    private Pixbuf gmt;
-
-    private Pixbuf home;
-
-    private Pixbuf meeting;
-
     private final DataColumnPixbuf iconImage;
 
     private final DataColumnString placeMarkup;
@@ -120,16 +109,7 @@ class ZonesWindow
 
         window = new Window();
 
-        try {
-            marble = new Pixbuf("share/pixmaps/marble.png");
-            window.setIcon(marble);
-
-            gmt = new Pixbuf("share/pixmaps/marble.png", 23, 23, true);
-            home = new Pixbuf("share/pixmaps/home.png", 24, 24, true);
-            calendar = new Pixbuf("share/pixmaps/meeting.png", 20, 20, true);
-        } catch (FileNotFoundException fnfe) {
-            System.err.println("Icon file not found");
-        }
+        window.setIcon(images.marble);
 
         window.setTitle("slashtime");
         window.setDecorated(false);
@@ -235,10 +215,10 @@ class ZonesWindow
                 row = model.getIter(path);
                 current = (Place) model.getValue(row, placeObject);
 
-                if (Master.meeting == null) {
+                if (ui.meeting == null) {
                     updateNow();
                 } else {
-                    Master.meeting.setPlace(current);
+                    ui.meeting.setPlace(current);
                 }
             }
         });
@@ -257,8 +237,8 @@ class ZonesWindow
                     target = current;
                 }
 
-                if (Master.meeting != null) {
-                    Master.meeting.setPlace(target);
+                if (ui.meeting != null) {
+                    ui.meeting.setPlace(target);
                 }
             }
         });
@@ -337,7 +317,7 @@ class ZonesWindow
                         continue;
                     }
 
-                    if (Master.meeting != null) {
+                    if (ui.meeting != null) {
                         continue;
                     }
 
@@ -386,10 +366,10 @@ class ZonesWindow
                  * burried, and a bit odd to use Action's activate to fire
                  * this. Perhaps we'll get something out of leaving it here.
                  */
-                if (Master.meeting == null) {
-                    Master.meeting = new MeetingWindow(target);
+                if (ui.meeting == null) {
+                    ui.meeting = new MeetingWindow(target);
                 } else {
-                    Master.meeting.present();
+                    ui.meeting.present();
                 }
             }
         });
@@ -422,7 +402,7 @@ class ZonesWindow
                 dialog.setAuthors(new String[] {
                     "Andrew Cowie <andrew@operationaldynamics.com>",
                 });
-                dialog.setLogo(Master.marble);
+                dialog.setLogo(images.marble);
 
                 dialog.run();
 
@@ -445,7 +425,7 @@ class ZonesWindow
 
         menu = new Menu();
 
-        Image m = new Image(Master.calendar);
+        Image m = new Image(images.calendar);
 
         ImageMenuItem pm = new ImageMenuItem(m, "");
         popMeeting.connectProxy(pm);
@@ -525,9 +505,9 @@ class ZonesWindow
 
             if (mock[i].isLocal()) {
                 current = mock[i];
-                model.setValue(pointer, iconImage, home);
+                model.setValue(pointer, iconImage, images.home);
             } else if (mock[i].isZulu()) {
-                model.setValue(pointer, iconImage, gmt);
+                model.setValue(pointer, iconImage, images.gmt);
             }
         }
 

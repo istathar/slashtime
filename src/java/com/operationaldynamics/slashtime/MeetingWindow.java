@@ -16,10 +16,7 @@ import static org.freedesktop.bindings.Time.setTimeZone;
 import static org.gnome.gtk.Alignment.CENTER;
 import static org.gnome.gtk.Alignment.LEFT;
 
-import java.io.FileNotFoundException;
-
 import org.gnome.gdk.Event;
-import org.gnome.gdk.Pixbuf;
 import org.gnome.gtk.Calendar;
 import org.gnome.gtk.HBox;
 import org.gnome.gtk.HScale;
@@ -78,21 +75,14 @@ class MeetingWindow
     }
 
     MeetingWindow(Place where) {
-        Master.zones.sortByOffset();
+        ui.zones.sortByOffset();
 
         window = new Window();
         window.setTitle("Find a meeting time");
         window.setDecorated(true);
         window.setPosition(WindowPosition.CENTER);
 
-        try {
-            Master.calendar = new Pixbuf("share/pixmaps/meeting.png");
-            window.setIcon(Master.calendar);
-        } catch (FileNotFoundException fnfe) {
-            System.err.println("Icon file not found");
-        } catch (Exception e) {
-            // because JGException is the stupidest thing I've ever heard of
-        }
+        window.setIcon(images.calendar);
 
         top = new VBox(false, 0);
         Label l;
@@ -188,9 +178,9 @@ class MeetingWindow
         window.connect(new Window.DELETE_EVENT() {
             public boolean onDeleteEvent(Widget source, Event event) {
                 when = -1;
-                Master.meeting = null;
-                Master.zones.sortByWallTime();
-                Master.zones.updateNow();
+                ui.meeting = null;
+                ui.zones.sortByWallTime();
+                ui.zones.updateNow();
                 return false;
             }
         });
@@ -265,7 +255,7 @@ class MeetingWindow
         placeTime.setLabel("<big><b>" + formatTime("%H:%M", when) + "</b></big>");
         placeDate.setLabel(formatTime("%a, %e %b %y", when));
 
-        Master.zones.update(when);
+        ui.zones.update(when);
     }
 
     void present() {
