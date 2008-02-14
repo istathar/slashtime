@@ -352,7 +352,7 @@ class ZonesWindow
         popMeeting.setTooltip("Pop up the Meeting planner");
         // popMeeting = new Action("meeting", "Meeting", "Pop up the Meeting
         // planner");
-        // AccelMap.changeEntry("<ZonesWindow>/Meeting", KeyValue.M,
+        // AccelMap.changeEntry("<ZonesWindow>/Meeting", Keyval.m,
         // ModifierType.CONTROL_MASK, true);
         //
         // popMeeting.setAccelGroup(ag);
@@ -375,7 +375,7 @@ class ZonesWindow
         });
 
         closeDown = new Action("quit", "Quit", "Exit the program", Stock.CLOSE);
-        // AccelMap.changeEntry("<ZonesWindow>/Quit", KeyValue.Q,
+        // AccelMap.changeEntry("<ZonesWindow>/Quit", Keyval.q,
         // ModifierType.CONTROL_MASK, true);
         //
         // closeDown.setAccelGroup(ag);
