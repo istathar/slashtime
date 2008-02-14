@@ -94,7 +94,7 @@ public class Place
         if (new File(tzfile).exists()) {
             this.zoneName = zonename;
         } else {
-            throw new IllegalArgumentException("Timezone data " + tzfile + " not found");
+            throw new IllegalArgumentException("\n" + "Timezone data " + tzfile + " not found");
         }
     }
 

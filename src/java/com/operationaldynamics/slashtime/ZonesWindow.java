@@ -10,11 +10,20 @@
  */
 package com.operationaldynamics.slashtime;
 
+import static java.io.StreamTokenizer.TT_EOF;
+import static java.io.StreamTokenizer.TT_WORD;
 import static org.freedesktop.bindings.Time.formatTime;
 import static org.freedesktop.bindings.Time.setTimeZone;
 import static org.gnome.gtk.Alignment.CENTER;
 import static org.gnome.gtk.Alignment.LEFT;
 import static org.gnome.gtk.Alignment.TOP;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.StreamTokenizer;
+import java.util.ArrayList;
 
 import org.gnome.gdk.Color;
 import org.gnome.gdk.Event;
@@ -440,6 +449,93 @@ class ZonesWindow
         vertical.clicked();
     }
 
+    /**
+     * Attempt to parse ~/.tzlist for Place data. The file format is
+     * 
+     * "zoneinfo" "City" "Country"
+     * 
+     * with one Place expected per line. Lines starting with # are ignored.
+     * TODO needs far better error detection an handling.
+     */
+    private static Place[] loadUserZoneList(File tzlist) {
+        final StreamTokenizer in;
+        final ArrayList<Place> places;
+        String zone, city, country;
+        Place place;
+        final Place[] result;
+
+        places = new ArrayList<Place>(25);
+
+        place = new Place("UTC", "Zulu", "Universal Time");
+        places.add(place);
+
+        try {
+            in = new StreamTokenizer(new FileReader(tzlist));
+
+            in.commentChar('#');
+            in.quoteChar('"');
+
+            zone = null;
+            city = null;
+            country = null;
+
+            while (in.nextToken() != TT_EOF) {
+                if (!((in.ttype == TT_WORD) || (in.ttype == '"'))) {
+                    continue;
+                }
+
+                if (zone == null) {
+                    zone = in.sval;
+                } else if (city == null) {
+                    city = in.sval;
+                } else {
+                    country = in.sval;
+
+                    place = new Place(zone, city, country);
+                    places.add(place);
+
+                    zone = null;
+                    city = null;
+                    country = null;
+                }
+            }
+        } catch (FileNotFoundException fnfe) {
+            // surely not?
+            throw new IllegalStateException(fnfe);
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
+
+        result = new Place[places.size()];
+        return places.toArray(result);
+    }
+
+    private static Place[] loadBackupData() {
+        return new Place[] {
+                new Place("UTC", "Zulu", "Universal Time"),
+                new Place("America/Montreal", "Toronto", "Canada"),
+                new Place("America/Vancouver", "Vancouver", "Canada"),
+                new Place("Australia/Sydney", "Sydney", "Australia"),
+                new Place("Europe/Paris", "Paris", "France"),
+                new Place("America/Halifax", "Halifax", "Canada"),
+                new Place("Europe/London", "London", "UK"),
+                new Place("Asia/Calcutta", "Bangalore", "India"),
+                new Place("Asia/Hong_Kong", "Hong Kong", "China"),
+                new Place("Pacific/Auckland", "Auckland", "New Zealand"),
+                new Place("Pacific/Honolulu", "Hawaii", "USA"),
+                new Place("America/Los_Angeles", "Los Angeles", "USA"),
+                new Place("America/New_York", "New York", "USA"),
+                new Place("America/Edmonton", "Calgary", "Canada"),
+                new Place("Australia/Adelaide", "Adelaide", "Australia"),
+                new Place("Asia/Tokyo", "Tokyo", "Japan"),
+                new Place("Asia/Singapore", "Singapore", "Singapore"),
+                new Place("Asia/Dubai", "Dubai", "UAE"),
+                new Place("Australia/Perth", "Perth", "Australia"),
+                new Place("Europe/Moscow", "Moscow", "Russia"),
+        };
+    }
+
     private static final String DARK = "#777777";
 
     private static final String GRAY = "#A1A1A1";
@@ -455,34 +551,20 @@ class ZonesWindow
     private static final String BLACK = "black";
 
     private void populate() {
-        final Place[] mock;
-        // mock data!
+        final File tzlist;
+        final Place[] places;
 
-        mock = new Place[] {
-                new Place("UTC", "Zulu", "Universal Time"),
-                new Place("America/Montreal", "Toronto", "Canada"),
-                new Place("America/Vancouver", "Vancouver", "Canada"),
-                new Place("Australia/Sydney", "Sydney", "Australia"),
-                new Place("Europe/Paris", "Paris", "France"),
-                new Place("America/Halifax", "Fredericton", "Canada"),
-                new Place("Europe/London", "London", "UK"),
-                new Place("Asia/Calcutta", "Bangalore", "India"),
-                new Place("Asia/Hong_Kong", "Hong Kong", "China"),
-                new Place("Pacific/Auckland", "Auckland", "New Zealand"),
-                new Place("Pacific/Honolulu", "Hawaii", "USA"),
-                new Place("America/Los_Angeles", "Los Angeles", "USA"),
-                new Place("America/New_York", "New York", "USA"),
-                new Place("America/Edmonton", "Calgary", "Canada"),
-                new Place("Australia/Adelaide", "Adelaide", "Australia"),
-                new Place("Asia/Tokyo", "Tokyo", "Japan"),
-                new Place("Asia/Singapore", "Singapore", "Singapore"),
-                new Place("Asia/Dubai", "Dubai", "UAE"),
-                new Place("Australia/Perth", "Perth", "Australia"),
-        };
+        tzlist = new File(System.getProperty("user.home") + "/.tzlist");
 
-        for (int i = 0; i < mock.length; i++) {
+        if (tzlist.exists()) {
+            places = loadUserZoneList(tzlist);
+        } else {
+            places = loadBackupData();
+        }
+
+        for (int i = 0; i < places.length; i++) {
             final TreeIter pointer;
-            final StringBuffer place;
+            final StringBuilder location;
 
             pointer = model.appendRow();
 
@@ -490,29 +572,29 @@ class ZonesWindow
              * City and country
              */
 
-            place = new StringBuffer();
-            place.append(mock[i].getCity());
-            place.append("\n");
-            place.append("<span size='x-small' color='");
-            place.append(GRAY);
-            place.append("'>");
-            place.append(mock[i].getCountry());
-            place.append(" "); // necessary or row grows abnormally
-            place.append("</span>");
+            location = new StringBuilder();
+            location.append(places[i].getCity());
+            location.append("\n");
+            location.append("<span size='x-small' color='");
+            location.append(GRAY);
+            location.append("'>");
+            location.append(places[i].getCountry());
+            location.append(" "); // necessary or row grows abnormally
+            location.append("</span>");
 
-            model.setValue(pointer, placeMarkup, place.toString());
-            model.setValue(pointer, placeObject, mock[i]);
+            model.setValue(pointer, placeMarkup, location.toString());
+            model.setValue(pointer, placeObject, places[i]);
 
-            if (mock[i].isLocal()) {
-                current = mock[i];
+            if (places[i].isLocal()) {
+                current = places[i];
                 model.setValue(pointer, iconImage, images.home);
-            } else if (mock[i].isZulu()) {
+            } else if (places[i].isZulu()) {
                 model.setValue(pointer, iconImage, images.gmt);
             }
         }
 
         if (current == null) {
-            current = mock[0]; // FIXME set to UTC directly
+            current = places[0]; // FIXME set to UTC directly
         }
 
         target = current;
