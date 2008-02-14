@@ -15,10 +15,16 @@ import java.io.File;
 import java.io.FileReader;
 
 /**
- * Utilities to determine the current user's timezone.
+ * Utilities to deal with the vagueries of where zoneinfo data may be and
+ * which zone the user may presently be in. This is actually much harder than
+ * it ought to be, as different distros over time have historically specified
+ * this in widely varying ways.
  * 
  * @author Andrew Cowie
- * @author Benjamin P. Jung
+ * @author Benjamin Jung
+ */
+/*
+ * TODO needs a better class name
  */
 class TimeZoneHelper
 {
@@ -28,11 +34,34 @@ class TimeZoneHelper
      * glibc supposedly checks; we could reach through to native to get it I
      * suppose.
      */
-    static final String TZDIR = "/usr/share/zoneinfo";
+    private static final String TZDIR = "/usr/share/zoneinfo";
 
     /**
-     * Attempt to determine the timezone of the current user. This progresses
-     * through a series of fallbacks:
+     * Check that a zoneinfo file actually exists on the system for the given
+     * time zone, and that thereby this is a valid zone name.
+     * 
+     * @throws IllegalArgumentException
+     *             If time zone data is not found.
+     */
+    /*
+     * Hard coded to only look in one palce, obviously. That could conceivably
+     * change if we were to port to a system not using the glibc zoneinfo
+     * database.
+     */
+    static void verifyZoneExists(final String zonename) {
+        final String tzfile;
+
+        tzfile = TZDIR + "/" + zonename;
+
+        if (!(new File(tzfile).exists())) {
+            throw new IllegalArgumentException("\n" + "Timezone data " + tzfile + " not found");
+        }
+    }
+
+    /**
+     * Attempt to determine the current timezone of the user (which is largely
+     * defined as the timezone of the system). This progresses through a
+     * series of fallbacks:
      * 
      * <ul>
      * <li>Environment variable "<code>TZ</code>", if it is set.

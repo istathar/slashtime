@@ -10,7 +10,7 @@
  */
 package com.operationaldynamics.slashtime;
 
-import java.io.File;
+import static com.operationaldynamics.slashtime.TimeZoneHelper.verifyZoneExists;
 
 /**
  * One of the geographical places for which you want to display information.
@@ -89,13 +89,9 @@ public class Place
             throw new IllegalArgumentException();
         }
 
-        String tzfile = TimeZoneHelper.TZDIR + "/" + zonename;
+        verifyZoneExists(zonename);
 
-        if (new File(tzfile).exists()) {
-            this.zoneName = zonename;
-        } else {
-            throw new IllegalArgumentException("\n" + "Timezone data " + tzfile + " not found");
-        }
+        this.zoneName = zonename;
     }
 
     public String getCountry() {
