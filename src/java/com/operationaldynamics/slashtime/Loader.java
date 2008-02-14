@@ -13,6 +13,7 @@ package com.operationaldynamics.slashtime;
 import static java.io.StreamTokenizer.TT_EOF;
 import static java.io.StreamTokenizer.TT_EOL;
 import static java.io.StreamTokenizer.TT_WORD;
+import static java.lang.System.getProperty;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -41,7 +42,7 @@ final class Loader
     static Place[] loadPlaceList() {
         final File file;
 
-        file = new File(System.getProperty("user.home") + "/.tzlist");
+        file = new File(getProperty("user.home") + "/.tzlist");
 
         if (file.exists()) {
             return loadUserZoneList(file);
@@ -53,7 +54,7 @@ final class Loader
     /**
      * Attempt to parse ~/.tzlist for Place data. The file format is
      * 
-     * "zoneinfo" "City" "Country"
+     * "zonename" "City" "Country"
      * 
      * with one Place expected per line. Lines starting with # are ignored.
      */
@@ -64,7 +65,7 @@ final class Loader
      */
     private static Place[] loadUserZoneList(File tzlist) {
         final LineNumberReader line;
-        final StreamTokenizer in;
+        final StreamTokenizer parser;
         final ArrayList<Place> places;
         String zone, city, country;
         Place place;
@@ -79,19 +80,19 @@ final class Loader
             line = new LineNumberReader(new FileReader(tzlist));
             line.mark(128);
 
-            in = new StreamTokenizer(line);
-            in.commentChar('#');
-            in.quoteChar('"');
-            in.eolIsSignificant(true);
+            parser = new StreamTokenizer(line);
+            parser.commentChar('#');
+            parser.quoteChar('"');
+            parser.eolIsSignificant(true);
 
             zone = null;
             city = null;
             country = null;
 
-            while (in.nextToken() != TT_EOF) {
-                if (in.ttype == TT_EOL) {
+            while (parser.nextToken() != TT_EOF) {
+                if (parser.ttype == TT_EOL) {
                     if (!((zone == null) && (city == null) && (country == null))) {
-                        System.err.println("Warning, premature EOL, line " + in.lineno() + ":");
+                        System.err.println("Warning: premature EOL, line " + parser.lineno() + ":");
                         line.reset();
                         System.err.println(line.readLine());
                     }
@@ -104,16 +105,16 @@ final class Loader
                     continue;
                 }
 
-                if (!((in.ttype == TT_WORD) || (in.ttype == '"'))) {
+                if (!((parser.ttype == TT_WORD) || (parser.ttype == '"'))) {
                     continue;
                 }
 
                 if (zone == null) {
-                    zone = in.sval;
+                    zone = parser.sval;
                 } else if (city == null) {
-                    city = in.sval;
+                    city = parser.sval;
                 } else if (country == null) {
-                    country = in.sval;
+                    country = parser.sval;
 
                     place = new Place(zone, city, country);
                     places.add(place);
@@ -125,6 +126,8 @@ final class Loader
                     continue;
                 }
             }
+            
+            line.close();
         } catch (FileNotFoundException fnfe) {
             // surely not? We already checked its existence
             throw new IllegalStateException(fnfe);
@@ -139,9 +142,11 @@ final class Loader
 
     /**
      * Hard coded default data to use in the event the user lacks a .tzlist
-     * file. UTC first, as required later.
+     * file. UTC first, as required elsewhere.
      */
     private static Place[] loadFallbackData() {
+        System.err.println("Warning: ~/.tzlist not found. Using fallback Place list instead.");
+
         return new Place[] {
                 new Place("UTC", "Zulu", "Universal Time"),
                 new Place("America/Montreal", "Toronto", "Canada"),
