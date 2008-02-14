@@ -10,20 +10,12 @@
  */
 package com.operationaldynamics.slashtime;
 
-import static java.io.StreamTokenizer.TT_EOF;
-import static java.io.StreamTokenizer.TT_WORD;
+import static com.operationaldynamics.slashtime.Loader.loadPlaceList;
 import static org.freedesktop.bindings.Time.formatTime;
 import static org.freedesktop.bindings.Time.setTimeZone;
 import static org.gnome.gtk.Alignment.CENTER;
 import static org.gnome.gtk.Alignment.LEFT;
 import static org.gnome.gtk.Alignment.TOP;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.StreamTokenizer;
-import java.util.ArrayList;
 
 import org.gnome.gdk.Color;
 import org.gnome.gdk.Event;
@@ -83,7 +75,7 @@ class ZonesWindow
 
     private final TreeSelection selection;
 
-    private Menu menu;
+    private final Menu menu;
 
     private final DataColumnPixbuf iconImage;
 
@@ -449,93 +441,6 @@ class ZonesWindow
         vertical.clicked();
     }
 
-    /**
-     * Attempt to parse ~/.tzlist for Place data. The file format is
-     * 
-     * "zoneinfo" "City" "Country"
-     * 
-     * with one Place expected per line. Lines starting with # are ignored.
-     * TODO needs far better error detection an handling.
-     */
-    private static Place[] loadUserZoneList(File tzlist) {
-        final StreamTokenizer in;
-        final ArrayList<Place> places;
-        String zone, city, country;
-        Place place;
-        final Place[] result;
-
-        places = new ArrayList<Place>(25);
-
-        place = new Place("UTC", "Zulu", "Universal Time");
-        places.add(place);
-
-        try {
-            in = new StreamTokenizer(new FileReader(tzlist));
-
-            in.commentChar('#');
-            in.quoteChar('"');
-
-            zone = null;
-            city = null;
-            country = null;
-
-            while (in.nextToken() != TT_EOF) {
-                if (!((in.ttype == TT_WORD) || (in.ttype == '"'))) {
-                    continue;
-                }
-
-                if (zone == null) {
-                    zone = in.sval;
-                } else if (city == null) {
-                    city = in.sval;
-                } else {
-                    country = in.sval;
-
-                    place = new Place(zone, city, country);
-                    places.add(place);
-
-                    zone = null;
-                    city = null;
-                    country = null;
-                }
-            }
-        } catch (FileNotFoundException fnfe) {
-            // surely not?
-            throw new IllegalStateException(fnfe);
-        } catch (IOException e) {
-            e.printStackTrace();
-            System.exit(1);
-        }
-
-        result = new Place[places.size()];
-        return places.toArray(result);
-    }
-
-    private static Place[] loadBackupData() {
-        return new Place[] {
-                new Place("UTC", "Zulu", "Universal Time"),
-                new Place("America/Montreal", "Toronto", "Canada"),
-                new Place("America/Vancouver", "Vancouver", "Canada"),
-                new Place("Australia/Sydney", "Sydney", "Australia"),
-                new Place("Europe/Paris", "Paris", "France"),
-                new Place("America/Halifax", "Halifax", "Canada"),
-                new Place("Europe/London", "London", "UK"),
-                new Place("Asia/Calcutta", "Bangalore", "India"),
-                new Place("Asia/Hong_Kong", "Hong Kong", "China"),
-                new Place("Pacific/Auckland", "Auckland", "New Zealand"),
-                new Place("Pacific/Honolulu", "Hawaii", "USA"),
-                new Place("America/Los_Angeles", "Los Angeles", "USA"),
-                new Place("America/New_York", "New York", "USA"),
-                new Place("America/Edmonton", "Calgary", "Canada"),
-                new Place("Australia/Adelaide", "Adelaide", "Australia"),
-                new Place("Asia/Tokyo", "Tokyo", "Japan"),
-                new Place("Asia/Singapore", "Singapore", "Singapore"),
-                new Place("Asia/Dubai", "Dubai", "UAE"),
-                new Place("Australia/Perth", "Perth", "Australia"),
-                new Place("Europe/Moscow", "Moscow", "Russia"),
-        };
-    }
-
     private static final String DARK = "#777777";
 
     private static final String GRAY = "#A1A1A1";
@@ -551,16 +456,9 @@ class ZonesWindow
     private static final String BLACK = "black";
 
     private void populate() {
-        final File tzlist;
         final Place[] places;
 
-        tzlist = new File(System.getProperty("user.home") + "/.tzlist");
-
-        if (tzlist.exists()) {
-            places = loadUserZoneList(tzlist);
-        } else {
-            places = loadBackupData();
-        }
+        places = loadPlaceList();
 
         for (int i = 0; i < places.length; i++) {
             final TreeIter pointer;
