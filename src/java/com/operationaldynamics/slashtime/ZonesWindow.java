@@ -308,35 +308,38 @@ class ZonesWindow
         final Thread clock;
 
         clock = new Thread() {
-            private long last = -1;
-
             public void run() {
+                // ms
+                long time, delay;
+                // s
+                long tick;
+
                 while (true) {
+                    time = System.currentTimeMillis();
+                    delay = 60000 - time % 60000;
+
                     try {
-                        Thread.sleep(1000);
+                        Thread.sleep(delay);
                     } catch (InterruptedException ie) {
-                        continue;
+                        /*
+                         * It sure would benice if interrupt() actually did
+                         * happen as a result of the process being paused [by
+                         * the shell, suspend, hibernate] and then resumed.
+                         * So, TODO we'll need some hacky logic to deal with
+                         * that. Some other Thread to watch a /sys file?
+                         * Listen for a DBus message? Either way, that thread
+                         * can then interrupt() this one.
+                         */
                     }
 
                     if (ui.meeting != null) {
                         continue;
                     }
 
-                    long tick = System.currentTimeMillis() / 1000;
+                    time = System.currentTimeMillis();
 
-                    if ((tick % 60) == 0) {
-                        update(tick);
-                    } else if ((last + 1) != tick) {
-                        /*
-                         * There is the annoying case that if we've come back
-                         * from a suspend the time display is wrong until the
-                         * next minute occurs. So we keep track of the
-                         * previous tick and if it isn't one less than the
-                         * current one we call the update method.
-                         */
-                        update(tick);
-                    }
-                    last = tick;
+                    tick = time / 1000;
+                    update(tick);
                 }
             }
         };
@@ -508,6 +511,10 @@ class ZonesWindow
 
         setTimeZone(current.getZoneName());
         center = calculateOffset(when);
+
+        if (false) {
+            System.out.println("update(" + formatTime("%e %b %y %H:%M:%S", when) + ")");
+        }
 
         pointer = model.getIterFirst();
         do {

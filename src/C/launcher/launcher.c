@@ -11,8 +11,8 @@ int main(int argc, char** argv) {
 		
 	pid = fork();
 	if (pid == 0) {
-		execlp("/opt/sun-jdk-1.5.0.13/bin/java",
-			"/opt/sun-jdk-1.5.0.13/bin/java", 	
+		execlp("/opt/sun-jdk-1.6.0.04/bin/java",
+			"/opt/sun-jdk-1.6.0.04/bin/java", 	
 			"-client", 
 			"-classpath","/home/andrew/src/andrew/java-gnome/primary/tmp/gtk-4.0.jar:tmp/classes",
         		"-Djava.library.path=/home/andrew/src/andrew/java-gnome/primary/tmp:tmp",
