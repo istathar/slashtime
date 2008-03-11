@@ -64,25 +64,29 @@ tmp/stamp/compile: $(SOURCES_DIST)
 # Installation
 # --------------------------------------------------------------------
 
-#install: tmp/stamp/compile tmp/stamp/dirs-install
 install: all $(DESTDIR)$(PREFIX) \
-		$(DESTDIR)$(PREFIX)/bin/slashtime \
-		$(DESTDIR)$(PREFIX)/share/java/slashtime.jar
+		$(DESTDIR)$(PREFIX)/share/java/slashtime.jar \
+		$(DESTDIR)$(PREFIX)/share/pixmaps \
+		$(DESTDIR)$(PREFIX)/bin/slashtime
 
 $(DESTDIR)$(PREFIX):
-	@echo -e "MKDIR\t$(DESTDIR)$(PREFIX)/"
-	-@mkdir -p $(DESTDIR)$(PREFIX)
-	-@mkdir    $(DESTDIR)$(PREFIX)/bin
-	-@mkdir -p $(DESTDIR)$(PREFIX)/share/java
-	touch $@
+	@echo -e "MKDIR\t$(DESTDIR)$(PREFIX)/ tree"
+	-mkdir -p $(DESTDIR)$(PREFIX)
+	-mkdir    $(DESTDIR)$(PREFIX)/bin
+	-mkdir -p $(DESTDIR)$(PREFIX)/share/java
 
 $(DESTDIR)$(PREFIX)/bin/slashtime: slashtime
-	@echo -e "INSTALL\t$@"
+	@echo -e "WRITE\t$@"
 	cp -f $< $@
 
 tmp/slashtime.jar: tmp/stamp/compile
 	@echo -e "$(JAR_CMD)\t$@"
 	$(JAR) -cf tmp/slashtime.jar -C tmp/classes .
+
+$(DESTDIR)$(PREFIX)/share/pixmaps: share/pixmaps/*.png
+	-mkdir    $(DESTDIR)$(PREFIX)/share/pixmaps
+	@echo -e "INSTALL\t$@"
+	cp -f $^ $@
 
 $(DESTDIR)$(PREFIX)/share/java/slashtime.jar: tmp/slashtime.jar
 	@echo -e "INSTALL\t$@"
