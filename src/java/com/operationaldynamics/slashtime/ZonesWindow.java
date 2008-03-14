@@ -142,7 +142,7 @@ class ZonesWindow
         });
 
         view = new TreeView(model);
-        // view.setRulesHint(false);
+        view.setRulesHint(false);
         view.setHeadersVisible(false);
         view.setEnableSearch(false);
 
