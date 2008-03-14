@@ -472,15 +472,10 @@ output "\n";
 # --------------------------------------------------------------------
 
 my @java_gnome_jars;
+my @java_gnome_libs;
 my $jni_path;
 
 output "Check for required jar files:\n";
-
-
-# ADVICE TO PEOPLE EXTENDING THIS SECTION FOR THEIR OWN OPERATING SYSTEM:
-# You might as well list things in such an order that you tell the builder
-# the package whose dependencies will bring the rest of the pre-requisites 
-# in along the way...
 
 if ($os eq "gentoo") {
 
@@ -488,23 +483,44 @@ if ($os eq "gentoo") {
 		check_prereq(@java_gnome_jars,
 			"java-gnome UI library",
 			"java-gnome",
-			"$java_gnome_home/share/java-gnome/lib/gtk-4.0.jar",
+			"$java_gnome_home/share/java/lib/gtk-4.0.jar",
 			"$java_gnome_home/tmp/gtk-4.0.jar");
+
+		if ( -f "$java_gnome_home/tmp/libgtkjni-4.0.so" ) {
+			@java_gnome_libs = ( "$java_gnome_home/tmp" );
+		} else {
+			@java_gnome_libs = ( "$java_gnome_home/lib" );
+		}
 	} else {
 		check_prereq(@java_gnome_jars,
 			"java-gnome UI library",
 			"java-gnome",
-			"/usr/share/java-gnome/lib/gtk-4.0.jar");
+			"/usr/share/java-gnome-4.0/lib/gtk-4.0.jar");
+		@java_gnome_libs = ( "/usr/lib/java-gnome-4.0");
 	}
 
 
 } elsif ($os eq "debian") {
 
-	check_prereq(@java_gnome_jars,
-		"java-gnome UI library",
-		"java-gnome",
-		"$java_gnome_home/share/java-gnome/lib/gtk-4.0.jar",
-		"~/share/java/gtk-4.0.jar");
+	if ($java_gnome_home) {
+		check_prereq(@java_gnome_jars,
+			"java-gnome UI library",
+			"java-gnome",
+			"$java_gnome_home/share/java-gnome/lib/gtk-4.0.jar");
+
+		if ( -f "$java_gnome_home/tmp/libgtkjni-4.0.so" ) {
+			@java_gnome_libs = ( "$java_gnome_home/tmp" );
+		} else {
+			@java_gnome_libs = ( "$java_gnome_home/lib" );
+		}
+	} else {
+		check_prereq(@java_gnome_jars,
+			"java-gnome UI library",
+			"java-gnome",
+			"/usr/share/java/gtk-4.0.jar",
+			"~/share/java/gtk-4.0.jar");
+		@java_gnome_libs = ( "/usr/lib/jni", "~/lib" );
+	}
 
 	
 } elsif ($os eq "fedora") {
@@ -1177,18 +1193,24 @@ HERE
 	}
 }
 
+my $JAVA;
+
 if ($runtime eq "java") {
 	print CONFIG "JAVA=$java\n";
 	print CONFIG "JAVA_CMD=JAVA\n";
+	$JAVA=$java;
 } elsif ($runtime eq "kaffe") {
 	print CONFIG "JAVA=$kaffe\n";
 	print CONFIG "JAVA_CMD=KAFFE\n";
+	$JAVA=$kaffe
 } elsif ($runtime eq "cacao") {
 	print CONFIG "JAVA=$cacao\n";
 	print CONFIG "JAVA_CMD=CACAO\n";
+	$JAVA=$cacao
 } elsif ($runtime eq "jamvm") {
 	print CONFIG "JAVA=$jamvm\n";
 	print CONFIG "JAVA_CMD=JAMVM\n";
+	$JAVA=$jamvm
 } else {
 	bail "failed", "INTERNAL ERROR no virtual machine selected";
 }
@@ -1205,11 +1227,14 @@ print CONFIG <<HERE ;
 
 HERE
 
+my $PREFIX;
+
 if ($prefix) {
-	print CONFIG "PREFIX=$prefix\n";
+	$PREFIX=$prefix;
 } else {
-	print CONFIG "PREFIX=/usr\n";
+	$PREFIX="/usr";
 }
+print CONFIG "PREFIX=$PREFIX\n";
 
 # --------------------------------------------------------------------
 # Get version constant
@@ -1249,4 +1274,53 @@ system "mv .config.tmp .config";
 
 output "ok\n";
 output "\n";
+
+
+# --------------------------------------------------------------------
+# Done! Create in-place launcher file
+# --------------------------------------------------------------------
+
+my $JAVAGNOME_JARS = join(":", @java_gnome_jars);
+my $JAVAGNOME_LIBPATH = join(":", @java_gnome_libs);
+
+mkdir "tmp/";
+mkdir "tmp/launcher";
+
+open LAUNCHER, ">tmp/launcher/slashtime-local";
+print LAUNCHER <<HERE ;
+#! /opt/local/cafesociety/bin/cafe
+
+[Java]
+runtime=$JAVA
+
+[Program]
+main=com.operationaldynamics.slashtime.Master
+classpath=tmp/classes
+workdir=.
+
+[Requires]
+classpath=$JAVAGNOME_JARS
+libpath=$JAVAGNOME_LIBPATH
+HERE
+
+close LAUNCHER;
+
+open LAUNCHER, ">tmp/launcher/slashtime-install";
+print LAUNCHER <<HERE ;
+#! /opt/local/cafesociety/bin/cafe
+
+[Java]
+runtime=$JAVA
+
+[Program]
+main=com.operationaldynamics.slashtime.Master
+classpath=$PREFIX/share/java/slashtime.jar
+workdir=$PREFIX
+
+[Requires]
+classpath=$JAVAGNOME_JARS
+libpath=$JAVAGNOME_LIBPATH
+HERE
+
+close LAUNCHER;
 

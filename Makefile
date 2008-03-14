@@ -26,7 +26,7 @@ all: setup build
 setup: 
 	test -d tmp/stamp || mkdir -p tmp/stamp
 
-build: .config tmp/stamp/dirs tmp/stamp/compile
+build: .config tmp/stamp/dirs tmp/stamp/compile slashtime
 
 .config: src/java/com/operationaldynamics/slashtime/Version.java
 	echo
@@ -45,6 +45,7 @@ tmp/stamp/dirs:
 	@echo -e "MKDIR\tpreping temporary files and build directories"
 	-test -d tmp/classes || mkdir -p tmp/classes
 	-test -d tmp/stamp || mkdir -p tmp/stamp
+	-test -d tmp/launcher || mkdir -p tmp/launcher
 	touch $@
 
 # --------------------------------------------------------------------
@@ -60,31 +61,48 @@ tmp/stamp/compile: $(SOURCES_DIST)
 	$(JAVAC) -d tmp/classes -classpath tmp/classes:$(CLASSPATH) -sourcepath src/java $^
 	touch $@
 
+slashtime: tmp/launcher/slashtime-local
+	@echo -e "INSTALL\t$@"
+	cp -f $< $@
+	chmod +x $@
+
 # --------------------------------------------------------------------
 # Installation
 # --------------------------------------------------------------------
 
-install: all $(DESTDIR)$(PREFIX) \
+install: all \
+		$(DESTDIR)$(PREFIX) \
+		$(DESTDIR)$(PREFIX)/bin \
+		$(DESTDIR)$(PREFIX)/share/java \
 		$(DESTDIR)$(PREFIX)/share/java/slashtime.jar \
 		$(DESTDIR)$(PREFIX)/share/pixmaps \
 		$(DESTDIR)$(PREFIX)/bin/slashtime
 
 $(DESTDIR)$(PREFIX):
-	@echo -e "MKDIR\t$(DESTDIR)$(PREFIX)/ tree"
+	@echo -e "MKDIR\t$(DESTDIR)$(PREFIX)/"
 	-mkdir -p $(DESTDIR)$(PREFIX)
-	-mkdir    $(DESTDIR)$(PREFIX)/bin
-	-mkdir -p $(DESTDIR)$(PREFIX)/share/java
 
-$(DESTDIR)$(PREFIX)/bin/slashtime: slashtime
-	@echo -e "WRITE\t$@"
+$(DESTDIR)$(PREFIX)/bin:
+	@echo -e "MKDIR\t$@/"
+	-mkdir -p $@
+
+$(DESTDIR)$(PREFIX)/share/java:
+	@echo -e "MKDIR\t$@/"
+	-mkdir -p $@
+
+$(DESTDIR)$(PREFIX)/bin/slashtime: tmp/launcher/slashtime-install
+	@echo -e "INSTALL\t$@"
 	cp -f $< $@
+	chmod +x $@
+
 
 tmp/slashtime.jar: tmp/stamp/compile
 	@echo -e "$(JAR_CMD)\t$@"
 	$(JAR) -cf tmp/slashtime.jar -C tmp/classes .
 
 $(DESTDIR)$(PREFIX)/share/pixmaps: share/pixmaps/*.png
-	-mkdir    $(DESTDIR)$(PREFIX)/share/pixmaps
+	@echo -e "MKDIR\t$@/"
+	-mkdir $@
 	@echo -e "INSTALL\t$@"
 	cp -f $^ $@
 
@@ -102,14 +120,17 @@ $(DESTDIR)$(PREFIX)/share/java/slashtime.jar: tmp/slashtime.jar
 # here, then `make clean all` fails]
 clean:
 	@echo -e "RM\ttemporary build directories"
-	-rm -rf tmp
+	-rm -rf tmp/classes
+	-rm -rf tmp/stamp
 	-rm -rf hs_err_*
-#	@echo "RM        executables and wrappers"
-#	-rm -f slashtime
+	@echo -e "RM\texecutables and wrappers"
+	-rm -f tmp/slashtime.jar
+	-rm -f slashtime
 
 distclean: clean
 	@echo -e "RM\tbuild configuration information"
 	-rm -f .config .config.tmp
+	-rm -rf tmp/
 #	@echo "RM        generated documentation"
 #	-rm -f doc/api/*
 
