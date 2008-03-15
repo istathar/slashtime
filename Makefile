@@ -76,6 +76,8 @@ install: all \
 		$(DESTDIR)$(PREFIX)/share/java \
 		$(DESTDIR)$(PREFIX)/share/java/slashtime.jar \
 		$(DESTDIR)$(PREFIX)/share/pixmaps \
+		$(DESTDIR)$(PREFIX)/share/applications \
+		$(DESTDIR)$(PREFIX)/share/applications/slashtime.desktop \
 		$(DESTDIR)$(PREFIX)/bin/slashtime
 
 $(DESTDIR)$(PREFIX):
@@ -90,11 +92,18 @@ $(DESTDIR)$(PREFIX)/share/java:
 	@echo -e "MKDIR\t$@/"
 	-mkdir -p $@
 
+$(DESTDIR)$(PREFIX)/share/applications:
+	@echo -e "MKDIR\t$@/"
+	-mkdir -p $@
+
 $(DESTDIR)$(PREFIX)/bin/slashtime: tmp/launcher/slashtime-install
 	@echo -e "INSTALL\t$@"
 	cp -f $< $@
 	chmod +x $@
 
+$(DESTDIR)$(PREFIX)/share/applications/slashtime.desktop: tmp/launcher/slashtime.desktop
+	@echo -e "INSTALL\t$@"
+	cp -f $< $@
 
 tmp/slashtime.jar: tmp/stamp/compile
 	@echo -e "$(JAR_CMD)\t$@"
