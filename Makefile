@@ -158,8 +158,6 @@ dist: all
 	@echo -e "EXPORT\ttmp/slashtime-$(VERSION)"
 	-rm -rf tmp/slashtime-$(VERSION)
 	bzr export --format=dir tmp/slashtime-$(VERSION)
-	@echo -e "RM\tnon essential files"
-	rm -r tmp/slashtime-$(VERSION)/web
 	@echo -e "TAR\tslashtime-$(VERSION).tar.bz2"
 	tar cjf slashtime-$(VERSION).tar.bz2 -C tmp slashtime-$(VERSION)
 	rm -r tmp/slashtime-$(VERSION)
