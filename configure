@@ -1241,11 +1241,15 @@ print CONFIG "PREFIX=$PREFIX\n";
 # Get version constant
 # --------------------------------------------------------------------
 
+my $apiversion;
 my $version;
 
 open SOURCE, "src/java/com/operationaldynamics/slashtime/Version.java";
 while (<SOURCE>) {
 	chomp;
+	if (/.* APIVERSION = \"([\d\.]+)\";/) {
+		$apiversion = $1;
+	}
 	if (/.* VERSION = \"([\d\.]+)\";/) {
 		$version = $1;
 	}
@@ -1263,6 +1267,7 @@ print CONFIG <<HERE ;
 
 HERE
 
+print CONFIG "APIVERSION=$apiversion\n";
 print CONFIG "VERSION=$version\n";
 
 # --------------------------------------------------------------------
@@ -1284,8 +1289,7 @@ output "ok\n";
 
 my $JAVAGNOME_JARS = join(":", @java_gnome_jars);
 my $JAVAGNOME_LIBPATH = join(":", @java_gnome_libs);
-my $SLASHTIME_JARS="$PREFIX/share/java/slashtime.jar";
-
+my $SLASHTIME_JARS="$PREFIX/share/java/slashtime-$apiversion.jar";
 
 output "Write launcher files:";
 
