@@ -36,10 +36,10 @@ public final class Master
 
     private static void loadImages() {
         try {
-            images.marble = new Pixbuf("share/pixmaps/marble.png");
-            images.gmt = new Pixbuf("share/pixmaps/marble.png", 23, 23, true);
-            images.home = new Pixbuf("share/pixmaps/home.png", 24, 24, true);
-            images.calendar = new Pixbuf("share/pixmaps/meeting.png", 20, 20, true);
+            images.marble = new Pixbuf("share/pixmaps/slashtime-marble.png");
+            images.gmt = new Pixbuf("share/pixmaps/slashtime-marble.png", 23, 23, true);
+            images.home = new Pixbuf("share/pixmaps/slashtime-home.png", 24, 24, true);
+            images.calendar = new Pixbuf("share/pixmaps/slashtime-meeting.png", 20, 20, true);
         } catch (FileNotFoundException fnfe) {
             System.err.println("Icon file not found: " + fnfe.getMessage());
         }

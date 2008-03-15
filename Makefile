@@ -8,25 +8,11 @@ else
 MAKEFLAGS=-s
 endif
 
-ifdef D
-DEBUG=--debug=all
-endif
-
-.PHONY: all run clean distclean
-
-# --------------------------------------------------------------------
-# Variable setup. You may want to set your editor to wrap to see the
-# full CLASSPATH
-# --------------------------------------------------------------------
+.PHONY: all dirs clean distclean
 
 -include .config
 
-all: setup build
-
-setup: 
-	test -d tmp/stamp || mkdir -p tmp/stamp
-
-build: .config tmp/stamp/dirs tmp/stamp/compile slashtime
+all: .config dirs tmp/stamp/compile slashtime
 
 .config: src/java/com/operationaldynamics/slashtime/Version.java
 	echo
@@ -41,12 +27,15 @@ CLASSPATH=$(JAVAGNOME_JARS)
 
 SOURCES_DIST=$(shell find src/java -name '*.java')
 
-tmp/stamp/dirs:
-	@echo -e "MKDIR\tpreping temporary files and build directories"
-	-test -d tmp/classes || mkdir -p tmp/classes
-	-test -d tmp/stamp || mkdir -p tmp/stamp
-	-test -d tmp/launcher || mkdir -p tmp/launcher
-	touch $@
+dirs: tmp/classes tmp/stamp
+
+tmp/classes:
+	@echo -e "MKDIR\t$@"
+	mkdir $@
+
+tmp/stamp:
+	@echo -e "MKDIR\t$@"
+	mkdir $@
 
 # --------------------------------------------------------------------
 # Source compilation
@@ -57,12 +46,12 @@ tmp/stamp/dirs:
 #
 
 tmp/stamp/compile: $(SOURCES_DIST)
-	@echo -e "$(JAVAC_CMD)\tsrc/java/*.java"
+	@echo -e "$(JAVAC_CMD)\ttmp/classes/*.class"
 	$(JAVAC) -d tmp/classes -classpath tmp/classes:$(CLASSPATH) -sourcepath src/java $^
 	touch $@
 
 slashtime: tmp/launcher/slashtime-local
-	@echo -e "INSTALL\t$@"
+	@echo -e "CP\t$@"
 	cp -f $< $@
 	chmod +x $@
 
@@ -72,11 +61,8 @@ slashtime: tmp/launcher/slashtime-local
 
 install: all \
 		$(DESTDIR)$(PREFIX) \
-		$(DESTDIR)$(PREFIX)/bin \
-		$(DESTDIR)$(PREFIX)/share/java \
 		$(DESTDIR)$(PREFIX)/share/java/slashtime.jar \
-		$(DESTDIR)$(PREFIX)/share/pixmaps \
-		$(DESTDIR)$(PREFIX)/share/applications \
+		tmp/stamp/install-pixmaps \
 		$(DESTDIR)$(PREFIX)/share/applications/slashtime.desktop \
 		$(DESTDIR)$(PREFIX)/bin/slashtime
 
@@ -96,28 +82,40 @@ $(DESTDIR)$(PREFIX)/share/applications:
 	@echo -e "MKDIR\t$@/"
 	-mkdir -p $@
 
-$(DESTDIR)$(PREFIX)/bin/slashtime: tmp/launcher/slashtime-install
+$(DESTDIR)$(PREFIX)/bin/slashtime: \
+		$(DESTDIR)$(PREFIX)/bin \
+		tmp/launcher/slashtime-install
 	@echo -e "INSTALL\t$@"
-	cp -f $< $@
+	cp -f tmp/launcher/slashtime-install $@
 	chmod +x $@
 
-$(DESTDIR)$(PREFIX)/share/applications/slashtime.desktop: tmp/launcher/slashtime.desktop
+$(DESTDIR)$(PREFIX)/share/applications/slashtime.desktop: \
+		$(DESTDIR)$(PREFIX)/share/applications \
+		tmp/launcher/slashtime.desktop
 	@echo -e "INSTALL\t$@"
-	cp -f $< $@
+	cp -f tmp/launcher/slashtime.desktop $@
 
 tmp/slashtime.jar: tmp/stamp/compile
 	@echo -e "$(JAR_CMD)\t$@"
 	$(JAR) -cf tmp/slashtime.jar -C tmp/classes .
 
-$(DESTDIR)$(PREFIX)/share/pixmaps: share/pixmaps/*.png
+
+$(DESTDIR)$(PREFIX)/share/pixmaps: 
 	@echo -e "MKDIR\t$@/"
 	-mkdir $@
-	@echo -e "INSTALL\t$@"
-	cp -f $^ $@
 
-$(DESTDIR)$(PREFIX)/share/java/slashtime.jar: tmp/slashtime.jar
+tmp/stamp/install-pixmaps: \
+		$(DESTDIR)$(PREFIX)/share/pixmaps \
+		share/pixmaps/*.png
+	@echo -e "INSTALL\t$(DESTDIR)$(PREFIX)/share/pixmaps/*.png"
+	cp -f share/pixmaps/*.png $(DESTDIR)$(PREFIX)/share/pixmaps
+	touch $@
+
+$(DESTDIR)$(PREFIX)/share/java/slashtime.jar: \
+		$(DESTDIR)$(PREFIX)/share/java \
+		tmp/slashtime.jar
 	@echo -e "INSTALL\t$@"
-	cp -f $< $@
+	cp -f tmp/slashtime.jar $@
 
 
 # --------------------------------------------------------------------
