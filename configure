@@ -384,7 +384,7 @@ HERE
 	} elsif ($key =~ /^jamvm/) {
 		$jamvm_bin="$value";
 	} elsif ($key =~ /^java-gnome/) {
-		$java_gnome_home="$value";
+		$java_gnome_home=glob "$value";
 	}
 }
 
@@ -1215,6 +1215,7 @@ if ($runtime eq "java") {
 	bail "failed", "INTERNAL ERROR no virtual machine selected";
 }
 output "$runtime\n";
+output "\n";
 
 `rm -f Hello.java Hello.class Hello.o Hello Hello.c Hello.jar`;
 
@@ -1273,54 +1274,54 @@ close CONFIG;
 system "mv .config.tmp .config";
 
 output "ok\n";
-output "\n";
-
 
 # --------------------------------------------------------------------
-# Done! Create in-place launcher file
+# Create in-place launcher file
 # --------------------------------------------------------------------
+
+# We need to support specifying an alternative location for the installed
+# slashtime.jar file. For now it is hard coded as follows:
 
 my $JAVAGNOME_JARS = join(":", @java_gnome_jars);
 my $JAVAGNOME_LIBPATH = join(":", @java_gnome_libs);
+my $SLASHTIME_JARS="$PREFIX/share/java/slashtime.jar";
+
+
+output "Write launcher files:";
 
 mkdir "tmp/";
 mkdir "tmp/launcher";
 
 open LAUNCHER, ">tmp/launcher/slashtime-local";
-print LAUNCHER <<HERE ;
-#! /opt/local/cafesociety/bin/cafe
 
-[Java]
-runtime=$JAVA
-
-[Program]
-main=com.operationaldynamics.slashtime.Master
-classpath=tmp/classes
-workdir=.
-
-[Requires]
-classpath=$JAVAGNOME_JARS
-libpath=$JAVAGNOME_LIBPATH
-HERE
+print LAUNCHER "#! /bin/sh\n";
+print LAUNCHER join (" ",
+	"exec",
+	"$JAVA",
+	"-classpath tmp/classes:$JAVAGNOME_JARS ",
+	"-Djava.library.path=$JAVAGNOME_LIBPATH ",
+	"com.operationaldynamics.slashtime.Master") . "\n";
 
 close LAUNCHER;
+
+# --------------------------------------------------------------------
+# Create as-installed launcher file
+# --------------------------------------------------------------------
+
 
 open LAUNCHER, ">tmp/launcher/slashtime-install";
-print LAUNCHER <<HERE ;
-#! /opt/local/cafesociety/bin/cafe
 
-[Java]
-runtime=$JAVA
-
-[Program]
-main=com.operationaldynamics.slashtime.Master
-classpath=$PREFIX/share/java/slashtime.jar
-workdir=$PREFIX
-
-[Requires]
-classpath=$JAVAGNOME_JARS
-libpath=$JAVAGNOME_LIBPATH
-HERE
+print LAUNCHER "#! /bin/sh\n";
+print LAUNCHER "cd $PREFIX\n";
+print LAUNCHER join (" ",
+	"exec",
+	"$JAVA",
+	"-classpath $SLASHTIME_JARS:$JAVAGNOME_JARS",
+	"-Djava.library.path=$JAVAGNOME_LIBPATH",
+	"com.operationaldynamics.slashtime.Master") . "\n";
 
 close LAUNCHER;
+
+output "ok\n";
+output "\n";
 
