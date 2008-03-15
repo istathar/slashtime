@@ -1,6 +1,6 @@
 This is slashtime, a program to tell you what time it is. Brilliant!
 
-   Copyright (C) 2003-2007 Operational Dynamics Consulting Pty Ltd, and Others
+   Copyright (C) 2003-2008 Operational Dynamics Consulting Pty Ltd, and Others
    See AUTHORS file for contributors.
 
 1) slashtime source code and documentation
@@ -41,7 +41,7 @@ individual licences within those files, as noted below and in lib/README.
 slashtime is written in the Java programming language. You have the option of
 building and running slashtime either using the proprietary compilers and
 runtime environments are available from Sun and others, or using the libre and
-open Java implementation available through GCJ and the GNU CLASSPATH (aka glibj)
+open Java implementation available through the GNU CLASSPATH (aka glibj)
 project. We welcome you to deploy slashtime using either approach.
 
 4) trademarks and acknowledgments

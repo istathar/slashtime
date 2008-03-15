@@ -1,0 +1,76 @@
+#
+# Example .tzlist Place list file, as used by slashtime
+#
+# Copyright (c) 2003-2008 Operational Dynamics Consulting Pty Ltd 
+# 
+# The code in this file, and the program it is a part of, are made available
+# to you by its authors under the terms of the "GNU General Public Licence,
+# version 2". See the LICENCE file for the terms governing usage and
+# redistribution.
+#
+# =========================================================
+# ** THIS FILE SHOULD BE .tzlist IN YOUR $HOME DIRECTORY **
+# =========================================================
+# 
+# Purpose
+# -------
+#
+# The whole point of this file is to allow you to mark a zone with a name that
+# means something to you. We don't all happen to live in the place that just
+# happens to be the reference location for this timezone. Likewise, sometimes
+# the official country name isn't quite how you think of the place; perhaps
+# you'd rather there be just the abbreviation, etc.
+#
+# Each line will be translated to a Place and displayed in the ZonesWindow by
+# slashtime. Keep the list below 20 or so; if you don't, it won't fit on
+# screen vertically.
+#
+# Format
+# ------
+#
+# This file is three columns, TAB separated. Each column should be enclosed
+# in double quote characters, ie:
+#
+# "Zone"	"City"	"Country"
+#
+# The zoneinfo parameter is the path name of a zoneinfo file relative to
+# /usr/share/zoneinfo. The structure of that data is Continent/Location, with
+# there generally being one per country per timezone. Examples:
+#
+# "Australia/Sydney"	"Sydney"	"Australia"
+# "Asia/Calcutta"	"Bangalore"	"India"
+# "Pacific/Honolulu"	"Hawaii"	"USA"
+# "America/Edmonton"	"Calgary"	"Canada"
+#
+# Note that "Europe/London" is *not* UTC, and vice versa; British Summer Time
+# applies in London, but does not impact Universal Time.
+#
+# You do not need to include UTC; it is needed by the program and
+# added automatically at runtime.
+#
+
+"America/Montreal"	"Toronto"	"Canada"
+"America/Vancouver"	"Vancouver"	"Canada"
+"Australia/Sydney"	"Sydney"	"Australia"
+"Europe/Berlin"	"Munich"	"Germany"
+"America/Halifax"	"Fredericton"	"Canada"
+"Europe/London"	"London"	"UK"
+"Asia/Calcutta"	"Bangalore"	"India"
+"Asia/Hong_Kong"	"Hong Kong"	"China"
+"Pacific/Auckland"	"Auckland"	"New Zealand"
+"Pacific/Honolulu"	"Hawaii"	"USA"
+"America/Los_Angeles"	"Los Angeles"	"USA"
+"America/New_York"	"New York"	"USA"
+"America/Edmonton"	"Calgary"	"Canada"
+"Australia/Adelaide"	"Adelaide"	"Australia"
+"Asia/Tokyo"	"Tokyo"	"Japan"
+"Asia/Singapore"	"Singapore"	"Singapore"
+"Asia/Dubai"	"Dubai"	"UAE"
+"Australia/Perth"	"Perth"	"Australia"
+"Europe/Moscow"	"Moscow"	"Russia"
+
+#
+# Now that you've read all this, you can get rid of the comments, change
+# the Places to things that make you happy, and copy the file to ~/.tzlist
+#
+# vim: set ts=25:
