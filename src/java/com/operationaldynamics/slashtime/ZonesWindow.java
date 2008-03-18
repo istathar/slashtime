@@ -488,6 +488,8 @@ class ZonesWindow
 
             if (places[i].isLocal()) {
                 current = places[i];
+                model.setValue(pointer, iconImage, images.local);
+            } else if (places[i].isHome()) {
                 model.setValue(pointer, iconImage, images.home);
             } else if (places[i].isZulu()) {
                 model.setValue(pointer, iconImage, images.gmt);

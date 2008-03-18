@@ -9,7 +9,7 @@ For the impatient:
 	$ ./configure
 	$ make
 
-but don't forget to create a .tzlist file.
+but don't forget to create a .tzlist file; see PLACES.
 
 
 PREREQUISITES
@@ -113,7 +113,7 @@ Or, if you installed it somewhere:
 
 If your distro packaged it for you, then it's most likely on your PATH as:
 
-	$ /usr/bin/slashtime
+	$ slashtime
 
 and is will be available from the Accessories part of the GNOME Applications
 menu.

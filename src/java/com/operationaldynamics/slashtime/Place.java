@@ -30,6 +30,8 @@ public class Place
 
     private static String defaultZoneName;
 
+    private static String homeZoneName;
+
     // halves
     private int startCivilDay = 15;
 
@@ -41,6 +43,8 @@ public class Place
 
     static {
         defaultZoneName = TimeZoneHelper.getUserTimeZone();
+
+        homeZoneName = "Australia/Sydney";
     }
 
     public Place(String zonename, String city, String country) {
@@ -136,6 +140,14 @@ public class Place
      */
     public boolean isLocal() {
         if (zoneName.equals(defaultZoneName)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public boolean isHome() {
+        if (zoneName.equals(homeZoneName)) {
             return true;
         } else {
             return false;

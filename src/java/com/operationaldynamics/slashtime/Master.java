@@ -37,8 +37,9 @@ public final class Master
     private static void loadImages() {
         try {
             images.marble = new Pixbuf("share/pixmaps/slashtime-marble.png");
-            images.gmt = new Pixbuf("share/pixmaps/slashtime-marble.png", 23, 23, true);
+            images.gmt = new Pixbuf("share/pixmaps/slashtime-marble.png", 22, 22, true);
             images.home = new Pixbuf("share/pixmaps/slashtime-home.png", 24, 24, true);
+            images.local = new Pixbuf("share/pixmaps/slashtime-local.png", 24, 24, true);
             images.calendar = new Pixbuf("share/pixmaps/slashtime-meeting.png", 20, 20, true);
         } catch (FileNotFoundException fnfe) {
             System.err.println("Icon file not found: " + fnfe.getMessage());
@@ -79,6 +80,11 @@ class images
      * Where your current timezone is. Scaled to fit in the ZonesWindow.
      */
     static Pixbuf home;
+
+    /**
+     * Your current location. Scaled to fit in the ZonesWindow.
+     */
+    static Pixbuf local;
 }
 
 class ui
