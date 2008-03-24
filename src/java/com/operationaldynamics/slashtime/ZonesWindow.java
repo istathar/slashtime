@@ -39,9 +39,11 @@ import org.gnome.gtk.Image;
 import org.gnome.gtk.ImageMenuItem;
 import org.gnome.gtk.ListStore;
 import org.gnome.gtk.Menu;
+import org.gnome.gtk.SortType;
 import org.gnome.gtk.StateType;
 import org.gnome.gtk.Stock;
 import org.gnome.gtk.TreeIter;
+import org.gnome.gtk.TreeModelSort;
 import org.gnome.gtk.TreePath;
 import org.gnome.gtk.TreeSelection;
 import org.gnome.gtk.TreeView;
@@ -72,6 +74,8 @@ class ZonesWindow
     private final TreeViewColumn vertical;
 
     private final ListStore model;
+
+    private final TreeModelSort sorted;
 
     private final TreeSelection selection;
 
@@ -141,7 +145,9 @@ class ZonesWindow
                 placeObject,
         });
 
-        view = new TreeView(model);
+        sorted = new TreeModelSort(model);
+
+        view = new TreeView(sorted);
         view.setRulesHint(false);
         view.setHeadersVisible(false);
         view.setEnableSearch(false);
@@ -233,7 +239,7 @@ class ZonesWindow
                 row = selection.getSelected();
 
                 if (row != null) {
-                    target = (Place) model.getValue(row, placeObject);
+                    target = (Place) sorted.getValue(row, placeObject);
                 } else {
                     target = current;
                 }
@@ -441,7 +447,6 @@ class ZonesWindow
         menu.showAll();
         // has to be after map to screen
         selection.unselectAll();
-        vertical.clicked();
     }
 
     private static final String DARK = "#777777";
@@ -665,7 +670,7 @@ class ZonesWindow
      * default ordering.
      */
     void sortByWallTime() {
-        vertical.setSortColumn(timeSort);
+        sorted.setSortColumn(timeSort, SortType.ASCENDING);
     }
 
     /**
