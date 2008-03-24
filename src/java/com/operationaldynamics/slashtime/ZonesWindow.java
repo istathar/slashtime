@@ -515,6 +515,7 @@ class ZonesWindow
     void update(long when) {
         final int center;
         final TreeIter pointer;
+        int i;
 
         setTimeZone(current.getZoneName());
         center = calculateOffset(when);
@@ -524,6 +525,7 @@ class ZonesWindow
         }
 
         pointer = model.getIterFirst();
+        i = 0;
         do {
             final Place p;
             final StringBuffer time, offset;
@@ -658,9 +660,20 @@ class ZonesWindow
             if (halvesSinceMidnight < 3) {
                 halvesSinceMidnight += 48;
             }
-            model.setValue(pointer, timeSort, halvesSinceMidnight);
-            model.setValue(pointer, offsetSort, fromGMT);
 
+            /*
+             * At the last, we have to go to some additional trouble to ensure
+             * a stable sort ordering. Originally we just used halves, but
+             * TreeView gets twitchy when several rows have the same sort
+             * number. So we scale it up massively (so that the zone ordering
+             * is not perterbed) but add a descriminator to provide
+             * uniqueness.
+             */
+
+            model.setValue(pointer, timeSort, halvesSinceMidnight * 100 + i);
+            model.setValue(pointer, offsetSort, fromGMT * 100 + i);
+
+            i++;
         } while (pointer.iterNext());
     }
 
@@ -679,7 +692,7 @@ class ZonesWindow
      * that the Places aren't flipping all over the place inconsisently.
      */
     void sortByOffset() {
-        vertical.setSortColumn(offsetSort);
+        sorted.setSortColumn(offsetSort, SortType.ASCENDING);
     }
 
     Place getCurrent() {
