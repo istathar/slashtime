@@ -18,9 +18,10 @@ import static org.gnome.gtk.Alignment.LEFT;
 import static org.gnome.gtk.Alignment.TOP;
 
 import org.gnome.gdk.Color;
+import org.gnome.gdk.CrossingMode;
 import org.gnome.gdk.Event;
 import org.gnome.gdk.EventButton;
-import org.gnome.gdk.EventFocus;
+import org.gnome.gdk.EventCrossing;
 import org.gnome.gdk.EventVisibility;
 import org.gnome.gdk.MouseButton;
 import org.gnome.gdk.VisibilityState;
@@ -119,7 +120,6 @@ class ZonesWindow
         window.setTitle("slashtime");
         window.setDecorated(false);
         window.setBorderWidth(1);
-        window.modifyBackground(StateType.NORMAL, Color.BLACK);
 
         top = new VBox(false, 0);
 
@@ -208,9 +208,11 @@ class ZonesWindow
          * with a blue selected row for no terribly useful reason.
          */
 
-        view.connect(new Widget.FOCUS_OUT_EVENT() {
-            public boolean onFocusOutEvent(Widget source, EventFocus event) {
-                selection.unselectAll();
+        view.connect(new Widget.LEAVE_NOTIFY_EVENT() {
+            public boolean onLeaveNotifyEvent(Widget source, EventCrossing event) {
+                if (event.getMode() != CrossingMode.GRAB) {
+                    selection.unselectAll();
+                }
                 return false;
             }
         });
@@ -219,8 +221,8 @@ class ZonesWindow
             public void onRowActivated(TreeView source, TreePath path, TreeViewColumn vertical) {
                 final TreeIter row;
 
-                row = model.getIter(path);
-                current = (Place) model.getValue(row, placeObject);
+                row = sorted.getIter(path);
+                current = (Place) sorted.getValue(row, placeObject);
 
                 if (ui.meeting == null) {
                     updateNow();
@@ -240,8 +242,6 @@ class ZonesWindow
 
                 if (row != null) {
                     target = (Place) sorted.getValue(row, placeObject);
-                } else {
-                    target = current;
                 }
 
                 if (ui.meeting != null) {
@@ -379,6 +379,7 @@ class ZonesWindow
                 if (ui.meeting == null) {
                     ui.meeting = new MeetingWindow(target);
                 } else {
+                    ui.meeting.setPlace(target);
                     ui.meeting.present();
                 }
             }
@@ -684,6 +685,8 @@ class ZonesWindow
      */
     void sortByWallTime() {
         sorted.setSortColumn(timeSort, SortType.ASCENDING);
+        window.modifyBackground(StateType.NORMAL, Color.BLACK);
+
     }
 
     /**
@@ -693,6 +696,7 @@ class ZonesWindow
      */
     void sortByOffset() {
         sorted.setSortColumn(offsetSort, SortType.ASCENDING);
+        window.modifyBackground(StateType.NORMAL, Color.RED);
     }
 
     Place getCurrent() {

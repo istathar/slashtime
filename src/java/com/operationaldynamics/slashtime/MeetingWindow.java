@@ -214,6 +214,7 @@ class MeetingWindow
 
         if (when == -1) {
             when = System.currentTimeMillis() / 1000;
+            when -= when % 3600;
         }
 
         setTimeZone(p.getZoneName());
