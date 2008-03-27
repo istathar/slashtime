@@ -51,7 +51,7 @@ class MeetingWindow
 
     private long when = -1;
 
-    private Label createTextLabel(String text, boolean italics) {
+    private static Label createTextLabel(String text, boolean italics) {
         StringBuffer buf = new StringBuffer();
         if (italics) {
             buf.append("<span font_desc='Times New Roman' size='large' style='italic'>");
@@ -66,7 +66,7 @@ class MeetingWindow
         return l;
     }
 
-    private Label createDisplayLabel() {
+    private static Label createDisplayLabel() {
         Label l = new Label("");
         l.setAlignment(CENTER, CENTER);
         l.setWidthChars(20);
@@ -75,7 +75,7 @@ class MeetingWindow
     }
 
     MeetingWindow(Place where) {
-        ui.zones.sortByOffset();
+        ui.zones.indicateWrongTime();
 
         window = new Window();
         window.setTitle("Find a meeting time");
@@ -179,7 +179,7 @@ class MeetingWindow
             public boolean onDeleteEvent(Widget source, Event event) {
                 when = -1;
                 ui.meeting = null;
-                ui.zones.sortByWallTime();
+                ui.zones.indicateCorrectTime();
                 ui.zones.updateNow();
                 return false;
             }

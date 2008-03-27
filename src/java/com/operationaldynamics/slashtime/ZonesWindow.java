@@ -11,6 +11,7 @@
 package com.operationaldynamics.slashtime;
 
 import static com.operationaldynamics.slashtime.Loader.loadPlaceList;
+import static java.lang.Math.abs;
 import static org.freedesktop.bindings.Time.formatTime;
 import static org.freedesktop.bindings.Time.setTimeZone;
 import static org.gnome.gtk.Alignment.CENTER;
@@ -92,8 +93,6 @@ class ZonesWindow
 
     private final DataColumnString offsetMarkup;
 
-    private final DataColumnInteger offsetSort;
-
     private final DataColumnString rowColor;
 
     private final DataColumnString rowBackground;
@@ -128,7 +127,6 @@ class ZonesWindow
         timeMarkup = new DataColumnString();
         timeSort = new DataColumnInteger();
         offsetMarkup = new DataColumnString();
-        offsetSort = new DataColumnInteger();
         rowColor = new DataColumnString();
         rowBackground = new DataColumnString();
         placeObject = new DataColumnReference();
@@ -139,13 +137,13 @@ class ZonesWindow
                 timeMarkup,
                 timeSort,
                 offsetMarkup,
-                offsetSort,
                 rowColor,
                 rowBackground,
                 placeObject,
         });
 
         sorted = new TreeModelSort(model);
+        sorted.setSortColumn(timeSort, SortType.ASCENDING);
 
         view = new TreeView(sorted);
         view.setRulesHint(false);
@@ -188,7 +186,7 @@ class ZonesWindow
         text.setForeground(rowColor);
         text.setBackground(rowBackground);
 
-        sortByWallTime();
+        indicateCorrectTime();
 
         /*
          * Pack widgets, and prepare Window properties.
@@ -530,7 +528,7 @@ class ZonesWindow
         do {
             final Place p;
             final StringBuffer time, offset;
-            final int hours, minutes, fromGMT, halves;
+            final int hours, minutes, halves;
             final String code;
             int halvesSinceMidnight;
 
@@ -580,14 +578,13 @@ class ZonesWindow
              * Offset and zone code
              */
 
-            fromGMT = calculateOffset(when);
-            halves = fromGMT - center;
+            halves = calculateOffset(when) - center;
 
             offset = new StringBuffer();
 
             // switch to Times New Roman for a clearer +/-
             offset.append("<span font_desc='Times New Roman'>");
-            offset.append(Math.abs(halves) > 19 ? "" : " ");
+            offset.append(abs(halves) > 19 ? "" : " ");
 
             offset.append("<span size='x-small' rise='2000'>");
             if (halves == 0) {
@@ -598,7 +595,7 @@ class ZonesWindow
             offset.append("</span>");
             offset.append("</span>");
 
-            offset.append(Math.abs(halves / 2));
+            offset.append(abs(halves / 2));
 
             offset.append("<span font_desc='Mono'>");
             offset.append(halves % 2 == 0 ? "" : "\u00bd");
@@ -672,30 +669,16 @@ class ZonesWindow
              */
 
             model.setValue(pointer, timeSort, halvesSinceMidnight * 100 + i);
-            model.setValue(pointer, offsetSort, fromGMT * 100 + i);
 
             i++;
         } while (pointer.iterNext());
     }
 
-    /**
-     * Tell the model to sort according to the displayed time [adjusted to
-     * match the real hacker's day (which is until 01:30)]. This is the
-     * default ordering.
-     */
-    void sortByWallTime() {
-        sorted.setSortColumn(timeSort, SortType.ASCENDING);
+    void indicateCorrectTime() {
         window.modifyBackground(StateType.NORMAL, Color.BLACK);
-
     }
 
-    /**
-     * Tell the model to sort according to the offset. This is the original
-     * behaviour of slashtime, and preserved for use during meeting setup so
-     * that the Places aren't flipping all over the place inconsisently.
-     */
-    void sortByOffset() {
-        sorted.setSortColumn(offsetSort, SortType.ASCENDING);
+    void indicateWrongTime() {
         window.modifyBackground(StateType.NORMAL, Color.RED);
     }
 
