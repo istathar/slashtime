@@ -28,7 +28,7 @@ public class Place
 
     private String country;
 
-    private static String defaultZoneName;
+    private static String localZoneName;
 
     private static String homeZoneName;
 
@@ -42,18 +42,21 @@ public class Place
     private int endCivilDay = 46;
 
     static {
-        defaultZoneName = TimeZoneHelper.getUserTimeZone();
-
-        homeZoneName = "Australia/Sydney";
+        localZoneName = TimeZoneHelper.getUserTimeZone();
     }
 
-    public Place(String zonename, String city, String country) {
+    static void setHomeZoneName(String zonename) {
+        verifyZoneExists(zonename);
+        homeZoneName = zonename;
+    }
+
+    Place(String zonename, String city, String country) {
         setZoneName(zonename);
         setCity(city);
         setCountry(country);
     }
 
-    public String getCity() {
+    String getCity() {
         return city;
     }
 
@@ -61,7 +64,7 @@ public class Place
      * Set the common name (typically the name of a city) that will be
      * displayed for this place.
      */
-    public void setCity(final String name) {
+    void setCity(final String name) {
         if (name == null) {
             throw new NullArgumentException();
         }
@@ -72,7 +75,7 @@ public class Place
      * Get the identifier correspnding to the name of the timezone file in the
      * zoneinfo directory.
      */
-    public String getZoneName() {
+    String getZoneName() {
         return zoneName;
     }
 
@@ -85,20 +88,13 @@ public class Place
      *            <code>America/Toronto</code>, <code>Europe/Paris</code>
      *            or <code>UTC</code>.
      */
-    public void setZoneName(String zonename) {
-        if (zonename == null) {
-            throw new NullArgumentException();
-        }
-        if (zonename.equals("")) {
-            throw new IllegalArgumentException();
-        }
-
+    void setZoneName(String zonename) {
         verifyZoneExists(zonename);
 
         this.zoneName = zonename;
     }
 
-    public String getCountry() {
+    String getCountry() {
         return country;
     }
 
@@ -110,7 +106,7 @@ public class Place
      *            the name of the country that this place is in. Can be "" if
      *            you wish to ignore this feature.
      */
-    public void setCountry(String country) {
+    void setCountry(String country) {
         if (country == null) {
             throw new NullArgumentException();
         }
@@ -121,7 +117,7 @@ public class Place
      * @return true if this Place happens to be the one corresponding to Zulu /
      *         GMT / UTC
      */
-    public boolean isZulu() {
+    boolean isZulu() {
         /*
          * Explicity testing against the name UTC is ok assuming we explicitly
          * add UTC in the program somewhere (and, better yet, prevent its
@@ -138,15 +134,15 @@ public class Place
      * @return true if this Place matches localtime (default, /etc/localtime,
      *         etc)
      */
-    public boolean isLocal() {
-        if (zoneName.equals(defaultZoneName)) {
+    boolean isLocal() {
+        if (zoneName.equals(localZoneName)) {
             return true;
         } else {
             return false;
         }
     }
 
-    public boolean isHome() {
+    boolean isHome() {
         if (zoneName.equals(homeZoneName)) {
             return true;
         } else {
@@ -164,7 +160,7 @@ public class Place
      * Get the number of half hours (from midnight) that the work day in this
      * Place starts.
      */
-    public int getStartWorkDay() {
+    int getStartWorkDay() {
         return startWorkDay;
     }
 
@@ -175,7 +171,7 @@ public class Place
      * @param start
      *            not negative and not greater than 47 (ie, 23:30).
      */
-    public void setStartWorkDay(int start) {
+    void setStartWorkDay(int start) {
         validateHalves(start);
         this.startWorkDay = start;
     }
@@ -184,7 +180,7 @@ public class Place
      * Get the number of half hours since midnight that the work day in this
      * Place ends.
      */
-    public int getEndWorkDay() {
+    int getEndWorkDay() {
         return endWorkDay;
     }
 
@@ -195,7 +191,7 @@ public class Place
      * @param end
      *            not negative and not greater than 47 (ie, 23:30).
      */
-    public void setEndWorkDay(int end) {
+    void setEndWorkDay(int end) {
         validateHalves(end);
         this.endWorkDay = end;
     }
@@ -204,7 +200,7 @@ public class Place
      * Get the number of half hours (from midnight) that the civilized day in
      * this Place starts.
      */
-    public int getStartCivilDay() {
+    int getStartCivilDay() {
         return startCivilDay;
     }
 
@@ -215,7 +211,7 @@ public class Place
      * @param start
      *            not negative and not greater than 47 (ie, 23:30).
      */
-    public void setStartCivilDay(int start) {
+    void setStartCivilDay(int start) {
         validateHalves(start);
         this.startCivilDay = start;
     }
@@ -224,7 +220,7 @@ public class Place
      * Get the number of half hours since midnight that the civil day in this
      * Place ends.
      */
-    public int getEndCivilDay() {
+    int getEndCivilDay() {
         return endCivilDay;
     }
 
@@ -235,7 +231,7 @@ public class Place
      * @param end
      *            not negative and not greater than 47 (ie, 23:30).
      */
-    public void setEndCivilDay(int end) {
+    void setEndCivilDay(int end) {
         validateHalves(end);
         this.endCivilDay = end;
     }
@@ -245,7 +241,7 @@ public class Place
      *            the number of halves since midnight
      * @return whether or not it is working hours at this Place
      */
-    public boolean isWorkHours(int sinceMidnight) {
+    boolean isWorkHours(int sinceMidnight) {
         if (startWorkDay == endWorkDay) {
             return false;
         }
@@ -271,7 +267,7 @@ public class Place
      *            the number of halves since midnight
      * @return whether or not it is working hours at this Place
      */
-    public boolean isCivilHours(int sinceMidnight) {
+    boolean isCivilHours(int sinceMidnight) {
         if (startCivilDay == endCivilDay) {
             return false;
         }

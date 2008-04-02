@@ -27,6 +27,10 @@ public final class Master
 
         loadImages();
 
+        if (args.length == 1) {
+            specifyHome(args[0]);
+        }
+
         ui.zones = new ZonesWindow();
         ui.meeting = null;
         ui.status = new DockedIndicator();
@@ -44,6 +48,10 @@ public final class Master
         } catch (FileNotFoundException fnfe) {
             System.err.println("Icon file not found: " + fnfe.getMessage());
         }
+    }
+
+    private static void specifyHome(String zonename) {
+        Place.setHomeZoneName(zonename);
     }
 }
 

@@ -51,6 +51,13 @@ class TimeZoneHelper
     static void verifyZoneExists(final String zonename) {
         final String tzfile;
 
+        if (zonename == null) {
+            throw new NullArgumentException();
+        }
+        if (zonename.equals("")) {
+            throw new IllegalArgumentException();
+        }
+
         tzfile = TZDIR + "/" + zonename;
 
         if (!(new File(tzfile).exists())) {
