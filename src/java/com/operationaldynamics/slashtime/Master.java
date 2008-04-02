@@ -12,6 +12,7 @@ package com.operationaldynamics.slashtime;
 
 import java.io.FileNotFoundException;
 
+import org.freedesktop.bindings.Internationalization;
 import org.gnome.gdk.Pixbuf;
 import org.gnome.gtk.Gtk;
 
@@ -24,6 +25,7 @@ public final class Master
 {
     public static void main(String[] args) {
         Gtk.init(args);
+        Internationalization.init("slashtime", "share/locale/");
 
         loadImages();
 

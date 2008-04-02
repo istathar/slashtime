@@ -12,6 +12,7 @@ package com.operationaldynamics.slashtime;
 
 import static com.operationaldynamics.slashtime.Loader.loadPlaceList;
 import static java.lang.Math.abs;
+import static org.freedesktop.bindings.Internationalization._;
 import static org.freedesktop.bindings.Time.formatTime;
 import static org.freedesktop.bindings.Time.setTimeZone;
 import static org.gnome.gtk.Alignment.CENTER;
@@ -356,8 +357,8 @@ class ZonesWindow
         /*
          * Create the action to popup a MeetingWindow
          */
-        popMeeting = new Action("meeting", "Meeting");
-        popMeeting.setTooltip("Pop up the Meeting planner");
+        popMeeting = new Action("meeting", _("Meeting..."));
+        popMeeting.setTooltip(_("Pop up the Meeting planner"));
         // popMeeting = new Action("meeting", "Meeting", "Pop up the Meeting
         // planner");
         // AccelMap.changeEntry("<ZonesWindow>/Meeting", Keyval.m,
@@ -383,10 +384,10 @@ class ZonesWindow
             }
         });
 
-        closeDown = new Action("quit", "Quit", "Exit the program", Stock.CLOSE);
+        closeDown = new Action("quit", Stock.QUIT);
         // AccelMap.changeEntry("<ZonesWindow>/Quit", Keyval.q,
         // ModifierType.CONTROL_MASK, true);
-        //
+        //  
         // closeDown.setAccelGroup(ag);
         // closeDown.setAccelPath("<ZonesWindow>/Quit");
         // closeDown.connectAccelerator();
@@ -397,7 +398,7 @@ class ZonesWindow
             }
         });
 
-        popAbout = new Action("about", "About", "Details about this program", Stock.ABOUT);
+        popAbout = new Action("about", Stock.ABOUT);
         popAbout.connect(new Action.ACTIVATE() {
             public void onActivate(Action source) {
                 final AboutDialog dialog;
@@ -405,9 +406,9 @@ class ZonesWindow
                 dialog = new AboutDialog();
                 dialog.setProgramName("slashtime");
                 dialog.setVersion(Version.VERSION);
-                dialog.setComments("Show the time in various places!");
-                dialog.setCopyright("Copyright 2003-2008 Operational Dynamics Consulting Pty Ltd, and Others\n"
-                        + "A tiny java-gnome application originally written by Andrew Cowie");
+                dialog.setComments(_("Show the time in various places!"));
+                dialog.setCopyright(_("Copyright")
+                        + "\u00A92003-2008 Operational Dynamics Consulting Pty Ltd, " + _("and Others"));
                 dialog.setAuthors(new String[] {
                     "Andrew Cowie <andrew@operationaldynamics.com>",
                 });
