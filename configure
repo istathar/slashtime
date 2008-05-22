@@ -390,6 +390,10 @@ HERE
 	}
 }
 
+if (!$prefix) {
+	$prefix="/usr/local";
+}
+
 
 # check jdk_home override. compiler and runtime are checked 
 # later (at the end) against choices that have been validated.
@@ -1326,20 +1330,11 @@ output "\n";
 print CONFIG <<HERE ;
 
 # the install prefix. This *only* affects the location that installed
-# files are sent to during the `make install` step. You can, as it
-# happens, override it on the make command line the same way you
-# specify DESTDIR, ie by doing `make PREFIX=/blah install`.
+# files are sent to during the `make install` step.
 
 HERE
 
-my $PREFIX;
-
-if ($prefix) {
-	$PREFIX=$prefix;
-} else {
-	$PREFIX="/usr";
-}
-print CONFIG "PREFIX=$PREFIX\n";
+print CONFIG "PREFIX=$prefix\n";
 
 # --------------------------------------------------------------------
 # Get version constant
@@ -1393,7 +1388,7 @@ output "ok\n";
 
 my $JAVAGNOME_JARS = join(":", @java_gnome_jars);
 my $JAVAGNOME_LIBPATH = join(":", @java_gnome_libs);
-my $SLASHTIME_JARS="$PREFIX/share/java/slashtime-$apiversion.jar";
+my $SLASHTIME_JARS="$prefix/share/java/slashtime-$apiversion.jar";
 
 output "Write launcher files:";
 
@@ -1421,7 +1416,7 @@ close LAUNCHER;
 open LAUNCHER, ">tmp/launcher/slashtime-install";
 
 print LAUNCHER "#! /bin/sh\n";
-print LAUNCHER "cd $PREFIX\n";
+print LAUNCHER "cd $prefix\n";
 print LAUNCHER join (" ",
 	"exec",
 	"$JAVA",
@@ -1442,9 +1437,9 @@ Name=Slashtime
 GenericName="Time Zones"
 Comment=View the time at locations around the world
 Categories=GNOME;GTK;Utility;
-Path=$PREFIX
-Exec=$PREFIX/bin/slashtime
-Icon=$PREFIX/share/pixmaps/slashtime-marble.png
+Path=$prefix
+Exec=$prefix/bin/slashtime
+Icon=$prefix/share/pixmaps/slashtime-marble.png
 HERE
 
 close DESKTOP;
