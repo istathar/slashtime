@@ -1,7 +1,7 @@
 /*
  * ZonesWindow.java
  * 
- * Copyright (c) 2006-2008 Operational Dynamics Consulting Pty Ltd
+ * Copyright (c) 2006-2008 Operational Dynamics Consulting Pty Ltd, and Others
  * 
  * The code in this file, and the program it is a part of, are made available
  * to you by the authors under the terms of the "GNU General Public Licence,
@@ -109,7 +109,6 @@ class ZonesWindow
     ZonesWindow() {
         CellRendererPixbuf image;
         CellRendererText text;
-        final int s_w, s_h, w, h;
         final Action popMeeting, closeDown, popAbout;
 
         window = new Window();
@@ -296,14 +295,11 @@ class ZonesWindow
         window.showAll();
         window.hide();
 
-        s_w = window.getScreen().getWidth();
-        s_h = window.getScreen().getHeight();
-
-        w = window.getWidth();
-        h = window.getHeight();
-
-        window.move(s_w - w - 20, s_h - h - 30);
-        window.present();
+        /*
+         * Toggle the ZonesWindow onto the screen. Among other things, this
+         * will present.
+         */
+        toggle();
 
         /*
          * Fire up the interrupt timer to update the time readouts.
@@ -691,6 +687,14 @@ class ZonesWindow
             window.hide();
             up = false;
         } else {
+            final int s_w, s_h, w, h;
+            s_w = window.getScreen().getWidth();
+            s_h = window.getScreen().getHeight();
+
+            w = window.getWidth();
+            h = window.getHeight();
+
+            window.move(s_w - w - 20, s_h - h - 30);
             window.present();
             up = true;
         }
