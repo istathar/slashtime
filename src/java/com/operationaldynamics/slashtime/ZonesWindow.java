@@ -61,7 +61,7 @@ import org.gnome.gtk.Window;
  */
 class ZonesWindow
 {
-    private final Window window;
+    private Window window;
 
     /**
      * Our perception of whether or not the ZonesWindow is currently on screen
@@ -69,35 +69,33 @@ class ZonesWindow
      */
     private boolean up = false;
 
-    private final VBox top;
+    private VBox top;
 
-    private final TreeView view;
+    private TreeView view;
 
-    private final TreeViewColumn vertical;
+    private TreeViewColumn vertical;
 
-    private final ListStore model;
+    private ListStore model;
 
-    private final TreeModelSort sorted;
+    private TreeModelSort sorted;
 
-    private final TreeSelection selection;
+    private TreeSelection selection;
 
-    private final Menu menu;
+    private DataColumnPixbuf iconImage;
 
-    private final DataColumnPixbuf iconImage;
+    private DataColumnString placeMarkup;
 
-    private final DataColumnString placeMarkup;
+    private DataColumnString timeMarkup;
 
-    private final DataColumnString timeMarkup;
+    private DataColumnInteger timeSort;
 
-    private final DataColumnInteger timeSort;
+    private DataColumnString offsetMarkup;
 
-    private final DataColumnString offsetMarkup;
+    private DataColumnString rowColor;
 
-    private final DataColumnString rowColor;
+    private DataColumnString rowBackground;
 
-    private final DataColumnString rowBackground;
-
-    private final DataColumnReference placeObject;
+    private DataColumnReference placeObject;
 
     private Place current;
 
@@ -107,10 +105,24 @@ class ZonesWindow
      * Build the main GUI window
      */
     ZonesWindow() {
-        CellRendererPixbuf image;
-        CellRendererText text;
-        final Action popMeeting, closeDown, popAbout;
+        setupWindow();
+        setupTreeView();
+        setupContextMenu();
 
+        hookupWindowManagement();
+        hookupSelectionSignals();
+        hookupReactingToWindowVisibilityChanges();
+
+        populateZonesIntoModel();
+
+        initialPresentation();
+        createClockThread();
+    }
+
+    /**
+     * Initialize and pack outer Widgets; prepare Window properties.
+     */
+    private void setupWindow() {
         window = new Window();
 
         window.setIcon(images.marble);
@@ -120,6 +132,13 @@ class ZonesWindow
         window.setBorderWidth(1);
 
         top = new VBox(false, 0);
+
+        window.add(top);
+    }
+
+    private void setupTreeView() {
+        CellRendererPixbuf image;
+        CellRendererText text;
 
         iconImage = new DataColumnPixbuf();
         placeMarkup = new DataColumnString();
@@ -185,14 +204,10 @@ class ZonesWindow
         text.setForeground(rowColor);
         text.setBackground(rowBackground);
 
-        indicateCorrectTime();
-
-        /*
-         * Pack widgets, and prepare Window properties.
-         */
-
         top.packStart(view, true, true, 0);
+    }
 
+    private void hookupWindowManagement() {
         window.connect(new Window.DELETE_EVENT() {
             public boolean onDeleteEvent(Widget source, Event event) {
                 Gtk.mainQuit();
@@ -213,7 +228,9 @@ class ZonesWindow
                 return false;
             }
         });
+    }
 
+    private void hookupSelectionSignals() {
         view.connect(new TreeView.ROW_ACTIVATED() {
             public void onRowActivated(TreeView source, TreePath path, TreeViewColumn vertical) {
                 final TreeIter row;
@@ -246,12 +263,13 @@ class ZonesWindow
                 }
             }
         });
+    }
 
-        /*
-         * Deal with setting the up variable so we can react to activation on
-         * the DockedIndicator accordingly.
-         */
-
+    /**
+     * Deal with setting the up variable so we can react to activation on the
+     * DockedIndicator accordingly.
+     */
+    private void hookupReactingToWindowVisibilityChanges() {
         window.connect(new Widget.VISIBILITY_NOTIFY_EVENT() {
             public boolean onVisibilityNotifyEvent(Widget source, EventVisibility event) {
                 final VisibilityState state;
@@ -273,38 +291,12 @@ class ZonesWindow
                 return false;
             }
         });
+    }
 
-        window.add(top);
-
-        /*
-         * Populate the list and run an initial update of the time and offset
-         * readouts. It's necessary to update the time fields here as a
-         * preload to ensure the TreeView is properly sized and that all
-         * columns are showing.
-         */
-
-        populate();
-        updateNow();
-
-        /*
-         * Position the window and present. FUTURE If this becomes an applet,
-         * then the position will have to be south docked onto the panel above
-         * the time display.
-         */
-
-        window.showAll();
-        window.hide();
-
-        /*
-         * Toggle the ZonesWindow onto the screen. Among other things, this
-         * will present.
-         */
-        toggle();
-
-        /*
-         * Fire up the interrupt timer to update the time readouts.
-         */
-
+    /**
+     * Fire up the interrupt timer to update the time readouts.
+     */
+    private void createClockThread() {
         final Thread clock;
 
         clock = new Thread() {
@@ -345,6 +337,13 @@ class ZonesWindow
         };
         clock.setDaemon(true);
         clock.start();
+    }
+
+    private void setupContextMenu() {
+        final Action popMeeting, closeDown, popAbout;
+        final Menu menu;
+
+        menu = new Menu();
 
         // AccelGroup ag = new AccelGroup();
         // window.addAccelGroup(ag);
@@ -428,8 +427,6 @@ class ZonesWindow
             }
         });
 
-        menu = new Menu();
-
         Image m = new Image(images.calendar);
 
         ImageMenuItem pm = new ImageMenuItem(m, "");
@@ -440,8 +437,6 @@ class ZonesWindow
         menu.append(closeDown.createMenuItem());
 
         menu.showAll();
-        // has to be after map to screen
-        selection.unselectAll();
     }
 
     private static final String DARK = "#777777";
@@ -458,7 +453,11 @@ class ZonesWindow
 
     private static final String BLACK = "black";
 
-    private void populate() {
+    /**
+     * Populate the list and run an initial update of the time and offset
+     * readouts.
+     */
+    private void populateZonesIntoModel() {
         final Place[] places;
 
         places = loadPlaceList();
@@ -503,10 +502,16 @@ class ZonesWindow
         target = current;
     }
 
+    /**
+     * Update the ZonesWindow to reflect the current time.
+     */
     void updateNow() {
         update(System.currentTimeMillis() / 1000);
     }
 
+    /**
+     * Update the ZonesWindow to reflect the specified time.
+     */
     void update(long when) {
         final int center;
         final TreeIter pointer;
@@ -668,6 +673,35 @@ class ZonesWindow
 
             i++;
         } while (pointer.iterNext());
+    }
+
+    private void initialPresentation() {
+        /*
+         * It's necessary to update the time fields here as a preload to
+         * ensure the TreeView is properly sized and that all columns are
+         * showing.
+         */
+        updateNow();
+
+        indicateCorrectTime();
+
+        /*
+         * Position the window and present. FUTURE If this becomes an applet,
+         * then the position will have to be south docked onto the panel above
+         * the time display.
+         */
+
+        window.showAll();
+        window.hide();
+
+        /*
+         * Toggle the ZonesWindow onto the screen. Among other things, this
+         * will present.
+         */
+        toggle();
+
+        // has to be after map to screen
+        selection.unselectAll();
     }
 
     void indicateCorrectTime() {
