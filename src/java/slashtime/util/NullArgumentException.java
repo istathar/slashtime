@@ -8,7 +8,7 @@
  * version 2" See the LICENCE file for the terms governing usage and
  * redistribution.
  */
-package com.operationaldynamics.slashtime;
+package slashtime.util;
 
 /**
  * Frequently we have methods which take an argument such as String or some

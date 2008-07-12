@@ -8,7 +8,7 @@
  * version 2" See the LICENCE file for the terms governing usage and
  * redistribution.
  */
-package com.operationaldynamics.slashtime;
+package slashtime.client;
 
 public interface Version
 {

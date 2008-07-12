@@ -8,7 +8,7 @@
  * version 2" See the LICENCE file for the terms governing usage and
  * redistribution.
  */
-package com.operationaldynamics.slashtime;
+package slashtime.services;
 
 import static java.io.StreamTokenizer.TT_EOF;
 import static java.io.StreamTokenizer.TT_EOL;
@@ -23,6 +23,8 @@ import java.io.LineNumberReader;
 import java.io.StreamTokenizer;
 import java.util.ArrayList;
 
+import slashtime.domain.Place;
+
 /**
  * Load the list of Places that we will be showing in the ZonesWindow.
  * 
@@ -33,13 +35,13 @@ import java.util.ArrayList;
  * it's in a stand alone file. That said, the parser is pretty simple, and
  * there's not much state.
  */
-final class Loader
+public final class Loader
 {
     /**
      * Parse the user's timezone list. Fall back to hard-coded built-in data
      * if the file isn't present. Returns an array of Places
      */
-    static Place[] loadPlaceList() {
+    public static Place[] loadPlaceList() {
         final File file;
 
         file = new File(getProperty("user.home") + "/.tzlist");
@@ -126,7 +128,7 @@ final class Loader
                     continue;
                 }
             }
-            
+
             line.close();
         } catch (FileNotFoundException fnfe) {
             // surely not? We already checked its existence

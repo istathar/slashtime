@@ -8,15 +8,16 @@
  * version 2" See the LICENCE file for the terms governing usage and
  * redistribution.
  */
-package com.operationaldynamics.slashtime;
+package slashtime.ui;
 
-import static com.operationaldynamics.slashtime.Loader.loadPlaceList;
 import static java.lang.Math.abs;
 import static org.freedesktop.bindings.Time.formatTime;
 import static org.freedesktop.bindings.Time.setTimeZone;
 import static org.gnome.gtk.Alignment.CENTER;
 import static org.gnome.gtk.Alignment.LEFT;
 import static org.gnome.gtk.Alignment.TOP;
+import static slashtime.client.Master.ui;
+import static slashtime.services.Loader.loadPlaceList;
 
 import org.gnome.gdk.Color;
 import org.gnome.gdk.CrossingMode;
@@ -53,6 +54,9 @@ import org.gnome.gtk.TreeViewColumn;
 import org.gnome.gtk.VBox;
 import org.gnome.gtk.Widget;
 import org.gnome.gtk.Window;
+
+import slashtime.client.Version;
+import slashtime.domain.Place;
 
 /**
  * Display a TreeView (ListView form) with one row per {@link Place}.
@@ -256,6 +260,15 @@ class ZonesWindow
 
                 if (row != null) {
                     target = (Place) sorted.getValue(row, placeObject);
+                }
+
+                /*
+                 * Somewhat counter-intuitively, this gets hit as a result of
+                 * showAll() in the constructor, while Master.ui is being
+                 * initialized. So we have to avoid a NullPointerException.
+                 */
+                if (ui == null) {
+                    return;
                 }
 
                 if (ui.meeting != null) {

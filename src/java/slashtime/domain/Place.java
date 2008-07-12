@@ -8,9 +8,11 @@
  * version 2" See the LICENCE file for the terms governing usage and
  * redistribution.
  */
-package com.operationaldynamics.slashtime;
+package slashtime.domain;
 
-import static com.operationaldynamics.slashtime.TimeZoneHelper.verifyZoneExists;
+import static slashtime.util.TimeZoneHelper.verifyZoneExists;
+import slashtime.util.NullArgumentException;
+import slashtime.util.TimeZoneHelper;
 
 /**
  * One of the geographical places for which you want to display information.
@@ -45,18 +47,18 @@ public class Place
         localZoneName = TimeZoneHelper.getUserTimeZone();
     }
 
-    static void setHomeZoneName(String zonename) {
+    public static void setHomeZoneName(String zonename) {
         verifyZoneExists(zonename);
         homeZoneName = zonename;
     }
 
-    Place(String zonename, String city, String country) {
+    public Place(String zonename, String city, String country) {
         setZoneName(zonename);
         setCity(city);
         setCountry(country);
     }
 
-    String getCity() {
+    public String getCity() {
         return city;
     }
 
@@ -75,7 +77,7 @@ public class Place
      * Get the identifier correspnding to the name of the timezone file in the
      * zoneinfo directory.
      */
-    String getZoneName() {
+    public String getZoneName() {
         return zoneName;
     }
 
@@ -94,7 +96,7 @@ public class Place
         this.zoneName = zonename;
     }
 
-    String getCountry() {
+    public String getCountry() {
         return country;
     }
 
@@ -117,7 +119,7 @@ public class Place
      * @return true if this Place happens to be the one corresponding to Zulu /
      *         GMT / UTC
      */
-    boolean isZulu() {
+    public boolean isZulu() {
         /*
          * Explicity testing against the name UTC is ok assuming we explicitly
          * add UTC in the program somewhere (and, better yet, prevent its
@@ -134,7 +136,7 @@ public class Place
      * @return true if this Place matches localtime (default, /etc/localtime,
      *         etc)
      */
-    boolean isLocal() {
+    public boolean isLocal() {
         if (zoneName.equals(localZoneName)) {
             return true;
         } else {
@@ -142,7 +144,7 @@ public class Place
         }
     }
 
-    boolean isHome() {
+    public boolean isHome() {
         if (zoneName.equals(homeZoneName)) {
             return true;
         } else {
@@ -241,7 +243,7 @@ public class Place
      *            the number of halves since midnight
      * @return whether or not it is working hours at this Place
      */
-    boolean isWorkHours(int sinceMidnight) {
+    public boolean isWorkHours(int sinceMidnight) {
         if (startWorkDay == endWorkDay) {
             return false;
         }
@@ -267,7 +269,7 @@ public class Place
      *            the number of halves since midnight
      * @return whether or not it is working hours at this Place
      */
-    boolean isCivilHours(int sinceMidnight) {
+    public boolean isCivilHours(int sinceMidnight) {
         if (startCivilDay == endCivilDay) {
             return false;
         }

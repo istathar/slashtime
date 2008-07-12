@@ -8,13 +8,14 @@
  * version 2" See the LICENCE file for the terms governing usage and
  * redistribution.
  */
-package com.operationaldynamics.slashtime;
+package slashtime.ui;
 
 import static org.freedesktop.bindings.Time.formatTime;
 import static org.freedesktop.bindings.Time.makeTime;
 import static org.freedesktop.bindings.Time.setTimeZone;
 import static org.gnome.gtk.Alignment.CENTER;
 import static org.gnome.gtk.Alignment.LEFT;
+import static slashtime.client.Master.ui;
 
 import org.gnome.gdk.Event;
 import org.gnome.gtk.Calendar;
@@ -26,6 +27,9 @@ import org.gnome.gtk.VBox;
 import org.gnome.gtk.Widget;
 import org.gnome.gtk.Window;
 import org.gnome.gtk.WindowPosition;
+
+import slashtime.domain.Place;
+import slashtime.util.NullArgumentException;
 
 class MeetingWindow
 {
