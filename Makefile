@@ -14,7 +14,7 @@ endif
 
 all: .config dirs tmp/stamp/compile slashtime
 
-.config: src/java/com/operationaldynamics/slashtime/Version.java
+.config: src/java/slashtime/client/Version.java
 	echo
 	echo "You need to run ./configure to check prerequisites"
 	echo "and setup preferences before you can build slashtime."

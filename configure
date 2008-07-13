@@ -1343,7 +1343,7 @@ print CONFIG "PREFIX=$prefix\n";
 my $apiversion;
 my $version;
 
-open SOURCE, "src/java/com/operationaldynamics/slashtime/Version.java";
+open SOURCE, "src/java/slashtime/client/Version.java";
 while (<SOURCE>) {
 	chomp;
 	if (/.* APIVERSION = \"([\d\.]+)\";/) {
@@ -1403,7 +1403,7 @@ print LAUNCHER join (" ",
 	"$JAVA",
 	"-classpath tmp/classes:$JAVAGNOME_JARS ",
 	"-Djava.library.path=$JAVAGNOME_LIBPATH ",
-	"com.operationaldynamics.slashtime.Master",
+	"slashtime.client.Master",
 	"\$*") . "\n";
 
 close LAUNCHER;
@@ -1422,7 +1422,7 @@ print LAUNCHER join (" ",
 	"$JAVA",
 	"-classpath $SLASHTIME_JARS:$JAVAGNOME_JARS",
 	"-Djava.library.path=$JAVAGNOME_LIBPATH",
-	"com.operationaldynamics.slashtime.Master",
+	"slashtime.client.Master",
 	"\$*") . "\n";
 
 close LAUNCHER;
