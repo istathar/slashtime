@@ -8,7 +8,9 @@
  * version 2" See the LICENCE file for the terms governing usage and
  * redistribution.
  */
-package com.operationaldynamics.slashtime;
+package slashtime.ui;
+
+import static slashtime.client.Master.ui;
 
 import org.gnome.gtk.Gtk;
 import org.gnome.gtk.ImageMenuItem;

@@ -1,44 +1,56 @@
 /*
- * Master.java
- * 
- * Copyright (c) 2006-2008 Operational Dynamics Consulting Pty Ltd
+ * UserInterface.java
  *
+ * Copyright (c) 2008 Operational Dynamics Consulting Pty Ltd
+ * 
  * The code in this file, and the program it is a part of, are made available
- * to you by the authors under the terms of the "GNU General Public Licence,
+ * to you by its authors under the terms of the "GNU General Public Licence,
  * version 2" See the LICENCE file for the terms governing usage and
  * redistribution.
  */
-package com.operationaldynamics.slashtime;
+package slashtime.ui;
 
 import java.io.FileNotFoundException;
 
 import org.gnome.gdk.Pixbuf;
-import org.gnome.gtk.Gtk;
 
 /**
- * Main entry point for slashtime program.
+ * Harness for the UI code.
  * 
  * @author Andrew Cowie
  */
-public final class Master
+/*
+ * At present this class has nothing exciting (ie, public) besides the
+ * constructor but the GUI layer gets a fair bit done by making calls on the
+ * instances of the various windows, made available through fields of this
+ * class.
+ */
+public class UserInterface
 {
-    public static void main(String[] args) {
-        Gtk.init(args);
+    ZonesWindow zones;
 
+    MeetingWindow meeting;
+
+    DockedIndicator status;
+
+    /**
+     * Constructing this will build the UI elements representing the program.
+     * While not enforced as a Singleton (no need to) it is only expected that
+     * this would be constructed once, by the client layer, and assigned to
+     * Master.ui
+     */
+    public UserInterface() {
         loadImages();
-
-        if (args.length == 1) {
-            specifyHome(args[0]);
-        }
-
-        ui.zones = new ZonesWindow();
-        ui.meeting = null;
-        ui.status = new DockedIndicator();
-
-        Gtk.main();
+        setupWindows();
     }
 
-    private static void loadImages() {
+    private void setupWindows() {
+        meeting = null;
+        zones = new ZonesWindow();
+        status = new DockedIndicator();
+    }
+
+    private void loadImages() {
         try {
             images.marble = new Pixbuf("share/pixmaps/slashtime-marble.png");
             images.gmt = new Pixbuf("share/pixmaps/slashtime-marble.png", 22, 22, true);
@@ -50,22 +62,15 @@ public final class Master
         }
     }
 
-    private static void specifyHome(String zonename) {
-        Place.setHomeZoneName(zonename);
-    }
 }
 
 /**
- * Globally accessible references to images that are re-used in various
+ * Package accessible references to images that are re-used in various
  * contexts.
  */
 /*
- * This is an attmept to encapsulated global variables a bit better. This was
- * originally inspired by ObjectiveAccount's ProcedureCluent.ui.blah() where
- * ui was of type UserInferface and had various application specific global
- * actions on it. It's less of an issue with static imports, but still it's a
- * pain to namespace these bloody things. Yes, yes, it's horribly bad form to
- * name a class with a lower case letter. But the completions look excellent.
+ * Yes, yes, it's horribly bad form to name a class with a lower case letter.
+ * But the completions look excellent, and it's all only package visible.
  */
 class images
 {
@@ -93,13 +98,4 @@ class images
      * Your current location. Scaled to fit in the ZonesWindow.
      */
     static Pixbuf local;
-}
-
-class ui
-{
-    static ZonesWindow zones;
-
-    static MeetingWindow meeting;
-
-    static DockedIndicator status;
 }

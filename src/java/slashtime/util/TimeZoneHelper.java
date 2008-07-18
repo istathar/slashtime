@@ -8,7 +8,7 @@
  * version 2" See the LICENCE file for the terms governing usage and
  * redistribution.
  */
-package com.operationaldynamics.slashtime;
+package slashtime.util;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -26,7 +26,7 @@ import java.io.FileReader;
 /*
  * TODO needs a better class name
  */
-class TimeZoneHelper
+public class TimeZoneHelper
 {
     /**
      * The parent directory where the tzfile zoneinfo time zone information
@@ -48,7 +48,7 @@ class TimeZoneHelper
      * change if we were to port to a system not using the glibc zoneinfo
      * database.
      */
-    static void verifyZoneExists(final String zonename) {
+    public static void verifyZoneExists(final String zonename) {
         final String tzfile;
 
         if (zonename == null) {
@@ -88,7 +88,7 @@ class TimeZoneHelper
      *         timezone, a String representating the timezone otherwise
      *         suitable for creating a Place.
      */
-    static String getUserTimeZone() {
+    public static String getUserTimeZone() {
         /*
          * 1. Check for $TZ
          */
