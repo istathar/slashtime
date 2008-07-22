@@ -105,6 +105,8 @@ class ZonesWindow
 
     private Place target;
 
+    protected boolean on = true;
+
     /**
      * Build the main GUI window
      */
@@ -289,10 +291,15 @@ class ZonesWindow
 
                 state = event.getState();
 
-                if ((state == VisibilityState.FULLY_OBSCURED) || (state == VisibilityState.PARTIAL)) {
+                if (state == VisibilityState.FULLY_OBSCURED) {
                     up = false;
+                    on = false;
+                } else if (state == VisibilityState.PARTIAL) {
+                    up = false;
+                    on = true;
                 } else {
                     up = true;
+                    on = true;
                 }
                 return false;
             }
@@ -301,6 +308,7 @@ class ZonesWindow
         window.connect(new Widget.UNMAP_EVENT() {
             public boolean onUnmapEvent(Widget source, Event event) {
                 up = false;
+                on = false;
                 return false;
             }
         });
@@ -327,7 +335,7 @@ class ZonesWindow
                         Thread.sleep(delay);
                     } catch (InterruptedException ie) {
                         /*
-                         * It sure would benice if interrupt() actually did
+                         * It sure would be nice if interrupt() actually did
                          * happen as a result of the process being paused [by
                          * the shell, suspend, hibernate] and then resumed.
                          * So, TODO we'll need some hacky logic to deal with
@@ -335,6 +343,10 @@ class ZonesWindow
                          * Listen for a DBus message? Either way, that thread
                          * can then interrupt() this one.
                          */
+                    }
+
+                    if (!on) {
+                        continue;
                     }
 
                     if (ui.meeting != null) {
@@ -533,7 +545,7 @@ class ZonesWindow
         setTimeZone(current.getZoneName());
         center = calculateOffset(when);
 
-        if (false) {
+        if (true) {
             System.out.println("update(" + formatTime("%e %b %y %H:%M:%S", when) + ")");
         }
 
