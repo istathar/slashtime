@@ -106,9 +106,7 @@ class ZonesWindow
 
     private Place target;
 
-    protected boolean on = true;
-
-    protected Thread clock;
+    protected ClockThread clock;
 
     /**
      * Build the main GUI window
@@ -296,17 +294,13 @@ class ZonesWindow
 
                 if (state == VisibilityState.FULLY_OBSCURED) {
                     up = false;
-                    on = false;
+                    clock.setRunning(false);
                 } else if (state == VisibilityState.PARTIAL) {
                     up = false;
-                    on = true;
+                    clock.setRunning(true);
                 } else {
                     up = true;
-                    on = true;
-                }
-
-                synchronized (clock) {
-                    clock.interrupt();
+                    clock.setRunning(true);
                 }
 
                 return false;
@@ -316,7 +310,7 @@ class ZonesWindow
         window.connect(new Widget.UNMAP_EVENT() {
             public boolean onUnmapEvent(Widget source, Event event) {
                 up = false;
-                on = false;
+                clock.setRunning(false);
                 return false;
             }
         });
@@ -326,51 +320,11 @@ class ZonesWindow
      * Fire up the interrupt timer to update the time readouts.
      */
     private void createClockThread() {
-        clock = new Thread() {
-            public void run() {
-                // ms
-                long time, delay;
-                // s
-                long tick;
+        /*
+         * Initialize the timer. The constructor start()s the Thread.
+         */
 
-                while (true) {
-                    try {
-                        if (on) {
-                            time = currentTimeMillis();
-                            delay = 60000 - time % 60000;
-
-                            sleep(delay);
-
-                            if (ui.meeting != null) {
-                                continue;
-                            }
-
-                            time = currentTimeMillis();
-                            tick = time / 1000;
-
-                            update(tick);
-                        } else {
-                            synchronized (clock) {
-                                wait();
-                            }
-                        }
-                    } catch (InterruptedException ie) {
-                        /*
-                         * It sure would be nice if interrupt() actually did
-                         * happen as a result of the process being paused [by
-                         * the shell, suspend, hibernate] and then resumed.
-                         * So, TODO we'll need some hacky logic to deal with
-                         * that. Some other Thread to watch a /sys file?
-                         * Listen for a DBus message? Either way, that thread
-                         * can then interrupt() this one.
-                         */
-                        System.out.println("interrupt() " + on);
-                    }
-                }
-            }
-        };
-        clock.setDaemon(true);
-        clock.start();
+        clock = new ClockThread();
     }
 
     private void setupContextMenu() {
@@ -730,9 +684,9 @@ class ZonesWindow
 
         /*
          * Toggle the ZonesWindow onto the screen. Among other things, this
-         * will present.
+         * will size, and present.
          */
-        toggle();
+        toggle(false);
 
         // has to be after map to screen
         selection.unselectAll();
@@ -750,17 +704,19 @@ class ZonesWindow
         return current;
     }
 
-    void toggle() {
+    /**
+     * Toggle the ZonesWindow on to or off of the screen. The boolean
+     * parameter allows us to avoid a double tap update on startup.
+     */
+    void toggle(boolean update) {
+        final int s_w, s_h, w, h;
+
         if (up) {
             window.hide();
             up = false;
-            on = false;
 
-            synchronized (clock) {
-                clock.interrupt();
-            }
+            clock.setRunning(false);
         } else {
-            final int s_w, s_h, w, h;
             s_w = window.getScreen().getWidth();
             s_h = window.getScreen().getHeight();
 
@@ -768,13 +724,15 @@ class ZonesWindow
             h = window.getHeight();
 
             window.move(s_w - w - 20, s_h - h - 30);
+
             window.present();
             up = true;
-            on = true;
-        }
 
-        if (on && up) {
-            updateNow();
+            if (update) {
+                updateNow();
+            }
+
+            clock.setRunning(true);
         }
     }
 
