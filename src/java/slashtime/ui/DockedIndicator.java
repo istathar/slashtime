@@ -37,7 +37,6 @@ class DockedIndicator
 
         si.connect(new StatusIcon.ACTIVATE() {
             public void onActivate(StatusIcon source) {
-                ui.zones.updateNow();
                 ui.zones.toggle();
             }
         });

@@ -11,6 +11,7 @@
 package slashtime.ui;
 
 import static java.lang.Math.abs;
+import static java.lang.System.currentTimeMillis;
 import static org.freedesktop.bindings.Time.formatTime;
 import static org.freedesktop.bindings.Time.setTimeZone;
 import static org.gnome.gtk.Alignment.CENTER;
@@ -107,6 +108,8 @@ class ZonesWindow
 
     protected boolean on = true;
 
+    protected Thread clock;
+
     /**
      * Build the main GUI window
      */
@@ -121,8 +124,8 @@ class ZonesWindow
 
         populateZonesIntoModel();
 
-        initialPresentation();
         createClockThread();
+        initialPresentation();
     }
 
     /**
@@ -301,6 +304,11 @@ class ZonesWindow
                     up = true;
                     on = true;
                 }
+
+                synchronized (clock) {
+                    clock.interrupt();
+                }
+
                 return false;
             }
         });
@@ -318,8 +326,6 @@ class ZonesWindow
      * Fire up the interrupt timer to update the time readouts.
      */
     private void createClockThread() {
-        final Thread clock;
-
         clock = new Thread() {
             public void run() {
                 // ms
@@ -328,11 +334,26 @@ class ZonesWindow
                 long tick;
 
                 while (true) {
-                    time = System.currentTimeMillis();
-                    delay = 60000 - time % 60000;
-
                     try {
-                        Thread.sleep(delay);
+                        if (on) {
+                            time = currentTimeMillis();
+                            delay = 60000 - time % 60000;
+
+                            sleep(delay);
+
+                            if (ui.meeting != null) {
+                                continue;
+                            }
+
+                            time = currentTimeMillis();
+                            tick = time / 1000;
+
+                            update(tick);
+                        } else {
+                            synchronized (clock) {
+                                wait();
+                            }
+                        }
                     } catch (InterruptedException ie) {
                         /*
                          * It sure would be nice if interrupt() actually did
@@ -343,20 +364,8 @@ class ZonesWindow
                          * Listen for a DBus message? Either way, that thread
                          * can then interrupt() this one.
                          */
+                        System.out.println("interrupt() " + on);
                     }
-
-                    if (!on) {
-                        continue;
-                    }
-
-                    if (ui.meeting != null) {
-                        continue;
-                    }
-
-                    time = System.currentTimeMillis();
-
-                    tick = time / 1000;
-                    update(tick);
                 }
             }
         };
@@ -531,7 +540,7 @@ class ZonesWindow
      * Update the ZonesWindow to reflect the current time.
      */
     void updateNow() {
-        update(System.currentTimeMillis() / 1000);
+        update(currentTimeMillis() / 1000);
     }
 
     /**
@@ -745,6 +754,11 @@ class ZonesWindow
         if (up) {
             window.hide();
             up = false;
+            on = false;
+
+            synchronized (clock) {
+                clock.interrupt();
+            }
         } else {
             final int s_w, s_h, w, h;
             s_w = window.getScreen().getWidth();
@@ -756,6 +770,11 @@ class ZonesWindow
             window.move(s_w - w - 20, s_h - h - 30);
             window.present();
             up = true;
+            on = true;
+        }
+
+        if (on && up) {
+            updateNow();
         }
     }
 
