@@ -11,6 +11,7 @@
 package slashtime.ui;
 
 import static java.lang.Math.abs;
+import static java.lang.System.currentTimeMillis;
 import static org.freedesktop.bindings.Time.formatTime;
 import static org.freedesktop.bindings.Time.setTimeZone;
 import static org.gnome.gtk.Alignment.CENTER;
@@ -105,6 +106,8 @@ class ZonesWindow
 
     private Place target;
 
+    protected ClockThread clock;
+
     /**
      * Build the main GUI window
      */
@@ -119,8 +122,8 @@ class ZonesWindow
 
         populateZonesIntoModel();
 
-        initialPresentation();
         createClockThread();
+        initialPresentation();
     }
 
     /**
@@ -289,11 +292,17 @@ class ZonesWindow
 
                 state = event.getState();
 
-                if ((state == VisibilityState.FULLY_OBSCURED) || (state == VisibilityState.PARTIAL)) {
+                if (state == VisibilityState.FULLY_OBSCURED) {
                     up = false;
+                    clock.setRunning(false);
+                } else if (state == VisibilityState.PARTIAL) {
+                    up = false;
+                    clock.setRunning(true);
                 } else {
                     up = true;
+                    clock.setRunning(true);
                 }
+
                 return false;
             }
         });
@@ -301,6 +310,7 @@ class ZonesWindow
         window.connect(new Widget.UNMAP_EVENT() {
             public boolean onUnmapEvent(Widget source, Event event) {
                 up = false;
+                clock.setRunning(false);
                 return false;
             }
         });
@@ -310,46 +320,11 @@ class ZonesWindow
      * Fire up the interrupt timer to update the time readouts.
      */
     private void createClockThread() {
-        final Thread clock;
+        /*
+         * Initialize the timer. The constructor start()s the Thread.
+         */
 
-        clock = new Thread() {
-            public void run() {
-                // ms
-                long time, delay;
-                // s
-                long tick;
-
-                while (true) {
-                    time = System.currentTimeMillis();
-                    delay = 60000 - time % 60000;
-
-                    try {
-                        Thread.sleep(delay);
-                    } catch (InterruptedException ie) {
-                        /*
-                         * It sure would benice if interrupt() actually did
-                         * happen as a result of the process being paused [by
-                         * the shell, suspend, hibernate] and then resumed.
-                         * So, TODO we'll need some hacky logic to deal with
-                         * that. Some other Thread to watch a /sys file?
-                         * Listen for a DBus message? Either way, that thread
-                         * can then interrupt() this one.
-                         */
-                    }
-
-                    if (ui.meeting != null) {
-                        continue;
-                    }
-
-                    time = System.currentTimeMillis();
-
-                    tick = time / 1000;
-                    update(tick);
-                }
-            }
-        };
-        clock.setDaemon(true);
-        clock.start();
+        clock = new ClockThread();
     }
 
     private void setupContextMenu() {
@@ -519,7 +494,7 @@ class ZonesWindow
      * Update the ZonesWindow to reflect the current time.
      */
     void updateNow() {
-        update(System.currentTimeMillis() / 1000);
+        update(currentTimeMillis() / 1000);
     }
 
     /**
@@ -709,9 +684,9 @@ class ZonesWindow
 
         /*
          * Toggle the ZonesWindow onto the screen. Among other things, this
-         * will present.
+         * will size, and present.
          */
-        toggle();
+        toggle(false);
 
         // has to be after map to screen
         selection.unselectAll();
@@ -729,12 +704,19 @@ class ZonesWindow
         return current;
     }
 
-    void toggle() {
+    /**
+     * Toggle the ZonesWindow on to or off of the screen. The boolean
+     * parameter allows us to avoid a double tap update on startup.
+     */
+    void toggle(boolean update) {
+        final int s_w, s_h, w, h;
+
         if (up) {
             window.hide();
             up = false;
+
+            clock.setRunning(false);
         } else {
-            final int s_w, s_h, w, h;
             s_w = window.getScreen().getWidth();
             s_h = window.getScreen().getHeight();
 
@@ -742,8 +724,15 @@ class ZonesWindow
             h = window.getHeight();
 
             window.move(s_w - w - 20, s_h - h - 30);
+
             window.present();
             up = true;
+
+            if (update) {
+                updateNow();
+            }
+
+            clock.setRunning(true);
         }
     }
 
