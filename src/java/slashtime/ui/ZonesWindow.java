@@ -686,7 +686,7 @@ class ZonesWindow
          * Toggle the ZonesWindow onto the screen. Among other things, this
          * will size, and present.
          */
-        toggle(false);
+        toggle();
 
         // has to be after map to screen
         selection.unselectAll();
@@ -708,7 +708,7 @@ class ZonesWindow
      * Toggle the ZonesWindow on to or off of the screen. The boolean
      * parameter allows us to avoid a double tap update on startup.
      */
-    void toggle(boolean update) {
+    void toggle() {
         final int s_w, s_h, w, h;
 
         if (up) {
@@ -727,10 +727,6 @@ class ZonesWindow
 
             window.present();
             up = true;
-
-            if (update) {
-                updateNow();
-            }
 
             clock.setRunning(true);
         }

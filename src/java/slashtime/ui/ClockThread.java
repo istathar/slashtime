@@ -26,7 +26,7 @@ class ClockThread
     private boolean running;
 
     ClockThread() {
-        running = false;
+        running = true;
 
         timer = new Thread() {
             public void run() {
@@ -71,14 +71,23 @@ class ClockThread
         timer.start();
     }
 
+    /**
+     * Tell the ClockThread whether to be running or not. If the state is
+     * changed to running then it will update the display.
+     */
     void setRunning(boolean setting) {
-        if (setting != running) {
-            running = setting;
+        if (setting == running) {
+            return;
+        }
 
-            synchronized (timer) {
-                timer.interrupt();
-            }
+        if (!running) {
+            ui.zones.updateNow();
+        }
+
+        running = setting;
+
+        synchronized (timer) {
+            timer.interrupt();
         }
     }
-
 }
