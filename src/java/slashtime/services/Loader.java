@@ -10,11 +10,6 @@
  */
 package slashtime.services;
 
-import static java.io.StreamTokenizer.TT_EOF;
-import static java.io.StreamTokenizer.TT_EOL;
-import static java.io.StreamTokenizer.TT_WORD;
-import static java.lang.System.getProperty;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -24,6 +19,11 @@ import java.io.StreamTokenizer;
 import java.util.ArrayList;
 
 import slashtime.domain.Place;
+
+import static java.io.StreamTokenizer.TT_EOF;
+import static java.io.StreamTokenizer.TT_EOL;
+import static java.io.StreamTokenizer.TT_WORD;
+import static java.lang.System.getProperty;
 
 /**
  * Load the list of Places that we will be showing in the ZonesWindow.
