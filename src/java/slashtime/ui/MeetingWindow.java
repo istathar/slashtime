@@ -10,13 +10,6 @@
  */
 package slashtime.ui;
 
-import static org.freedesktop.bindings.Time.formatTime;
-import static org.freedesktop.bindings.Time.makeTime;
-import static org.freedesktop.bindings.Time.setTimeZone;
-import static org.gnome.gtk.Alignment.CENTER;
-import static org.gnome.gtk.Alignment.LEFT;
-import static slashtime.client.Master.ui;
-
 import org.gnome.gdk.Event;
 import org.gnome.gtk.Calendar;
 import org.gnome.gtk.HBox;
@@ -30,6 +23,13 @@ import org.gnome.gtk.WindowPosition;
 
 import slashtime.domain.Place;
 import slashtime.util.NullArgumentException;
+
+import static org.freedesktop.bindings.Time.formatTime;
+import static org.freedesktop.bindings.Time.makeTime;
+import static org.freedesktop.bindings.Time.setTimeZone;
+import static org.gnome.gtk.Alignment.CENTER;
+import static org.gnome.gtk.Alignment.LEFT;
+import static slashtime.client.Master.ui;
 
 class MeetingWindow
 {

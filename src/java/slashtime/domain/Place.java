@@ -10,9 +10,10 @@
  */
 package slashtime.domain;
 
-import static slashtime.util.TimeZoneHelper.verifyZoneExists;
 import slashtime.util.NullArgumentException;
 import slashtime.util.TimeZoneHelper;
+
+import static slashtime.util.TimeZoneHelper.verifyZoneExists;
 
 /**
  * One of the geographical places for which you want to display information.

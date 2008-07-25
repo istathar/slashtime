@@ -10,16 +10,6 @@
  */
 package slashtime.ui;
 
-import static java.lang.Math.abs;
-import static java.lang.System.currentTimeMillis;
-import static org.freedesktop.bindings.Time.formatTime;
-import static org.freedesktop.bindings.Time.setTimeZone;
-import static org.gnome.gtk.Alignment.CENTER;
-import static org.gnome.gtk.Alignment.LEFT;
-import static org.gnome.gtk.Alignment.TOP;
-import static slashtime.client.Master.ui;
-import static slashtime.services.Loader.loadPlaceList;
-
 import org.gnome.gdk.Color;
 import org.gnome.gdk.CrossingMode;
 import org.gnome.gdk.Event;
@@ -58,6 +48,16 @@ import org.gnome.gtk.Window;
 
 import slashtime.client.Version;
 import slashtime.domain.Place;
+
+import static java.lang.Math.abs;
+import static java.lang.System.currentTimeMillis;
+import static org.freedesktop.bindings.Time.formatTime;
+import static org.freedesktop.bindings.Time.setTimeZone;
+import static org.gnome.gtk.Alignment.CENTER;
+import static org.gnome.gtk.Alignment.LEFT;
+import static org.gnome.gtk.Alignment.TOP;
+import static slashtime.client.Master.ui;
+import static slashtime.services.Loader.loadPlaceList;
 
 /**
  * Display a TreeView (ListView form) with one row per {@link Place}.

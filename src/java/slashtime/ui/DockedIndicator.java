@@ -10,14 +10,14 @@
  */
 package slashtime.ui;
 
-import static slashtime.client.Master.ui;
-
 import org.gnome.gtk.Gtk;
 import org.gnome.gtk.ImageMenuItem;
 import org.gnome.gtk.Menu;
 import org.gnome.gtk.MenuItem;
 import org.gnome.gtk.StatusIcon;
 import org.gnome.gtk.Stock;
+
+import static slashtime.client.Master.ui;
 
 /**
  * Wrapper around a StatusIcon in the notification area. This is somewhat a
