@@ -161,6 +161,19 @@ public class TimeZoneHelper
          * We have failed! Alas. Return an empty string, which is the marker
          * used later to skip highlighting the home location.
          */
+        System.err.println("Warning: Couldn't figure out your timezone.\n\n"
+                + "Highlighting your current location and showing the offsets from there\n"
+                + "is an important feature of Slashtime and we encourage you to take\n"
+                + "advantage of it. We recommend you either:\n\n"
+                + " - set /etc/localtime to be a symlink to the zoneinfo file\n" + "   in" + TZDIR
+                + " that you are using, eg:\n\n" + "\t# ln -s " + TZDIR
+                + "/Europe/Paris /etc/localtime\n\n"
+                + " - write the name of the timezone you are in to /etc/timezone, eg:\n\n"
+                + "\t# echo \"Europe/Paris\" > /etc/timezone\n\n"
+                + " - set the TZ variable either globally or when running the program:\n\n"
+                + "\t$ TZ=\"Europe/Paris\" ./slashtime\n\n"
+                + "The zone you specify does need to be in your ~/.tzlist file.");
+
         return "";
     }
 }
