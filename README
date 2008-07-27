@@ -1,4 +1,12 @@
+Slashtime
+
 This is slashtime, a small program which displays the time in various places.
+
+<style>
+pre {
+    color: white; background: black; padding: 10px; margin: 10px;
+}
+</style>
 
 
 COMPILING AND RUNNING
@@ -9,7 +17,7 @@ For the impatient:
 	$ ./configure
 	$ make
 
-but don't forget to create a .tzlist file; see PLACES.
+but don't forget to create a `.tzlist` file; see [`PLACES`](PLACES.html).
 
 
 PREREQUISITES
@@ -17,15 +25,16 @@ PREREQUISITES
 
 slashtime is written in Java and uses uses:
 
-* java-gnome	Bindings around the GTK and GNOME user interface libraries
-		http://java-gnome.sourceforge.net
-		You'll need a version >= 4.0.7
+* **java-gnome**  
+  Bindings around the GTK and GNOME user interface libraries,  
+  <http://java-gnome.sourceforge.net>  
+  You'll need a version `>= 4.0.7`
 
 
 CONFIGURATION
 -------------
 
-The top level directory contains a custom ./configure which detects your
+The top level directory contains a custom `./configure` which detects your
 operating system variant, sets defaults accordingly, verifies the location of
 prerequisites, and finally chooses a Java bytecode compiler and Java virtual
 machine runtime environment.
@@ -97,7 +106,7 @@ specify a temporary build directory to compose the installation image, perhaps:
 
 
 	$ ./configure prefix=/usr
-	# make DESTDIR=/var/tmp/portage/app-misc/slashtime-0.5.3/image install
+	# make DESTDIR=/var/tmp/portage/app-misc/slashtime-0.5.5/image install
 
 
 RUNNING
@@ -115,7 +124,7 @@ If your distro packaged it for you, then it's most likely on your PATH as:
 
 	$ slashtime
 
-and is will be available from the Accessories part of the GNOME Applications
+and it will be available from the Accessories part of the GNOME Applications
 menu.
 
 
@@ -123,11 +132,11 @@ Places list
 -----------
 
 The cities shown by slashtime is drawn from the list found in a file called
-.tzlist in your home directory. See the PLACES file for a fully documented
-example.
+.tzlist in your home directory. See the [PLACES](PLACES.html) file for a fully
+documented example.
 
 Don't whine to me about the lack of UI to change the hard coded Places list. If
-you want your own list of cities, then whip up a ~/.tzlist file.
+you want your own list of cities, then whip up a `~/.tzlist` file.
 
 
 HISTORY
@@ -140,16 +149,17 @@ from GMT. We've always found that a little useless.  Telling me that I am in
 GMT+11 and someone I want to talk to is shown in GMT-4 still doesn't help me
 get an intuitive grasp of what the differential is.
 
-So Andrew Cowie wrote a small perl script called slashtime. Named after the
-short cut on his employer's company website that gets you to an HTML version,
-operationaldynamics.com/time, it started out life as a perl script, and gained
-a bit of a cult following from people who would put it into their
-.bash_profiles to run when launching a terminal.
+So Andrew Cowie wrote a small perl script called `slashtime`. Named after the
+short cut on his employer's website that gets you to an HTML version,
+[`operationaldynamics.com/time`](http://operationaldynamics.com/time), it
+started out life as a perl script, and gained a bit of a cult following from
+people who would put it into their `.bash_profiles` to run when launching a
+terminal.
 
 Sometime in 2006, Andrew got the idea to write a GUI version, taking advantage
 of the new java-gnome bindings to create a compact and rich presentation of the
-time zone information.
-
+time zone information. The current version of Slashtime, using java-gnome 4.0,
+was first packaged by Gentoo Linux as `app-misc/slashtime` in June 2008.
 
 FAQ
 ===
