@@ -131,7 +131,7 @@ class MeetingWindow
          */
         calendar = new Calendar();
 
-        calendar.connect(new Calendar.DAY_SELECTED() {
+        calendar.connect(new Calendar.DaySelected() {
             public void onDaySelected(Calendar source) {
                 update();
             }
@@ -149,14 +149,14 @@ class MeetingWindow
         hour = new HScale(0, 23, 1);
         minute = new HScale(0, 59, 15);
         minute.setDigits(0);
-        hour.connect(new Range.VALUE_CHANGED() {
+        hour.connect(new Range.ValueChanged() {
             public void onValueChanged(Range source) {
                 if (hour.getHasFocus()) {
                     update();
                 }
             }
         });
-        minute.connect(new Range.VALUE_CHANGED() {
+        minute.connect(new Range.ValueChanged() {
             public void onValueChanged(Range source) {
                 if (minute.getHasFocus()) {
                     update();
@@ -179,7 +179,7 @@ class MeetingWindow
         window.showAll();
         window.present();
 
-        window.connect(new Window.DELETE_EVENT() {
+        window.connect(new Window.DeleteEvent() {
             public boolean onDeleteEvent(Widget source, Event event) {
                 when = -1;
                 ui.meeting = null;

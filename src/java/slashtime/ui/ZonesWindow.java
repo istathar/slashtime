@@ -215,7 +215,7 @@ class ZonesWindow
     }
 
     private void hookupWindowManagement() {
-        window.connect(new Window.DELETE_EVENT() {
+        window.connect(new Window.DeleteEvent() {
             public boolean onDeleteEvent(Widget source, Event event) {
                 Gtk.mainQuit();
                 return false;
@@ -227,7 +227,7 @@ class ZonesWindow
          * with a blue selected row for no terribly useful reason.
          */
 
-        view.connect(new Widget.LEAVE_NOTIFY_EVENT() {
+        view.connect(new Widget.LeaveNotifyEvent() {
             public boolean onLeaveNotifyEvent(Widget source, EventCrossing event) {
                 if (event.getMode() != CrossingMode.GRAB) {
                     selection.unselectAll();
@@ -238,7 +238,7 @@ class ZonesWindow
     }
 
     private void hookupSelectionSignals() {
-        view.connect(new TreeView.ROW_ACTIVATED() {
+        view.connect(new TreeView.RowActivated() {
             public void onRowActivated(TreeView source, TreePath path, TreeViewColumn vertical) {
                 final TreeIter row;
 
@@ -255,7 +255,7 @@ class ZonesWindow
 
         selection = view.getSelection();
 
-        selection.connect(new TreeSelection.CHANGED() {
+        selection.connect(new TreeSelection.Changed() {
             public void onChanged(TreeSelection source) {
                 final TreeIter row;
 
@@ -286,7 +286,7 @@ class ZonesWindow
      * DockedIndicator accordingly.
      */
     private void hookupReactingToWindowVisibilityChanges() {
-        window.connect(new Widget.VISIBILITY_NOTIFY_EVENT() {
+        window.connect(new Widget.VisibilityNotifyEvent() {
             public boolean onVisibilityNotifyEvent(Widget source, EventVisibility event) {
                 final VisibilityState state;
 
@@ -307,7 +307,7 @@ class ZonesWindow
             }
         });
 
-        window.connect(new Widget.UNMAP_EVENT() {
+        window.connect(new Widget.UnmapEvent() {
             public boolean onUnmapEvent(Widget source, Event event) {
                 up = false;
                 clock.setRunning(false);
@@ -350,7 +350,7 @@ class ZonesWindow
         // popMeeting.setAccelPath("<ZonesWindow>/Meeting");
         // popMeeting.connectAccelerator();
         //
-        popMeeting.connect(new Action.ACTIVATE() {
+        popMeeting.connect(new Action.Activate() {
             public void onActivate(Action sourceObject) {
                 /*
                  * And the logic to pop up a MeetingWindow. This seems quite
@@ -374,14 +374,14 @@ class ZonesWindow
         // closeDown.setAccelPath("<ZonesWindow>/Quit");
         // closeDown.connectAccelerator();
         //
-        closeDown.connect(new Action.ACTIVATE() {
+        closeDown.connect(new Action.Activate() {
             public void onActivate(Action source) {
                 Gtk.mainQuit();
             }
         });
 
         popAbout = new Action("about", "About", "Details about this program", Stock.ABOUT);
-        popAbout.connect(new Action.ACTIVATE() {
+        popAbout.connect(new Action.Activate() {
             public void onActivate(Action source) {
                 final AboutDialog dialog;
 
@@ -406,7 +406,7 @@ class ZonesWindow
          * And code the popup menu:
          */
 
-        view.connect(new Widget.BUTTON_PRESS_EVENT() {
+        view.connect(new Widget.ButtonPressEvent() {
             public boolean onButtonPressEvent(Widget source, EventButton event) {
                 if (event.getButton() == MouseButton.RIGHT) {
                     menu.popup();

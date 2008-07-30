@@ -35,7 +35,7 @@ class DockedIndicator
     DockedIndicator() {
         si = new StatusIcon(images.marble);
 
-        si.connect(new StatusIcon.ACTIVATE() {
+        si.connect(new StatusIcon.Activate() {
             public void onActivate(StatusIcon source) {
                 ui.zones.toggle();
             }
@@ -46,14 +46,14 @@ class DockedIndicator
          * clicked.
          */
 
-        si.connect(new StatusIcon.POPUP_MENU() {
+        si.connect(new StatusIcon.PopupMenu() {
             public void onPopupMenu(StatusIcon source, int button, int activateTime) {
                 menu.popup(source);
             }
         });
 
         menu = new Menu();
-        menu.append(new ImageMenuItem(Stock.QUIT, new MenuItem.ACTIVATE() {
+        menu.append(new ImageMenuItem(Stock.QUIT, new MenuItem.Activate() {
             public void onActivate(MenuItem source) {
                 Gtk.mainQuit();
             }
