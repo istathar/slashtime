@@ -13,6 +13,8 @@ package slashtime.ui;
 import java.io.FileNotFoundException;
 
 import org.gnome.gdk.Pixbuf;
+import org.gnome.gtk.Gtk;
+import org.gnome.gtk.Window;
 
 /**
  * Harness for the UI code.
@@ -60,6 +62,24 @@ public class UserInterface
         } catch (FileNotFoundException fnfe) {
             System.err.println("Icon file not found: " + fnfe.getMessage());
         }
+    }
+
+    /**
+     * Tear down the user interface (and terminate the application).
+     */
+    public void shutdown() {
+        Window w;
+
+        if (meeting != null) {
+            w = meeting.getWindow();
+            w.hide();
+        }
+        if (zones != null) {
+            w = zones.getWindow();
+            w.hide();
+        }
+
+        Gtk.mainQuit();
     }
 
 }

@@ -267,4 +267,8 @@ class MeetingWindow
     void present() {
         window.present();
     }
+
+    Window getWindow() {
+        return window;
+    }
 }

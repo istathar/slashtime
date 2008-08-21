@@ -10,7 +10,6 @@
  */
 package slashtime.ui;
 
-import org.gnome.gtk.Gtk;
 import org.gnome.gtk.ImageMenuItem;
 import org.gnome.gtk.Menu;
 import org.gnome.gtk.MenuItem;
@@ -55,7 +54,7 @@ class DockedIndicator
         menu = new Menu();
         menu.append(new ImageMenuItem(Stock.QUIT, new MenuItem.Activate() {
             public void onActivate(MenuItem source) {
-                Gtk.mainQuit();
+                ui.shutdown();
             }
         }));
         menu.showAll();

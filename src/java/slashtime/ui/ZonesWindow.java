@@ -28,7 +28,6 @@ import org.gnome.gtk.DataColumnInteger;
 import org.gnome.gtk.DataColumnPixbuf;
 import org.gnome.gtk.DataColumnReference;
 import org.gnome.gtk.DataColumnString;
-import org.gnome.gtk.Gtk;
 import org.gnome.gtk.Image;
 import org.gnome.gtk.ImageMenuItem;
 import org.gnome.gtk.ListStore;
@@ -217,7 +216,7 @@ class ZonesWindow
     private void hookupWindowManagement() {
         window.connect(new Window.DeleteEvent() {
             public boolean onDeleteEvent(Widget source, Event event) {
-                Gtk.mainQuit();
+                ui.shutdown();
                 return false;
             }
         });
@@ -376,7 +375,7 @@ class ZonesWindow
         //
         closeDown.connect(new Action.Activate() {
             public void onActivate(Action source) {
-                Gtk.mainQuit();
+                ui.shutdown();
             }
         });
 
