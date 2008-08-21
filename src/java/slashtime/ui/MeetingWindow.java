@@ -152,16 +152,46 @@ class MeetingWindow
         minute.setDigits(0);
         hour.connect(new Range.ValueChanged() {
             public void onValueChanged(Range source) {
-                if (hour.getHasFocus()) {
-                    update();
+                if (!hour.getHasFocus()) {
+                    return;
                 }
+
+                update();
             }
         });
         minute.connect(new Range.ValueChanged() {
             public void onValueChanged(Range source) {
-                if (minute.getHasFocus()) {
-                    update();
+                double current;
+
+                if (!minute.getHasFocus()) {
+                    return;
                 }
+
+                /*
+                 * Restrict the values of the minute slider to 0, 15, 30, 45
+                 * (and, ok, 59). This seems a bit kludgy as it interferes
+                 * with the HScale's smooth operation, at least from a
+                 * conceptual standpoint. I can't help think that manipulating
+                 * the properties of the underlying Adjustment object might
+                 * better do the trick. Something to consider in the FUTURE
+                 * perhaps.
+                 */
+
+                current = minute.getValue();
+
+                if ((current > 0) && (current < 8)) {
+                    minute.setValue(0);
+                } else if ((current >= 8) && (current < 23)) {
+                    minute.setValue(15);
+                } else if ((current >= 23) && (current < 38)) {
+                    minute.setValue(30);
+                } else if ((current >= 38) && (current < 53)) {
+                    minute.setValue(45);
+                } else if ((current >= 54) && (current < 60)) {
+                    minute.setValue(59);
+                }
+
+                update();
             }
         });
         top.packStart(hour, false, false, 0);
