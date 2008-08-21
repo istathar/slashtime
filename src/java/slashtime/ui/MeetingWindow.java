@@ -85,6 +85,7 @@ class MeetingWindow
         window.setTitle("Find a meeting time");
         window.setDecorated(true);
         window.setPosition(WindowPosition.CENTER);
+        window.setTransientFor(ui.zones.getWindow());
 
         window.setIcon(images.calendar);
 

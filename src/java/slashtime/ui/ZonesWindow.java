@@ -764,4 +764,8 @@ class ZonesWindow
         }
         return halves;
     }
+
+    Window getWindow() {
+        return window;
+    }
 }
