@@ -8,11 +8,11 @@ else
 MAKEFLAGS=-s
 endif
 
-.PHONY: all dirs clean distclean
+.PHONY: all dirs translation install clean distclean
 
 -include .config
 
-all: .config dirs tmp/stamp/compile slashtime
+all: .config dirs tmp/stamp/compile tmp/i18n/slashtime.pot slashtime
 
 .config: src/java/slashtime/client/Version.java
 	echo
@@ -27,13 +27,18 @@ CLASSPATH=$(JAVAGNOME_JARS)
 
 SOURCES_DIST=$(shell find src/java -name '*.java')
 
-dirs: tmp/classes tmp/stamp
+
+dirs: tmp/classes tmp/stamp tmp/i18n
 
 tmp/classes:
 	@echo -e "MKDIR\t$@"
 	mkdir $@
 
 tmp/stamp:
+	@echo -e "MKDIR\t$@"
+	mkdir $@
+
+tmp/i18n:
 	@echo -e "MKDIR\t$@"
 	mkdir $@
 
@@ -50,72 +55,57 @@ tmp/stamp/compile: $(SOURCES_DIST)
 	$(JAVAC) -d tmp/classes -classpath tmp/classes:$(CLASSPATH) -sourcepath src/java $^
 	touch $@
 
+tmp/i18n/slashtime.pot: $(SOURCES_DIST)
+	@echo -e "EXTRACT\t$@"
+	xgettext -o $@ --omit-header --keyword=_ --keyword=N_ $^
+
 slashtime: tmp/launcher/slashtime-local
 	@echo -e "CP\t$@"
 	cp -f $< $@
 	chmod +x $@
+
 
 # --------------------------------------------------------------------
 # Installation
 # --------------------------------------------------------------------
 
 install: all \
-		$(DESTDIR)$(PREFIX) \
 		$(DESTDIR)$(PREFIX)/share/java/slashtime-$(APIVERSION).jar \
-		tmp/stamp/install-pixmaps \
+	 	tmp/stamp/install-pixmaps \
+		$(DESTDIR)$(PREFIX)/share/locale/fr_CA/LC_MESSAGES/slashtime.mo \
 		$(DESTDIR)$(PREFIX)/share/applications/slashtime.desktop \
 		$(DESTDIR)$(PREFIX)/bin/slashtime
 
-$(DESTDIR)$(PREFIX):
-	@echo -e "MKDIR\t$(DESTDIR)$(PREFIX)/"
-	-mkdir -p $(DESTDIR)$(PREFIX)
-
-$(DESTDIR)$(PREFIX)/bin:
-	@echo -e "MKDIR\t$@/"
-	-mkdir -p $@
-
-$(DESTDIR)$(PREFIX)/share/java:
-	@echo -e "MKDIR\t$@/"
-	-mkdir -p $@
-
-$(DESTDIR)$(PREFIX)/share/applications:
-	@echo -e "MKDIR\t$@/"
-	-mkdir -p $@
-
-$(DESTDIR)$(PREFIX)/bin/slashtime: \
-		$(DESTDIR)$(PREFIX)/bin \
-		tmp/launcher/slashtime-install
+$(DESTDIR)$(PREFIX)/bin/slashtime: tmp/launcher/slashtime-install
 	@echo -e "INSTALL\t$@"
-	cp -f tmp/launcher/slashtime-install $@
+	mkdir -p $(dir $@)
+	cp $< $@
 	chmod +x $@
 
-$(DESTDIR)$(PREFIX)/share/applications/slashtime.desktop: \
-		$(DESTDIR)$(PREFIX)/share/applications \
-		tmp/launcher/slashtime.desktop
+$(DESTDIR)$(PREFIX)/share/applications/slashtime.desktop: tmp/launcher/slashtime.desktop
 	@echo -e "INSTALL\t$@"
-	cp -f tmp/launcher/slashtime.desktop $@
+	mkdir -p $(dir $@)
+	cp $< $@
 
 tmp/slashtime.jar: tmp/stamp/compile
 	@echo -e "$(JAR_CMD)\t$@"
 	$(JAR) -cf tmp/slashtime.jar -C tmp/classes .
 
-
-$(DESTDIR)$(PREFIX)/share/pixmaps: 
-	@echo -e "MKDIR\t$@/"
-	-mkdir $@
-
-tmp/stamp/install-pixmaps: \
-		$(DESTDIR)$(PREFIX)/share/pixmaps \
-		share/pixmaps/*.png
+tmp/stamp/install-pixmaps: share/pixmaps/*.png
 	@echo -e "INSTALL\t$(DESTDIR)$(PREFIX)/share/pixmaps/*.png"
-	cp -f share/pixmaps/*.png $(DESTDIR)$(PREFIX)/share/pixmaps
+	mkdir -p $(DESTDIR)$(PREFIX)/share/pixmaps
+	cp share/pixmaps/*.png $(DESTDIR)$(PREFIX)/share/pixmaps
 	touch $@
 
-$(DESTDIR)$(PREFIX)/share/java/slashtime-$(APIVERSION).jar: \
-		$(DESTDIR)$(PREFIX)/share/java \
-		tmp/slashtime.jar
+$(DESTDIR)$(PREFIX)/share/locale/%/LC_MESSAGES/slashtime.mo: po/%.po
+	mkdir -p $(dir $@)
+	@echo -e "MSGFMT\t$@"
+	msgfmt -o $@ $<
+
+$(DESTDIR)$(PREFIX)/share/java/slashtime-$(APIVERSION).jar: tmp/slashtime.jar
 	@echo -e "INSTALL\t$@"
-	cp -f tmp/slashtime.jar $@
+	mkdir -p $(dir $@)
+	cp $< $@
 
 
 # --------------------------------------------------------------------
