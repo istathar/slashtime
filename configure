@@ -481,7 +481,6 @@ output "\n";
 # --------------------------------------------------------------------
 
 my @java_gnome_jars;
-my @java_gnome_libs;
 my $jni_path;
 
 output "Check for required jar files:\n";
@@ -494,18 +493,11 @@ if ($os eq "gentoo") {
 			"java-gnome",
 			"$java_gnome_home/share/java/gtk-4.0.jar",
 			"$java_gnome_home/tmp/gtk-4.0.jar");
-
-		if ( -f glob("$java_gnome_home/tmp/libgtkjni-*.so") ) {
-			@java_gnome_libs = ( "$java_gnome_home/tmp" );
-		} else {
-			@java_gnome_libs = ( "$java_gnome_home/lib" );
-		}
 	} else {
 		check_prereq(@java_gnome_jars,
 			"java-gnome UI library",
 			"java-gnome",
 			"/usr/share/java-gnome-4.0/lib/gtk-4.0.jar");
-		@java_gnome_libs = ( "/usr/lib/java-gnome-4.0");
 	}
 
 
@@ -517,12 +509,6 @@ if ($os eq "gentoo") {
 			"java-gnome",
 			"$java_gnome_home/share/java/gtk-4.0.jar",
 			"$java_gnome_home/tmp/gtk-4.0.jar");
-
-		if ( -f "$java_gnome_home/tmp/libgtkjni-4.0.so" ) {
-			@java_gnome_libs = ( "$java_gnome_home/tmp" );
-		} else {
-			@java_gnome_libs = ( "$java_gnome_home/lib" );
-		}
 	} else {
 		check_prereq(@java_gnome_jars,
 			"java-gnome UI library",
@@ -530,11 +516,6 @@ if ($os eq "gentoo") {
 			"$prefix/share/java/gtk-4.0.jar",
 			"/usr/share/java/gtk-4.0.jar",
 			"~/share/java/gtk-4.0.jar");
-			if ($prefix) {
-            	@java_gnome_libs = ( "$prefix/lib" );
-            } else {
-            	@java_gnome_libs = ( "/usr/lib/jni", "~/lib" );
-            }
 	}
 
 	
@@ -570,12 +551,6 @@ if ($os eq "gentoo") {
 			"java-gnome",
 			"$java_gnome_home/share/java/gtk-4.0.jar",
 			"$java_gnome_home/tmp/gtk-4.0.jar");
-
-		if ( -f "$java_gnome_home/tmp/libgtkjni-4.0.so" ) {
-			@java_gnome_libs = ( "$java_gnome_home/tmp" );
-		} else {
-			@java_gnome_libs = ( "$java_gnome_home/lib" );
-		}
 	} else {
 		check_prereq(@java_gnome_jars,
 			"java-gnome UI library",
@@ -583,11 +558,6 @@ if ($os eq "gentoo") {
 			"$prefix/share/java/gtk-4.0.jar",
 			"/usr/share/java/gtk-4.0.jar",
 			"~/share/java/gtk-4.0.jar");
-		if ($prefix) {
-			@java_gnome_libs = ( "$prefix/lib" );
-		} else {
-			@java_gnome_libs = ( "/usr/lib/jni" ); # WRONG, FIXME
-		}
 	}
 
 } elsif ($os eq "solaris") {
@@ -1389,7 +1359,6 @@ output "ok\n";
 # slashtime.jar file. For now it is hard coded as follows:
 
 my $JAVAGNOME_JARS = join(":", @java_gnome_jars);
-my $JAVAGNOME_LIBPATH = join(":", @java_gnome_libs);
 my $SLASHTIME_JARS="$prefix/share/java/slashtime-$apiversion.jar";
 
 output "Write launcher files:";
@@ -1404,7 +1373,6 @@ print LAUNCHER join (" ",
 	"exec",
 	"$JAVA",
 	"-classpath tmp/classes:$JAVAGNOME_JARS ",
-	"-Djava.library.path=$JAVAGNOME_LIBPATH ",
 	"slashtime.client.Master",
 	"\$*") . "\n";
 
@@ -1423,7 +1391,6 @@ print LAUNCHER join (" ",
 	"exec",
 	"$JAVA",
 	"-classpath $SLASHTIME_JARS:$JAVAGNOME_JARS",
-	"-Djava.library.path=$JAVAGNOME_LIBPATH",
 	"slashtime.client.Master",
 	"\$*") . "\n";
 
