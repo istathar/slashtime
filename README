@@ -106,7 +106,7 @@ specify a temporary build directory to compose the installation image, perhaps:
 
 
 	$ ./configure prefix=/usr
-	# make DESTDIR=/var/tmp/portage/app-misc/slashtime-0.5.5/image install
+	# make DESTDIR=/var/tmp/portage/app-misc/slashtime-0.5.8/image install
 
 
 RUNNING
@@ -177,6 +177,5 @@ What's with the day rolling over at 01:30?
 Simple: that's when hackers go to bed! So black at the bottom means that
 someone hard core may still be reachable online if they're up working, whereas
 black on top really means they're asleep.
-
 
 AfC
