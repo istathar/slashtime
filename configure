@@ -343,6 +343,7 @@ sub check_runtime (\$$$$) {
 # --------------------------------------------------------------------
 
 my $prefix;
+my $jardir;
 my $compiler;
 my $runtime;
 my $jdk_home;
@@ -375,6 +376,9 @@ HERE
 	} elsif (($key =~ /^--prefix$/) ||
 		 ($key =~ /^prefix$/)) {
 		$prefix="$value";
+	} elsif (($key =~ /^--jardir$/) ||
+		 ($key =~ /^jardir$/)) {
+		$jardir="$value";
 	} elsif ($key =~ /^runtime/) {
 		$runtime="$value";
 	} elsif ($key =~ /^compiler/) {
@@ -392,6 +396,10 @@ HERE
 
 if (!$prefix) {
 	$prefix="/usr/local";
+}
+
+if (!$jardir) {
+	$jardir=$prefix . "/share/java";
 }
 
 
@@ -1340,6 +1348,7 @@ HERE
 
 print CONFIG "APIVERSION=$apiversion\n";
 print CONFIG "VERSION=$version\n";
+print CONFIG "JARDIR=$jardir\n";
 
 # --------------------------------------------------------------------
 # Done! Create .config file

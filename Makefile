@@ -61,7 +61,7 @@ slashtime: tmp/launcher/slashtime-local
 
 install: all \
 		$(DESTDIR)$(PREFIX) \
-		$(DESTDIR)$(PREFIX)/share/java/slashtime-$(APIVERSION).jar \
+		$(DESTDIR)$(JARDIR)/slashtime-$(APIVERSION).jar \
 		tmp/stamp/install-pixmaps \
 		$(DESTDIR)$(PREFIX)/share/applications/slashtime.desktop \
 		$(DESTDIR)$(PREFIX)/bin/slashtime
@@ -74,7 +74,7 @@ $(DESTDIR)$(PREFIX)/bin:
 	@echo -e "MKDIR\t$@/"
 	-mkdir -p $@
 
-$(DESTDIR)$(PREFIX)/share/java:
+$(DESTDIR)$(JARDIR):
 	@echo -e "MKDIR\t$@/"
 	-mkdir -p $@
 
@@ -111,11 +111,13 @@ tmp/stamp/install-pixmaps: \
 	cp -f share/pixmaps/*.png $(DESTDIR)$(PREFIX)/share/pixmaps
 	touch $@
 
-$(DESTDIR)$(PREFIX)/share/java/slashtime-$(APIVERSION).jar: \
-		$(DESTDIR)$(PREFIX)/share/java \
+$(DESTDIR)$(JARDIR)/slashtime-$(APIVERSION).jar: \
+		$(DESTDIR)$(JARDIR) \
 		tmp/slashtime.jar
 	@echo -e "INSTALL\t$@"
 	cp -f tmp/slashtime.jar $@
+	@echo -e "SYMLINK\t$(@D)/slashtime.jar -> slashtime-$(APIVERSION).jar"
+	cd $(@D) && rm -f slashtime.jar && ln -s slashtime-$(APIVERSION).jar slashtime.jar
 
 
 # --------------------------------------------------------------------
