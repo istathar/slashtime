@@ -570,8 +570,7 @@ class ZonesWindow
 
             offset = new StringBuffer();
 
-            // switch to Times New Roman for a clearer +/-
-            offset.append("<span font_desc='Times New Roman'>");
+            offset.append("<span font_desc='Mono'>");
             offset.append(abs(halves) > 19 ? "" : " ");
 
             offset.append("<span size='x-small' rise='2000'>");
@@ -586,7 +585,7 @@ class ZonesWindow
             offset.append(abs(halves / 2));
 
             offset.append("<span font_desc='Mono'>");
-            offset.append(halves % 2 == 0 ? "" : "\u00bd");
+            offset.append(halves % 2 == 0 ? " " : "\u00bd");
             offset.append("</span>");
             offset.append("\n");
 
