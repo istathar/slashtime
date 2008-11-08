@@ -76,25 +76,48 @@ install: all \
 		$(DESTDIR)$(PREFIX)/share/applications/slashtime.desktop \
 		$(DESTDIR)$(PREFIX)/bin/slashtime
 
-$(DESTDIR)$(PREFIX)/bin/slashtime: tmp/launcher/slashtime-install
+$(DESTDIR)$(PREFIX):
+	@echo -e "MKDIR\t$(DESTDIR)$(PREFIX)/"
+	-mkdir -p $(DESTDIR)$(PREFIX)
+
+$(DESTDIR)$(PREFIX)/bin:
+	@echo -e "MKDIR\t$@/"
+	-mkdir -p $@
+
+$(DESTDIR)$(JARDIR):
+	@echo -e "MKDIR\t$@/"
+	-mkdir -p $@
+
+$(DESTDIR)$(PREFIX)/share/applications:
+	@echo -e "MKDIR\t$@/"
+	-mkdir -p $@
+
+$(DESTDIR)$(PREFIX)/bin/slashtime: \
+		$(DESTDIR)$(PREFIX)/bin \
+		tmp/launcher/slashtime-install
 	@echo -e "INSTALL\t$@"
-	mkdir -p $(dir $@)
-	cp $< $@
+	cp -f tmp/launcher/slashtime-install $@
 	chmod +x $@
 
-$(DESTDIR)$(PREFIX)/share/applications/slashtime.desktop: tmp/launcher/slashtime.desktop
+$(DESTDIR)$(PREFIX)/share/applications/slashtime.desktop: \
+		$(DESTDIR)$(PREFIX)/share/applications \
+		tmp/launcher/slashtime.desktop
 	@echo -e "INSTALL\t$@"
-	mkdir -p $(dir $@)
-	cp $< $@
+	cp -f tmp/launcher/slashtime.desktop $@
 
 tmp/slashtime.jar: tmp/stamp/compile
 	@echo -e "$(JAR_CMD)\t$@"
 	$(JAR) -cf tmp/slashtime.jar -C tmp/classes .
 
-tmp/stamp/install-pixmaps: share/pixmaps/*.png
+$(DESTDIR)$(PREFIX)/share/pixmaps: 
+	@echo -e "MKDIR\t$@/"
+	-mkdir $@
+
+tmp/stamp/install-pixmaps: \
+		$(DESTDIR)$(PREFIX)/share/pixmaps \
+		share/pixmaps/*.png
 	@echo -e "INSTALL\t$(DESTDIR)$(PREFIX)/share/pixmaps/*.png"
-	mkdir -p $(DESTDIR)$(PREFIX)/share/pixmaps
-	cp share/pixmaps/*.png $(DESTDIR)$(PREFIX)/share/pixmaps
+	cp -f share/pixmaps/*.png $(DESTDIR)$(PREFIX)/share/pixmaps
 	touch $@
 
 $(DESTDIR)$(PREFIX)/share/locale/%/LC_MESSAGES/slashtime.mo: po/%.po
@@ -102,10 +125,13 @@ $(DESTDIR)$(PREFIX)/share/locale/%/LC_MESSAGES/slashtime.mo: po/%.po
 	@echo -e "MSGFMT\t$@"
 	msgfmt -o $@ $<
 
-$(DESTDIR)$(PREFIX)/share/java/slashtime-$(APIVERSION).jar: tmp/slashtime.jar
+$(DESTDIR)$(JARDIR)/slashtime-$(APIVERSION).jar: \
+		$(DESTDIR)$(JARDIR) \
+		tmp/slashtime.jar
 	@echo -e "INSTALL\t$@"
-	mkdir -p $(dir $@)
-	cp $< $@
+	cp -f tmp/slashtime.jar $@
+	@echo -e "SYMLINK\t$(@D)/slashtime.jar -> slashtime-$(APIVERSION).jar"
+	cd $(@D) && rm -f slashtime.jar && ln -s slashtime-$(APIVERSION).jar slashtime.jar
 
 
 # --------------------------------------------------------------------

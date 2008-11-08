@@ -36,7 +36,7 @@ public class Place
     private static String homeZoneName;
 
     // halves
-    private int startCivilDay = 15;
+    private int startCivilDay = 14;
 
     private int startWorkDay = 18;
 
