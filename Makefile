@@ -73,6 +73,7 @@ install: all \
 		$(DESTDIR)$(PREFIX)/share/java/slashtime-$(APIVERSION).jar \
 	 	tmp/stamp/install-pixmaps \
 		$(DESTDIR)$(PREFIX)/share/locale/fr_CA/LC_MESSAGES/slashtime.mo \
+		$(DESTDIR)$(PREFIX)/share/locale/tr_TR/LC_MESSAGES/slashtime.mo \
 		$(DESTDIR)$(PREFIX)/share/applications/slashtime.desktop \
 		$(DESTDIR)$(PREFIX)/bin/slashtime
 

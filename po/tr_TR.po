@@ -1,0 +1,53 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: slashtime 0.5.9\n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: \n"
+"Last-Translator: Serkan Kaba <serkan@gentoo.org>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Poedit-Language: Turkish\n"
+"X-Poedit-Country: TURKEY\n"
+
+#: src/java/slashtime/ui/MeetingWindow.java:86
+msgid "Find a meeting time"
+msgstr "Toplantı zamanı bul"
+
+#: src/java/slashtime/ui/MeetingWindow.java:99
+msgid "Set the time at:"
+msgstr " "
+
+#: src/java/slashtime/ui/MeetingWindow.java:114
+msgid "to:"
+msgstr " "
+
+#: src/java/slashtime/ui/MeetingWindow.java:127
+msgid "Click on a city to change location"
+msgstr "Yeri değiştirmek için bir şehrin üzerine tıkla"
+
+#: src/java/slashtime/ui/MeetingWindow.java:235
+msgid "Universal Time, Co-ordinated"
+msgstr "Eşgüdümlü Evrensel Zaman"
+
+#: src/java/slashtime/ui/ZonesWindow.java:342
+msgid "Meeting..."
+msgstr "Toplantı..."
+
+#: src/java/slashtime/ui/ZonesWindow.java:343
+msgid "Pop up the Meeting planner"
+msgstr "Toplantı planlayıcısını aç"
+
+#: src/java/slashtime/ui/ZonesWindow.java:391
+msgid "Show the time in various places!"
+msgstr "Değişik yerlerdeki zamanı göster!"
+
+#: src/java/slashtime/ui/ZonesWindow.java:392
+msgid "Copyright"
+msgstr "Telif hakkı"
+
+#: src/java/slashtime/ui/ZonesWindow.java:393
+msgid "and Others"
+msgstr "ve diğerleri"
+
