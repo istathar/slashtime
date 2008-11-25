@@ -82,7 +82,7 @@ location to find a JDK using either of the following:
 Examples:
 
 	$ ./configure
-	$ ./configure jdk=/opt/sun-jdk-bin-1.6.0.04 java-gnome=/opt/gnome2
+	$ ./configure jdk=/opt/sun-jdk-bin-1.6.0.10 java-gnome=/usr/local
 	$ ./configure jamvm=/home/joe/custom/bin/jamvm runtime=jamvm
 
 If you're having trouble with something as Make runs and need to debug it, you
@@ -106,7 +106,7 @@ specify a temporary build directory to compose the installation image, perhaps:
 
 
 	$ ./configure prefix=/usr
-	# make DESTDIR=/var/tmp/portage/app-misc/slashtime-0.5.8/image install
+	# make DESTDIR=/var/tmp/portage/app-misc/slashtime-0.5.9/image install
 
 
 RUNNING
