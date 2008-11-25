@@ -84,7 +84,7 @@ slashtime: tmp/launcher/slashtime-local
 # --------------------------------------------------------------------
 
 install: all \
-		$(DESTDIR)$(PREFIX)/share/java/slashtime-$(APIVERSION).jar \
+		$(DESTDIR)$(JARDIR)/slashtime-$(APIVERSION).jar \
 	 	tmp/stamp/install-pixmaps \
 	 	tmp/stamp/install-translations \
 		$(DESTDIR)$(PREFIX)/share/applications/slashtime.desktop \
