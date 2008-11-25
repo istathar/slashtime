@@ -10,6 +10,7 @@
  */
 package slashtime.client;
 
+import org.freedesktop.bindings.Internationalization;
 import org.gnome.gtk.Gtk;
 
 import slashtime.domain.Place;
@@ -30,6 +31,7 @@ public final class Master
 
     public static void main(String[] args) {
         Gtk.init(args);
+        Internationalization.init("slashtime", "share/locale/");
 
         /*
          * If you specify a zone name on the command line it will become a

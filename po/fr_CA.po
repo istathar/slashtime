@@ -1,0 +1,39 @@
+#: src/java/com/operationaldynamics/slashtime/MeetingWindow.java:82
+msgid "Find a meeting time"
+msgstr "Trouvez un temps de réunion"
+
+#: src/java/com/operationaldynamics/slashtime/MeetingWindow.java:94
+msgid "Set the time at:"
+msgstr "Mettez le temps à:"
+
+#: src/java/com/operationaldynamics/slashtime/MeetingWindow.java:109
+msgid "to:"
+msgstr "à"
+
+#: src/java/com/operationaldynamics/slashtime/MeetingWindow.java:122
+msgid "Click on a city to change location"
+msgstr "Clic sur une ville pour changer l'endroit"
+
+#: src/java/com/operationaldynamics/slashtime/MeetingWindow.java:200
+msgid "Universal Time, Co-ordinated"
+msgstr "Temps Universel Coordonné"
+
+#: src/java/com/operationaldynamics/slashtime/ZonesWindow.java:360
+msgid "Meeting..."
+msgstr "Réunion..."
+
+#: src/java/com/operationaldynamics/slashtime/ZonesWindow.java:361
+msgid "Pop up the Meeting planner"
+msgstr "Levez une dialog le planificateur de réunions"
+
+#: src/java/com/operationaldynamics/slashtime/ZonesWindow.java:409
+msgid "Show the time in various places!"
+msgstr "Montrez le temps dans divers endroits!"
+
+#: src/java/com/operationaldynamics/slashtime/ZonesWindow.java:410
+msgid "Copyright"
+msgstr "Droits de auteur"
+
+#: src/java/com/operationaldynamics/slashtime/ZonesWindow.java:411
+msgid "and Others"
+msgstr "et d'autres"

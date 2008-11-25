@@ -24,6 +24,7 @@ import org.gnome.gtk.WindowPosition;
 import slashtime.domain.Place;
 import slashtime.util.NullArgumentException;
 
+import static org.freedesktop.bindings.Internationalization._;
 import static org.freedesktop.bindings.Time.formatTime;
 import static org.freedesktop.bindings.Time.makeTime;
 import static org.freedesktop.bindings.Time.setTimeZone;
@@ -82,7 +83,7 @@ class MeetingWindow
         ui.zones.indicateWrongTime();
 
         window = new Window();
-        window.setTitle("Find a meeting time");
+        window.setTitle(_("Find a meeting time"));
         window.setDecorated(true);
         window.setPosition(WindowPosition.CENTER);
         window.setTransientFor(ui.zones.getWindow());
@@ -95,7 +96,7 @@ class MeetingWindow
         /*
          * Display the location
          */
-        l = createTextLabel("Set the time at:", false);
+        l = createTextLabel(_("Set the time at:"), false);
         top.packStart(l, false, false, 0);
 
         placeCity = createDisplayLabel();
@@ -110,7 +111,7 @@ class MeetingWindow
          * Describe the time
          */
 
-        l = createTextLabel("to:", false);
+        l = createTextLabel(_("to:"), false);
         top.packStart(l, false, false, 0);
 
         placeTime = createDisplayLabel();
@@ -123,7 +124,7 @@ class MeetingWindow
          * further instruction
          */
 
-        l = createTextLabel("Click on a city to change location", true);
+        l = createTextLabel(_("Click on a city to change location"), true);
         top.packStart(l, false, false, 3);
 
         /*
@@ -231,7 +232,7 @@ class MeetingWindow
             throw new NullArgumentException();
         } else if (p.isZulu()) {
             city = "Greenwich";
-            country = "Universal Time, Co-ordinated";
+            country = _("Universal Time, Co-ordinated");
         } else {
             city = p.getCity();
             country = p.getCountry();

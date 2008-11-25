@@ -8,11 +8,11 @@ else
 MAKEFLAGS=-s
 endif
 
-.PHONY: all dirs clean distclean
+.PHONY: all dirs compile translation install clean distclean
 
 -include .config
 
-all: .config dirs tmp/stamp/compile slashtime
+all: .config dirs compile translation slashtime
 
 .config: src/java/slashtime/client/Version.java
 	echo
@@ -26,14 +26,20 @@ all: .config dirs tmp/stamp/compile slashtime
 CLASSPATH=$(JAVAGNOME_JARS)
 
 SOURCES_DIST=$(shell find src/java -name '*.java')
+TRANSLATIONS=$(shell find po/ -name '*.po' | sed -e 's/po\/\(.*\)\.po/share\/locale\/\1\/LC_MESSAGES\/slashtime\.mo/g')
 
-dirs: tmp/classes tmp/stamp
+
+dirs: tmp/classes tmp/stamp tmp/i18n
 
 tmp/classes:
 	@echo -e "MKDIR\t$@"
 	mkdir $@
 
 tmp/stamp:
+	@echo -e "MKDIR\t$@"
+	mkdir $@
+
+tmp/i18n:
 	@echo -e "MKDIR\t$@"
 	mkdir $@
 
@@ -45,24 +51,42 @@ tmp/stamp:
 # build the sources (that are part of the distributed app)
 #
 
+compile: tmp/stamp/compile
 tmp/stamp/compile: $(SOURCES_DIST)
 	@echo -e "$(JAVAC_CMD)\ttmp/classes/*.class"
 	$(JAVAC) -d tmp/classes -classpath tmp/classes:$(CLASSPATH) -sourcepath src/java $^
 	touch $@
+
+
+translation: tmp/i18n/slashtime.pot $(TRANSLATIONS)
+
+# strictly speaking, not necessary to generate the .pot file, but this has to
+# go somewhere and might as well get it done
+
+tmp/i18n/slashtime.pot: $(SOURCES_DIST)
+	@echo -e "EXTRACT\t$@"
+	xgettext -o $@ --omit-header --keyword=_ --keyword=N_ $^
+
+share/locale/%/LC_MESSAGES/slashtime.mo: po/%.po
+	mkdir -p $(dir $@)
+	@echo -e "MSGFMT\t$@"
+	msgfmt -o $@ $<
+
 
 slashtime: tmp/launcher/slashtime-local
 	@echo -e "CP\t$@"
 	cp -f $< $@
 	chmod +x $@
 
+
 # --------------------------------------------------------------------
 # Installation
 # --------------------------------------------------------------------
 
 install: all \
-		$(DESTDIR)$(PREFIX) \
-		$(DESTDIR)$(JARDIR)/slashtime-$(APIVERSION).jar \
-		tmp/stamp/install-pixmaps \
+		$(DESTDIR)$(PREFIX)/share/java/slashtime-$(APIVERSION).jar \
+	 	tmp/stamp/install-pixmaps \
+	 	tmp/stamp/install-translations \
 		$(DESTDIR)$(PREFIX)/share/applications/slashtime.desktop \
 		$(DESTDIR)$(PREFIX)/bin/slashtime
 
@@ -99,8 +123,11 @@ tmp/slashtime.jar: tmp/stamp/compile
 	@echo -e "$(JAR_CMD)\t$@"
 	$(JAR) -cf tmp/slashtime.jar -C tmp/classes .
 
-
 $(DESTDIR)$(PREFIX)/share/pixmaps: 
+	@echo -e "MKDIR\t$@/"
+	-mkdir $@
+
+$(DESTDIR)$(PREFIX)/share/locale: 
 	@echo -e "MKDIR\t$@/"
 	-mkdir $@
 
@@ -109,6 +136,13 @@ tmp/stamp/install-pixmaps: \
 		share/pixmaps/*.png
 	@echo -e "INSTALL\t$(DESTDIR)$(PREFIX)/share/pixmaps/*.png"
 	cp -f share/pixmaps/*.png $(DESTDIR)$(PREFIX)/share/pixmaps
+	touch $@
+
+tmp/stamp/install-translations: \
+		$(DESTDIR)$(PREFIX)/share/locale \
+		share/locale/*/LC_MESSAGES/slashtime.mo
+	@echo -e "INSTALL\t$(DESTDIR)$(PREFIX)/share/locale/*/LC_MESSAGES/slashtime.mo"
+	cp -af share/locale/* $(DESTDIR)$(PREFIX)/share/locale
 	touch $@
 
 $(DESTDIR)$(JARDIR)/slashtime-$(APIVERSION).jar: \
@@ -135,6 +169,8 @@ clean:
 	@echo -e "RM\texecutables and wrappers"
 	-rm -f tmp/slashtime.jar
 	-rm -f slashtime
+	@echo -e "RM\tgenerated message files"
+	-rm -rf share/locale
 
 distclean: clean
 	@echo -e "RM\tbuild configuration information"
