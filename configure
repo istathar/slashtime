@@ -1315,6 +1315,7 @@ print CONFIG <<HERE ;
 HERE
 
 print CONFIG "PREFIX=$prefix\n";
+print CONFIG "JARDIR=$jardir\n";
 
 # --------------------------------------------------------------------
 # Get version constant
@@ -1326,10 +1327,10 @@ my $version;
 open SOURCE, "src/java/slashtime/client/Version.java";
 while (<SOURCE>) {
 	chomp;
-	if (/.* APIVERSION = \"([\d\.]+)\";/) {
+	if (/.* APIVERSION = \"([\S]+)\";/) {
 		$apiversion = $1;
 	}
-	if (/.* VERSION = \"([\d\.]+)\";/) {
+	if (/.* VERSION = \"([\S]+)\";/) {
 		$version = $1;
 	}
 }
@@ -1348,7 +1349,6 @@ HERE
 
 print CONFIG "APIVERSION=$apiversion\n";
 print CONFIG "VERSION=$version\n";
-print CONFIG "JARDIR=$jardir\n";
 
 # --------------------------------------------------------------------
 # Done! Create .config file
