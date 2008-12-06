@@ -43,6 +43,7 @@ public class UserInterface
      */
     public UserInterface() {
         loadImages();
+        setupApplication();
         setupWindows();
     }
 
@@ -62,6 +63,11 @@ public class UserInterface
         } catch (FileNotFoundException fnfe) {
             System.err.println("Icon file not found: " + fnfe.getMessage());
         }
+    }
+
+    private void setupApplication() {
+        Gtk.setProgramName("slashtime");
+        Gtk.setDefaultIcon(images.marble);
     }
 
     /**
