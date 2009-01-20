@@ -15,11 +15,11 @@ endif
 all: .config dirs compile translation slashtime
 
 .config: src/java/slashtime/client/Version.java
-	echo
-	echo "You need to run ./configure to check prerequisites"
-	echo "and setup preferences before you can build slashtime."
-	( if [ ! -x configure ] ; then chmod +x configure ; echo "I just made it executable for you." ; fi )
-	echo
+	/bin/echo
+	/bin/echo "You need to run ./configure to check prerequisites"
+	/bin/echo "and setup preferences before you can build slashtime."
+	( if [ ! -x configure ] ; then chmod +x configure ; /bin/echo "I just made it executable for you." ; fi )
+	/bin/echo
 	exit 1
 
 
@@ -32,15 +32,15 @@ TRANSLATIONS=$(shell find po/ -name '*.po' | sed -e 's/po\/\(.*\)\.po/share\/loc
 dirs: tmp/classes tmp/stamp tmp/i18n
 
 tmp/classes:
-	@echo -e "MKDIR\t$@"
+	@/bin/echo -e "MKDIR\t$@"
 	mkdir $@
 
 tmp/stamp:
-	@echo -e "MKDIR\t$@"
+	@/bin/echo -e "MKDIR\t$@"
 	mkdir $@
 
 tmp/i18n:
-	@echo -e "MKDIR\t$@"
+	@/bin/echo -e "MKDIR\t$@"
 	mkdir $@
 
 # --------------------------------------------------------------------
@@ -53,7 +53,7 @@ tmp/i18n:
 
 compile: tmp/stamp/compile
 tmp/stamp/compile: $(SOURCES_DIST)
-	@echo -e "$(JAVAC_CMD)\ttmp/classes/*.class"
+	@/bin/echo -e "$(JAVAC_CMD)\ttmp/classes/*.class"
 	$(JAVAC) -d tmp/classes -classpath tmp/classes:$(CLASSPATH) -sourcepath src/java $^
 	touch $@
 
@@ -64,17 +64,17 @@ translation: tmp/i18n/slashtime.pot $(TRANSLATIONS)
 # go somewhere and might as well get it done
 
 tmp/i18n/slashtime.pot: $(SOURCES_DIST)
-	@echo -e "EXTRACT\t$@"
+	@/bin/echo -e "EXTRACT\t$@"
 	xgettext -o $@ --omit-header --keyword=_ --keyword=N_ $^
 
 share/locale/%/LC_MESSAGES/slashtime.mo: po/%.po
 	mkdir -p $(dir $@)
-	@echo -e "MSGFMT\t$@"
+	@/bin/echo -e "MSGFMT\t$@"
 	msgfmt -o $@ $<
 
 
 slashtime: tmp/launcher/slashtime-local
-	@echo -e "CP\t$@"
+	@/bin/echo -e "CP\t$@"
 	cp -f $< $@
 	chmod +x $@
 
@@ -91,66 +91,66 @@ install: all \
 		$(DESTDIR)$(PREFIX)/bin/slashtime
 
 $(DESTDIR)$(PREFIX):
-	@echo -e "MKDIR\t$(DESTDIR)$(PREFIX)/"
+	@/bin/echo -e "MKDIR\t$(DESTDIR)$(PREFIX)/"
 	-mkdir -p $(DESTDIR)$(PREFIX)
 
 $(DESTDIR)$(PREFIX)/bin:
-	@echo -e "MKDIR\t$@/"
+	@/bin/echo -e "MKDIR\t$@/"
 	-mkdir -p $@
 
 $(DESTDIR)$(JARDIR):
-	@echo -e "MKDIR\t$@/"
+	@/bin/echo -e "MKDIR\t$@/"
 	-mkdir -p $@
 
 $(DESTDIR)$(PREFIX)/share/applications:
-	@echo -e "MKDIR\t$@/"
+	@/bin/echo -e "MKDIR\t$@/"
 	-mkdir -p $@
 
 $(DESTDIR)$(PREFIX)/bin/slashtime: \
 		$(DESTDIR)$(PREFIX)/bin \
 		tmp/launcher/slashtime-install
-	@echo -e "INSTALL\t$@"
+	@/bin/echo -e "INSTALL\t$@"
 	cp -f tmp/launcher/slashtime-install $@
 	chmod +x $@
 
 $(DESTDIR)$(PREFIX)/share/applications/slashtime.desktop: \
 		$(DESTDIR)$(PREFIX)/share/applications \
 		tmp/launcher/slashtime.desktop
-	@echo -e "INSTALL\t$@"
+	@/bin/echo -e "INSTALL\t$@"
 	cp -f tmp/launcher/slashtime.desktop $@
 
 tmp/slashtime.jar: tmp/stamp/compile
-	@echo -e "$(JAR_CMD)\t$@"
+	@/bin/echo -e "$(JAR_CMD)\t$@"
 	$(JAR) -cf tmp/slashtime.jar -C tmp/classes .
 
 $(DESTDIR)$(PREFIX)/share/pixmaps: 
-	@echo -e "MKDIR\t$@/"
+	@/bin/echo -e "MKDIR\t$@/"
 	-mkdir $@
 
 $(DESTDIR)$(PREFIX)/share/locale: 
-	@echo -e "MKDIR\t$@/"
+	@/bin/echo -e "MKDIR\t$@/"
 	-mkdir $@
 
 tmp/stamp/install-pixmaps: \
 		$(DESTDIR)$(PREFIX)/share/pixmaps \
 		share/pixmaps/*.png
-	@echo -e "INSTALL\t$(DESTDIR)$(PREFIX)/share/pixmaps/*.png"
+	@/bin/echo -e "INSTALL\t$(DESTDIR)$(PREFIX)/share/pixmaps/*.png"
 	cp -f share/pixmaps/*.png $(DESTDIR)$(PREFIX)/share/pixmaps
 	touch $@
 
 tmp/stamp/install-translations: \
 		$(DESTDIR)$(PREFIX)/share/locale \
 		share/locale/*/LC_MESSAGES/slashtime.mo
-	@echo -e "INSTALL\t$(DESTDIR)$(PREFIX)/share/locale/*/LC_MESSAGES/slashtime.mo"
+	@/bin/echo -e "INSTALL\t$(DESTDIR)$(PREFIX)/share/locale/*/LC_MESSAGES/slashtime.mo"
 	cp -af share/locale/* $(DESTDIR)$(PREFIX)/share/locale
 	touch $@
 
 $(DESTDIR)$(JARDIR)/slashtime-$(APIVERSION).jar: \
 		$(DESTDIR)$(JARDIR) \
 		tmp/slashtime.jar
-	@echo -e "INSTALL\t$@"
+	@/bin/echo -e "INSTALL\t$@"
 	cp -f tmp/slashtime.jar $@
-	@echo -e "SYMLINK\t$(@D)/slashtime.jar -> slashtime-$(APIVERSION).jar"
+	@/bin/echo -e "SYMLINK\t$(@D)/slashtime.jar -> slashtime-$(APIVERSION).jar"
 	cd $(@D) && rm -f slashtime.jar && ln -s slashtime-$(APIVERSION).jar slashtime.jar
 
 
@@ -162,21 +162,21 @@ $(DESTDIR)$(JARDIR)/slashtime-$(APIVERSION).jar: \
 # so if it's hanging around it won't cause problems, and b) if it is removed 
 # here, then `make clean all` fails]
 clean:
-	@echo -e "RM\ttemporary build directories"
+	@/bin/echo -e "RM\ttemporary build directories"
 	-rm -rf tmp/classes
 	-rm -rf tmp/stamp
 	-rm -rf hs_err_*
-	@echo -e "RM\texecutables and wrappers"
+	@/bin/echo -e "RM\texecutables and wrappers"
 	-rm -f tmp/slashtime.jar
 	-rm -f slashtime
-	@echo -e "RM\tgenerated message files"
+	@/bin/echo -e "RM\tgenerated message files"
 	-rm -rf share/locale
 
 distclean: clean
-	@echo -e "RM\tbuild configuration information"
+	@/bin/echo -e "RM\tbuild configuration information"
 	-rm -f .config .config.tmp
 	-rm -rf tmp/
-#	@echo "RM        generated documentation"
+#	@/bin/echo "RM        generated documentation"
 #	-rm -f doc/api/*
 
 # --------------------------------------------------------------------
@@ -189,12 +189,12 @@ distclean: clean
 # don't have to distclean before calling this.
 #
 dist: all
-	@echo -e "CHECK\tfully committed state"
-	bzr diff > /dev/null || ( echo -e "\nYou need to commit all changes before running make dist\n" ; exit 4 )
-	@echo -e "EXPORT\ttmp/slashtime-$(VERSION)"
+	@/bin/echo -e "CHECK\tfully committed state"
+	bzr diff > /dev/null || ( /bin/echo -e "\nYou need to commit all changes before running make dist\n" ; exit 4 )
+	@/bin/echo -e "EXPORT\ttmp/slashtime-$(VERSION)"
 	-rm -rf tmp/slashtime-$(VERSION)
 	bzr export --format=dir tmp/slashtime-$(VERSION)
-	@echo -e "TAR\tslashtime-$(VERSION).tar.bz2"
+	@/bin/echo -e "TAR\tslashtime-$(VERSION).tar.bz2"
 	tar cjf slashtime-$(VERSION).tar.bz2 -C tmp slashtime-$(VERSION)
 	rm -r tmp/slashtime-$(VERSION)
 
