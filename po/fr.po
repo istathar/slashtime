@@ -1,0 +1,52 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: 0.5.10\n"
+"PO-Revision-Date: 2009-05-03 12:27+0100\n"
+"Last-Translator: Guillaume Mazoyer <respawneral@gmail.com>\n"
+"Language-Team: French\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"POT-Creation-Date: \n"
+
+#: src/java/slashtime/ui/ZonesWindow.java:342
+msgid "Meeting..."
+msgstr "Réunion..."
+
+#: src/java/slashtime/ui/ZonesWindow.java:343
+msgid "Pop up the Meeting planner"
+msgstr "Affiche le plannificateur de réunions"
+
+#: src/java/slashtime/ui/ZonesWindow.java:391
+msgid "Show the time in various places!"
+msgstr "Montre l'heure à plusieurs endroits !"
+
+#: src/java/slashtime/ui/ZonesWindow.java:392
+msgid "Copyright"
+msgstr "Copyright"
+
+#: src/java/slashtime/ui/ZonesWindow.java:393
+msgid "and Others"
+msgstr "et autres"
+
+#: src/java/slashtime/ui/MeetingWindow.java:86
+msgid "Find a meeting time"
+msgstr "Trouver une heure de réunion"
+
+#: src/java/slashtime/ui/MeetingWindow.java:99
+msgid "Set the time at:"
+msgstr "Mettre l'heure de :"
+
+#: src/java/slashtime/ui/MeetingWindow.java:114
+msgid "to:"
+msgstr "à :"
+
+#: src/java/slashtime/ui/MeetingWindow.java:127
+msgid "Click on a city to change location"
+msgstr "Cliquez sur une ville pour changer de lieu"
+
+#: src/java/slashtime/ui/MeetingWindow.java:235
+msgid "Universal Time, Co-ordinated"
+msgstr "Temps universel, coordonné"
+
