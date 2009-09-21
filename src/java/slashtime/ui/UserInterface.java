@@ -56,6 +56,7 @@ public class UserInterface
     private void loadImages() {
         try {
             images.marble = new Pixbuf("share/pixmaps/slashtime-marble.png");
+            images.tray = new Pixbuf("share/pixmaps/slashtime-marble.png", 20, 20, true); 
             images.gmt = new Pixbuf("share/pixmaps/slashtime-marble.png", 22, 22, true);
             images.home = new Pixbuf("share/pixmaps/slashtime-home.png", 24, 24, true);
             images.local = new Pixbuf("share/pixmaps/slashtime-local.png", 24, 24, true);
@@ -104,6 +105,11 @@ class images
      * The application icon.
      */
     static Pixbuf marble;
+    
+    /**
+     * The application icon, small for the notification area.
+     */
+    static Pixbuf tray;
 
     /**
      * The MeetingWindow icon.

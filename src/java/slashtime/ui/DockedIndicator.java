@@ -32,7 +32,7 @@ class DockedIndicator
     private Menu menu = null;
 
     DockedIndicator() {
-        si = new StatusIcon(images.marble);
+        si = new StatusIcon(images.tray);
 
         si.connect(new StatusIcon.Activate() {
             public void onActivate(StatusIcon source) {
