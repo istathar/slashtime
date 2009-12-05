@@ -11,6 +11,7 @@
 package slashtime.client;
 
 import org.freedesktop.bindings.Internationalization;
+import org.gnome.glib.Glib;
 import org.gnome.gtk.Gtk;
 
 import slashtime.domain.Place;
@@ -30,6 +31,7 @@ public final class Master
     public static UserInterface ui = null;
 
     public static void main(String[] args) {
+        Glib.setProgramName("slashtime");
         Gtk.init(args);
         Internationalization.init("slashtime", "share/locale/");
 

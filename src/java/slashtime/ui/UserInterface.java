@@ -1,7 +1,7 @@
 /*
  * UserInterface.java
  *
- * Copyright (c) 2008 Operational Dynamics Consulting Pty Ltd
+ * Copyright (c) 2008-2009 Operational Dynamics Consulting Pty Ltd
  * 
  * The code in this file, and the program it is a part of, are made available
  * to you by its authors under the terms of the "GNU General Public Licence,
@@ -56,7 +56,7 @@ public class UserInterface
     private void loadImages() {
         try {
             images.marble = new Pixbuf("share/pixmaps/slashtime-marble.png");
-            images.tray = new Pixbuf("share/pixmaps/slashtime-marble.png", 20, 20, true); 
+            images.tray = new Pixbuf("share/pixmaps/slashtime-marble.png", 20, 20, true);
             images.gmt = new Pixbuf("share/pixmaps/slashtime-marble.png", 22, 22, true);
             images.home = new Pixbuf("share/pixmaps/slashtime-home.png", 24, 24, true);
             images.local = new Pixbuf("share/pixmaps/slashtime-local.png", 24, 24, true);
@@ -67,7 +67,6 @@ public class UserInterface
     }
 
     private void setupApplication() {
-        Gtk.setProgramName("slashtime");
         Gtk.setDefaultIcon(images.marble);
     }
 
@@ -105,7 +104,7 @@ class images
      * The application icon.
      */
     static Pixbuf marble;
-    
+
     /**
      * The application icon, small for the notification area.
      */
