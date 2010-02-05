@@ -74,6 +74,8 @@ class ZonesWindow
      */
     private boolean up = false;
 
+    private boolean showOnStartup;
+
     private VBox top;
 
     private TreeView view;
@@ -111,7 +113,9 @@ class ZonesWindow
     /**
      * Build the main GUI window
      */
-    ZonesWindow() {
+    ZonesWindow(boolean show) {
+        showOnStartup = show;
+
         setupWindow();
         setupTreeView();
         setupContextMenu();
@@ -685,7 +689,9 @@ class ZonesWindow
          * Toggle the ZonesWindow onto the screen. Among other things, this
          * will size, and present.
          */
-        toggle();
+        if (showOnStartup) {
+            toggle();
+        }
 
         // has to be after map to screen
         selection.unselectAll();
