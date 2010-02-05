@@ -41,15 +41,15 @@ public class UserInterface
      * this would be constructed once, by the client layer, and assigned to
      * Master.ui
      */
-    public UserInterface() {
+    public UserInterface(boolean show) {
         loadImages();
         setupApplication();
-        setupWindows();
+        setupWindows(show);
     }
 
-    private void setupWindows() {
+    private void setupWindows(boolean show) {
         meeting = null;
-        zones = new ZonesWindow();
+        zones = new ZonesWindow(show);
         status = new DockedIndicator();
     }
 

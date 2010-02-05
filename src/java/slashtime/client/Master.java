@@ -31,11 +31,16 @@ public final class Master
     public static UserInterface ui = null;
 
     public static void main(String[] args) {
+        boolean startMaximized = true;
+
         Glib.setProgramName("slashtime");
         Gtk.init(args);
         Internationalization.init("slashtime", "share/locale/");
 
         /*
+         * An optional first "--hidden" argument allows starting minimized
+         * in tray by not toggle() in ZonesWindow.initialPresentation().
+         *
          * If you specify a zone name on the command line it will become a
          * third icon in the ZonesWindow denoting where "home" is (as opposed
          * to where you are now). This is a bit of a hack at the moment, but
@@ -43,8 +48,14 @@ public final class Master
          * setting once we have a GConf binding.
          */
 
-        if (args.length == 1) {
-            specifyHome(args[0]);
+        for (String s : args) {
+            if ("--hidden".compareTo(s) == 0) {
+                startMaximized = false;
+                continue;
+            }
+
+            specifyHome(s);
+            break;
         }
 
         /*
@@ -52,7 +63,7 @@ public final class Master
          * re-entry point
          */
 
-        ui = new UserInterface();
+        ui = new UserInterface(startMaximized);
 
         /*
          * And, fire the main event loop.
