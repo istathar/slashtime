@@ -13,8 +13,13 @@ package slashtime.ui;
 import java.io.FileNotFoundException;
 
 import org.gnome.gdk.Pixbuf;
+import org.gnome.gtk.AboutDialog;
 import org.gnome.gtk.Gtk;
 import org.gnome.gtk.Window;
+
+import slashtime.client.Version;
+
+import static org.freedesktop.bindings.Internationalization._;
 
 /**
  * Harness for the UI code.
@@ -68,6 +73,30 @@ public class UserInterface
 
     private void setupApplication() {
         Gtk.setDefaultIcon(images.marble);
+    }
+
+
+    public void showAbout() {
+        final AboutDialog dialog;
+
+        dialog = new AboutDialog();
+        dialog.setAuthors(new String[] {
+            "Andrew Cowie <andrew@operationaldynamics.com>",
+        });
+        dialog.setComments(_("Show the time in various places!"));
+        dialog.setCopyright(_("Copyright")
+                + " \u00A9 2003-2010 Operational Dynamics Consulting Pty Ltd, " + _("and Others"));
+        dialog.setLicense(_("This program is made available to you by its authors under the terms of the GNU General Public Licence, version 2."));
+        dialog.setLogo(images.marble);
+        dialog.setTranslatorCredits(_("translator-credits"));
+        dialog.setVersion(Version.VERSION);
+        dialog.setWebsite("http://research.operationaldynamics.com/projects/slashtime/");
+        dialog.setWebsiteLabel(_("Website"));
+        dialog.setWrapLicense(true);
+
+        dialog.run();
+
+        dialog.hide();
     }
 
     /**

@@ -52,6 +52,11 @@ class DockedIndicator
         });
 
         menu = new Menu();
+        menu.append(new ImageMenuItem(Stock.ABOUT, new MenuItem.Activate() {
+            public void onActivate(MenuItem source) {
+                ui.showAbout();
+            }
+        }));
         menu.append(new ImageMenuItem(Stock.QUIT, new MenuItem.Activate() {
             public void onActivate(MenuItem source) {
                 ui.shutdown();
