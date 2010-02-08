@@ -1,7 +1,7 @@
 /*
  * Master.java
  * 
- * Copyright (c) 2006-2008 Operational Dynamics Consulting Pty Ltd
+ * Copyright (c) 2006-2010 Operational Dynamics Consulting Pty Ltd
  *
  * The code in this file, and the program it is a part of, are made available
  * to you by the authors under the terms of the "GNU General Public Licence,
@@ -38,9 +38,9 @@ public final class Master
         Internationalization.init("slashtime", "share/locale/");
 
         /*
-         * An optional first "--hidden" argument allows starting minimized
-         * in tray by not toggle() in ZonesWindow.initialPresentation().
-         *
+         * An optional first "--hidden" argument allows starting minimized in
+         * tray by not toggle() in ZonesWindow.initialPresentation().
+         * 
          * If you specify a zone name on the command line it will become a
          * third icon in the ZonesWindow denoting where "home" is (as opposed
          * to where you are now). This is a bit of a hack at the moment, but

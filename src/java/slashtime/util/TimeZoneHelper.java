@@ -73,16 +73,16 @@ public class TimeZoneHelper
      * <ul>
      * <li>Environment variable "<code>TZ</code>", if it is set.
      * <li>Contents of file <code>/etc/timezone</code>, if it exists
-     * <li>What zoneinfo file <var>/etc/localtime</code> is pointing at, if
-     * it is indeed a symlink into <code>/usr/share/zoneinfo</code>
+     * <li>What zoneinfo file <var>/etc/localtime</code> is pointing at, if it
+     * is indeed a symlink into <code>/usr/share/zoneinfo</code>
      * <li>Java property "<code>user.timezone</code>", if set.
      * </ul>
      * 
      * We follow this sequence because the whole basis of slashtime's back end
      * is that we <i>don't</i> trust Java to get anything TimeZone related
      * correct. So use system settings as possible, degrading back to Java if
-     * they aren't usable. Doing <code>TZ</code> first allows a power-user
-     * to force the matter if executing from the command line.
+     * they aren't usable. Doing <code>TZ</code> first allows a power-user to
+     * force the matter if executing from the command line.
      * 
      * @return an empty String if we were not able to find out the user's
      *         timezone, a String representating the timezone otherwise

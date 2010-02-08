@@ -88,8 +88,8 @@ public class Place
      * 
      * @param zonename
      *            a String specifying the name of the timezone, for example
-     *            <code>America/Toronto</code>, <code>Europe/Paris</code>
-     *            or <code>UTC</code>.
+     *            <code>America/Toronto</code>, <code>Europe/Paris</code> or
+     *            <code>UTC</code>.
      */
     void setZoneName(String zonename) {
         verifyZoneExists(zonename);
@@ -117,8 +117,8 @@ public class Place
     }
 
     /**
-     * @return true if this Place happens to be the one corresponding to Zulu /
-     *         GMT / UTC
+     * @return true if this Place happens to be the one corresponding to Zulu
+     *         / GMT / UTC
      */
     public boolean isZulu() {
         /*

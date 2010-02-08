@@ -1,7 +1,7 @@
 /*
  * DockedIndicator.java
  *
- * Copyright (c) 2008 Operational Dynamics Consulting Pty Ltd
+ * Copyright (c) 2008-2010 Operational Dynamics Consulting Pty Ltd
  * 
  * The code in this file, and the program it is a part of, are made available
  * to you by the authors under the terms of the "GNU General Public Licence,
@@ -52,6 +52,11 @@ class DockedIndicator
         });
 
         menu = new Menu();
+        menu.append(new ImageMenuItem(Stock.ABOUT, new MenuItem.Activate() {
+            public void onActivate(MenuItem source) {
+                ui.showAbout();
+            }
+        }));
         menu.append(new ImageMenuItem(Stock.QUIT, new MenuItem.Activate() {
             public void onActivate(MenuItem source) {
                 ui.shutdown();

@@ -1,7 +1,7 @@
 /*
  * ZonesWindow.java
  * 
- * Copyright (c) 2006-2008 Operational Dynamics Consulting Pty Ltd, and Others
+ * Copyright (c) 2006-2010 Operational Dynamics Consulting Pty Ltd, and Others
  * 
  * The code in this file, and the program it is a part of, are made available
  * to you by the authors under the terms of the "GNU General Public Licence,
@@ -18,7 +18,6 @@ import org.gnome.gdk.EventCrossing;
 import org.gnome.gdk.EventVisibility;
 import org.gnome.gdk.MouseButton;
 import org.gnome.gdk.VisibilityState;
-import org.gnome.gtk.AboutDialog;
 import org.gnome.gtk.Action;
 import org.gnome.gtk.Alignment;
 import org.gnome.gtk.CellRendererPixbuf;
@@ -45,7 +44,6 @@ import org.gnome.gtk.VBox;
 import org.gnome.gtk.Widget;
 import org.gnome.gtk.Window;
 
-import slashtime.client.Version;
 import slashtime.domain.Place;
 
 import static java.lang.Math.abs;
@@ -387,22 +385,7 @@ class ZonesWindow
         popAbout = new Action("about", Stock.ABOUT);
         popAbout.connect(new Action.Activate() {
             public void onActivate(Action source) {
-                final AboutDialog dialog;
-
-                dialog = new AboutDialog();
-                dialog.setProgramName("slashtime");
-                dialog.setVersion(Version.VERSION);
-                dialog.setComments(_("Show the time in various places!"));
-                dialog.setCopyright(_("Copyright")
-                        + "\u00A92003-2008 Operational Dynamics Consulting Pty Ltd, " + _("and Others"));
-                dialog.setAuthors(new String[] {
-                    "Andrew Cowie <andrew@operationaldynamics.com>",
-                });
-                dialog.setLogo(images.marble);
-
-                dialog.run();
-
-                dialog.hide();
+                ui.showAbout();
             }
         });
 
