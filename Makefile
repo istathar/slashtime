@@ -65,7 +65,7 @@ translation: tmp/i18n/slashtime.pot $(TRANSLATIONS)
 
 tmp/i18n/slashtime.pot: $(SOURCES_DIST)
 	@/bin/echo -e "EXTRACT\t$@"
-	xgettext -o $@ --omit-header --keyword=_ --keyword=N_ $^
+	xgettext -o $@ --omit-header --from-code=UTF-8 --keyword=_ --keyword=N_ $^
 
 share/locale/%/LC_MESSAGES/slashtime.mo: po/%.po
 	mkdir -p $(dir $@)
