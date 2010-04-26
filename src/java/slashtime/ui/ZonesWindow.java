@@ -413,7 +413,7 @@ class ZonesWindow
         Image m = new Image(images.calendar);
 
         ImageMenuItem pm = new ImageMenuItem(m, "");
-        popMeeting.connectProxy(pm);
+        pm.setRelatedAction(popMeeting);
 
         menu.append(pm);
         menu.append(popAbout.createMenuItem());
