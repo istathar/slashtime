@@ -54,7 +54,7 @@ tmp/i18n:
 compile: tmp/stamp/compile
 tmp/stamp/compile: $(SOURCES_DIST)
 	@/bin/echo -e "$(JAVAC_CMD)\ttmp/classes/*.class"
-	$(JAVAC) -d tmp/classes -classpath tmp/classes:$(CLASSPATH) -sourcepath src/java $^
+	$(JAVAC) -d tmp/classes -encoding UTF-8 -classpath tmp/classes:$(CLASSPATH) -sourcepath src/java $^
 	touch $@
 
 
