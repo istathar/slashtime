@@ -348,7 +348,8 @@ class ZonesWindow
         final Image image;
         MenuItem item;
 
-        group = window.getAcceleratorGroup();
+        group = new AcceleratorGroup();
+        window.addAcceleratorGroup(group);
 
         menu = new Menu();
         menu.setAcceleratorGroup(group);
@@ -359,8 +360,7 @@ class ZonesWindow
 
         popMeeting = new Action("meeting", _("Meeting..."));
         popMeeting.setTooltip(_("Pop up the Meeting planner"));
-        popMeeting.setAcceleratorGroup(group);
-        popMeeting.setAccelerator(Keyval.m, ModifierType.CONTROL_MASK);
+        popMeeting.setAccelerator(group, Keyval.m, ModifierType.CONTROL_MASK);
         popMeeting.connect(new Action.Activate() {
             public void onActivate(Action sourceObject) {
                 /*
@@ -378,8 +378,7 @@ class ZonesWindow
         });
 
         closeDown = new Action("quit", Stock.QUIT);
-        closeDown.setAcceleratorGroup(group);
-        closeDown.setAccelerator(Keyval.q, ModifierType.CONTROL_MASK);
+        closeDown.setAccelerator(group, Keyval.q, ModifierType.CONTROL_MASK);
         closeDown.connect(new Action.Activate() {
             public void onActivate(Action source) {
                 ui.shutdown();
