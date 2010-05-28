@@ -24,8 +24,11 @@ import org.gnome.gdk.Event;
 import org.gnome.gdk.EventButton;
 import org.gnome.gdk.EventCrossing;
 import org.gnome.gdk.EventVisibility;
+import org.gnome.gdk.Keyval;
+import org.gnome.gdk.ModifierType;
 import org.gnome.gdk.MouseButton;
 import org.gnome.gdk.VisibilityState;
+import org.gnome.gtk.AcceleratorGroup;
 import org.gnome.gtk.Action;
 import org.gnome.gtk.Alignment;
 import org.gnome.gtk.CellRendererPixbuf;
@@ -39,6 +42,7 @@ import org.gnome.gtk.Image;
 import org.gnome.gtk.ImageMenuItem;
 import org.gnome.gtk.ListStore;
 import org.gnome.gtk.Menu;
+import org.gnome.gtk.MenuItem;
 import org.gnome.gtk.SortType;
 import org.gnome.gtk.StateType;
 import org.gnome.gtk.Stock;
@@ -339,27 +343,24 @@ class ZonesWindow
 
     private void setupContextMenu() {
         final Action popMeeting, closeDown, popAbout;
+        final AcceleratorGroup group;
         final Menu menu;
+        final Image image;
+        MenuItem item;
+
+        group = new AcceleratorGroup();
+        window.addAcceleratorGroup(group);
 
         menu = new Menu();
-
-        // AccelGroup ag = new AccelGroup();
-        // window.addAccelGroup(ag);
+        menu.setAcceleratorGroup(group);
 
         /*
          * Create the action to popup a MeetingWindow
          */
+
         popMeeting = new Action("meeting", _("Meeting..."));
         popMeeting.setTooltip(_("Pop up the Meeting planner"));
-        // popMeeting = new Action("meeting", "Meeting", "Pop up the Meeting
-        // planner");
-        // AccelMap.changeEntry("<ZonesWindow>/Meeting", Keyval.m,
-        // ModifierType.CONTROL_MASK, true);
-        //
-        // popMeeting.setAccelGroup(ag);
-        // popMeeting.setAccelPath("<ZonesWindow>/Meeting");
-        // popMeeting.connectAccelerator();
-        //
+        popMeeting.setAccelerator(group, Keyval.m, ModifierType.CONTROL_MASK);
         popMeeting.connect(new Action.Activate() {
             public void onActivate(Action sourceObject) {
                 /*
@@ -377,13 +378,7 @@ class ZonesWindow
         });
 
         closeDown = new Action("quit", Stock.QUIT);
-        // AccelMap.changeEntry("<ZonesWindow>/Quit", Keyval.q,
-        // ModifierType.CONTROL_MASK, true);
-        //  
-        // closeDown.setAccelGroup(ag);
-        // closeDown.setAccelPath("<ZonesWindow>/Quit");
-        // closeDown.connectAccelerator();
-        //
+        closeDown.setAccelerator(group, Keyval.q, ModifierType.CONTROL_MASK);
         closeDown.connect(new Action.Activate() {
             public void onActivate(Action source) {
                 ui.shutdown();
@@ -410,14 +405,17 @@ class ZonesWindow
             }
         });
 
-        Image m = new Image(images.calendar);
+        image = new Image(images.calendar);
 
-        ImageMenuItem pm = new ImageMenuItem(m, "");
-        pm.setRelatedAction(popMeeting);
+        item = new ImageMenuItem(image, "");
+        item.setRelatedAction(popMeeting);
+        menu.append(item);
 
-        menu.append(pm);
-        menu.append(popAbout.createMenuItem());
-        menu.append(closeDown.createMenuItem());
+        item = popAbout.createMenuItem();
+        menu.append(item);
+
+        item = closeDown.createMenuItem();
+        menu.append(item);
 
         menu.showAll();
     }
