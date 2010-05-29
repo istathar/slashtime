@@ -11,43 +11,54 @@ msgstr ""
 "X-Poedit-Language: Turkish\n"
 "X-Poedit-Country: TURKEY\n"
 
-#: src/java/slashtime/ui/MeetingWindow.java:86
+#: src/java/slashtime/ui/MeetingWindow.java:94
 msgid "Find a meeting time"
 msgstr "Toplantı zamanı bul"
 
-#: src/java/slashtime/ui/MeetingWindow.java:99
+#: src/java/slashtime/ui/MeetingWindow.java:107
 msgid "Set the time at:"
 msgstr " "
 
-#: src/java/slashtime/ui/MeetingWindow.java:114
+#: src/java/slashtime/ui/MeetingWindow.java:122
 msgid "to:"
 msgstr " "
 
-#: src/java/slashtime/ui/MeetingWindow.java:127
+#: src/java/slashtime/ui/MeetingWindow.java:135
 msgid "Click on a city to change location"
 msgstr "Yeri değiştirmek için bir şehrin üzerine tıkla"
 
-#: src/java/slashtime/ui/MeetingWindow.java:235
+#: src/java/slashtime/ui/MeetingWindow.java:243
 msgid "Universal Time, Co-ordinated"
 msgstr "Eşgüdümlü Evrensel Zaman"
 
-#: src/java/slashtime/ui/ZonesWindow.java:342
-msgid "Meeting..."
-msgstr "Toplantı..."
-
-#: src/java/slashtime/ui/ZonesWindow.java:343
-msgid "Pop up the Meeting planner"
-msgstr "Toplantı planlayıcısını aç"
-
-#: src/java/slashtime/ui/ZonesWindow.java:391
+#: src/java/slashtime/ui/UserInterface.java:93
 msgid "Show the time in various places!"
 msgstr "Değişik yerlerdeki zamanı göster!"
 
-#: src/java/slashtime/ui/ZonesWindow.java:392
+#: src/java/slashtime/ui/UserInterface.java:94
 msgid "Copyright"
 msgstr "Telif hakkı"
 
-#: src/java/slashtime/ui/ZonesWindow.java:393
+#: src/java/slashtime/ui/UserInterface.java:95
 msgid "and Others"
 msgstr "ve diğerleri"
 
+#: src/java/slashtime/ui/UserInterface.java:96
+msgid "licence-text"
+msgstr "The code in this file, and the program it is a part of, is made available to you by its authors as open source software: you can redistribute it and/or modify it under the terms of the GNU General Public License version 2 (\"GPL\") as published by the Free Software Foundation.\n\nThis program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GPL for more details.\n\nYou should have received a copy of the GPL along with this program. If not, see http://www.gnu.org/licenses/. The authors of this program may be contacted through http://research.operationaldynamics.com/projects/slashtime/"
+
+#: src/java/slashtime/ui/UserInterface.java:98
+msgid "translator-credits"
+msgstr ""
+
+#: src/java/slashtime/ui/UserInterface.java:101
+msgid "Website"
+msgstr ""
+
+#: src/java/slashtime/ui/ZonesWindow.java:361
+msgid "Meeting..."
+msgstr "Toplantı..."
+
+#: src/java/slashtime/ui/ZonesWindow.java:362
+msgid "Pop up the Meeting planner"
+msgstr "Toplantı planlayıcısını aç"
