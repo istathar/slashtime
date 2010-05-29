@@ -25,7 +25,7 @@ all: .config dirs compile translation slashtime
 
 CLASSPATH=$(JAVAGNOME_JARS)
 
-SOURCES_DIST=$(shell find src/java -name '*.java')
+SOURCES_DIST=$(shell find src/java -name '*.java' | sort)
 TRANSLATIONS=$(shell find po/ -name '*.po' | sed -e 's/po\/\(.*\)\.po/share\/locale\/\1\/LC_MESSAGES\/slashtime\.mo/g')
 
 

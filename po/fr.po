@@ -10,26 +10,6 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 "POT-Creation-Date: \n"
 
-#: src/java/slashtime/ui/ZonesWindow.java:342
-msgid "Meeting..."
-msgstr "Réunion..."
-
-#: src/java/slashtime/ui/ZonesWindow.java:343
-msgid "Pop up the Meeting planner"
-msgstr "Affiche le plannificateur de réunions"
-
-#: src/java/slashtime/ui/ZonesWindow.java:391
-msgid "Show the time in various places!"
-msgstr "Montre l'heure à plusieurs endroits !"
-
-#: src/java/slashtime/ui/ZonesWindow.java:392
-msgid "Copyright"
-msgstr "Copyright"
-
-#: src/java/slashtime/ui/ZonesWindow.java:393
-msgid "and Others"
-msgstr "et autres"
-
 #: src/java/slashtime/ui/MeetingWindow.java:86
 msgid "Find a meeting time"
 msgstr "Trouver une heure de réunion"
@@ -49,4 +29,24 @@ msgstr "Cliquez sur une ville pour changer de lieu"
 #: src/java/slashtime/ui/MeetingWindow.java:235
 msgid "Universal Time, Co-ordinated"
 msgstr "Temps universel, coordonné"
+
+#: src/java/slashtime/ui/ZonesWindow.java:342
+msgid "Meeting..."
+msgstr "Réunion..."
+
+#: src/java/slashtime/ui/ZonesWindow.java:343
+msgid "Pop up the Meeting planner"
+msgstr "Affiche le plannificateur de réunions"
+
+#: src/java/slashtime/ui/ZonesWindow.java:391
+msgid "Show the time in various places!"
+msgstr "Montre l'heure à plusieurs endroits !"
+
+#: src/java/slashtime/ui/ZonesWindow.java:392
+msgid "Copyright"
+msgstr "Copyright"
+
+#: src/java/slashtime/ui/ZonesWindow.java:393
+msgid "and Others"
+msgstr "et autres"
 
