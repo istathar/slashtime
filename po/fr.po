@@ -1,6 +1,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: 0.5.10\n"
+"POT-Creation-Date: \n"
 "PO-Revision-Date: 2009-05-03 12:27+0100\n"
 "Last-Translator: Guillaume Mazoyer <respawneral@gmail.com>\n"
 "Language-Team: French\n"
@@ -8,45 +9,55 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
-"POT-Creation-Date: \n"
 
-#: src/java/slashtime/ui/MeetingWindow.java:86
+#: src/java/slashtime/ui/MeetingWindow.java:94
 msgid "Find a meeting time"
 msgstr "Trouver une heure de réunion"
 
-#: src/java/slashtime/ui/MeetingWindow.java:99
+#: src/java/slashtime/ui/MeetingWindow.java:107
 msgid "Set the time at:"
 msgstr "Mettre l'heure de :"
 
-#: src/java/slashtime/ui/MeetingWindow.java:114
+#: src/java/slashtime/ui/MeetingWindow.java:122
 msgid "to:"
 msgstr "à :"
 
-#: src/java/slashtime/ui/MeetingWindow.java:127
+#: src/java/slashtime/ui/MeetingWindow.java:135
 msgid "Click on a city to change location"
 msgstr "Cliquez sur une ville pour changer de lieu"
 
-#: src/java/slashtime/ui/MeetingWindow.java:235
+#: src/java/slashtime/ui/MeetingWindow.java:243
 msgid "Universal Time, Co-ordinated"
 msgstr "Temps universel, coordonné"
 
-#: src/java/slashtime/ui/ZonesWindow.java:342
-msgid "Meeting..."
-msgstr "Réunion..."
-
-#: src/java/slashtime/ui/ZonesWindow.java:343
-msgid "Pop up the Meeting planner"
-msgstr "Affiche le plannificateur de réunions"
-
-#: src/java/slashtime/ui/ZonesWindow.java:391
+#: src/java/slashtime/ui/UserInterface.java:93
 msgid "Show the time in various places!"
 msgstr "Montre l'heure à plusieurs endroits !"
 
-#: src/java/slashtime/ui/ZonesWindow.java:392
+#: src/java/slashtime/ui/UserInterface.java:94
 msgid "Copyright"
 msgstr "Copyright"
 
-#: src/java/slashtime/ui/ZonesWindow.java:393
+#: src/java/slashtime/ui/UserInterface.java:95
 msgid "and Others"
 msgstr "et autres"
 
+#: src/java/slashtime/ui/UserInterface.java:96
+msgid "licence-text"
+msgstr ""
+
+#: src/java/slashtime/ui/UserInterface.java:98
+msgid "translator-credits"
+msgstr ""
+
+#: src/java/slashtime/ui/UserInterface.java:101
+msgid "Website"
+msgstr ""
+
+#: src/java/slashtime/ui/ZonesWindow.java:361
+msgid "Meeting..."
+msgstr "Réunion..."
+
+#: src/java/slashtime/ui/ZonesWindow.java:362
+msgid "Pop up the Meeting planner"
+msgstr "Affiche le plannificateur de réunions"
