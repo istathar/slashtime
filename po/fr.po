@@ -16,7 +16,7 @@ msgstr "Trouver une heure de réunion"
 
 #: src/java/slashtime/ui/MeetingWindow.java:107
 msgid "Set the time at:"
-msgstr "Mettre l'heure de :"
+msgstr "Définir l'heure de :"
 
 #: src/java/slashtime/ui/MeetingWindow.java:122
 msgid "to:"
@@ -32,7 +32,7 @@ msgstr "Temps universel, coordonné"
 
 #: src/java/slashtime/ui/UserInterface.java:93
 msgid "Show the time in various places!"
-msgstr "Montre l'heure à plusieurs endroits !"
+msgstr "Montre les heures de plusieurs lieux !"
 
 #: src/java/slashtime/ui/UserInterface.java:94
 msgid "Copyright"

@@ -93,6 +93,7 @@ class MeetingWindow
         window = new Window();
         window.setTitle(_("Find a meeting time"));
         window.setDecorated(true);
+        window.setBorderWidth(4);
         window.setPosition(WindowPosition.CENTER);
         window.setTransientFor(ui.zones.getWindow());
 
