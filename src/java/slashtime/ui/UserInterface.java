@@ -46,8 +46,6 @@ public class UserInterface
 
     MeetingWindow meeting;
 
-    DockedIndicator status;
-
     /**
      * Constructing this will build the UI elements representing the program.
      * While not enforced as a Singleton (no need to) it is only expected that
@@ -63,7 +61,6 @@ public class UserInterface
     private void setupWindows(boolean show) {
         meeting = null;
         zones = new ZonesWindow(show);
-        status = new DockedIndicator();
     }
 
     private void loadImages() {
