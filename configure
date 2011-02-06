@@ -1417,7 +1417,7 @@ Comment=View the time at locations around the world
 Categories=GNOME;GTK;Utility;
 Path=$prefix
 Exec=$prefix/bin/slashtime
-Icon=$prefix/share/pixmaps/slashtime-marble.png
+Icon=slashtime
 HERE
 
 close DESKTOP;
