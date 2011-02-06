@@ -4,7 +4,7 @@
 # configure
 # part of Equivalence, version 0.2.x
 #
-# Copyright (c) 2005-2008 Operational Dynamics Consulting Pty Ltd, and Others
+# Copyright (c) 2005-2011 Operational Dynamics Consulting Pty Ltd, and Others
 # 
 # The code in this file, and the library it is a part of, are made available
 # to you by the authors under the terms of the "GNU General Public Licence,
@@ -1417,7 +1417,7 @@ Comment=View the time at locations around the world
 Categories=GNOME;GTK;Utility;
 Path=$prefix
 Exec=$prefix/bin/slashtime
-Icon=$prefix/share/pixmaps/slashtime-marble.png
+Icon=slashtime
 HERE
 
 close DESKTOP;

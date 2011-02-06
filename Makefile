@@ -123,19 +123,27 @@ tmp/slashtime.jar: tmp/stamp/compile
 	@/bin/echo -e "$(JAR_CMD)\t$@"
 	$(JAR) -cf tmp/slashtime.jar -C tmp/classes .
 
-$(DESTDIR)$(PREFIX)/share/pixmaps: 
+$(DESTDIR)$(PREFIX)/share/slashtime/images: 
 	@/bin/echo -e "MKDIR\t$@/"
-	-mkdir $@
+	-mkdir -p $@
+
+$(DESTDIR)$(PREFIX)/share/icons/hicolor/48x48/apps: 
+	@/bin/echo -e "MKDIR\t$@/"
+	-mkdir -p $@
 
 $(DESTDIR)$(PREFIX)/share/locale: 
 	@/bin/echo -e "MKDIR\t$@/"
-	-mkdir $@
+	-mkdir -p $@
 
 tmp/stamp/install-pixmaps: \
-		$(DESTDIR)$(PREFIX)/share/pixmaps \
-		share/pixmaps/*.png
-	@/bin/echo -e "INSTALL\t$(DESTDIR)$(PREFIX)/share/pixmaps/*.png"
-	cp -f share/pixmaps/*.png $(DESTDIR)$(PREFIX)/share/pixmaps
+		$(DESTDIR)$(PREFIX)/share/icons/hicolor/48x48/apps \
+		$(DESTDIR)$(PREFIX)/share/slashtime/images \
+		share/icons/hicolor/48x48/apps/*.png \
+		share/slashtime/images/*.png
+	@/bin/echo -e "INSTALL\t$(DESTDIR)$(PREFIX)/share/icons/hicolor/48x48/apps/*.png"
+	cp -f share/icons/hicolor/48x48/apps/*.png $(DESTDIR)$(PREFIX)/share/icons/hicolor/48x48/apps
+	@/bin/echo -e "INSTALL\t$(DESTDIR)$(PREFIX)/share/slashtime/images/*.png"
+	cp -f share/slashtime/images/*.png $(DESTDIR)$(PREFIX)/share/slashtime/images
 	touch $@
 
 tmp/stamp/install-translations: \

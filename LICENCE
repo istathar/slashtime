@@ -1,6 +1,6 @@
 This is slashtime, a program to tell you what time it is. Brilliant!
 
-   Copyright (C) 2003-2008 Operational Dynamics Consulting Pty Ltd, and Others
+   Copyright (C) 2003-2011 Operational Dynamics Consulting, Pty Ltd and Others
    See AUTHORS file for contributors.
 
 1) slashtime source code and documentation
@@ -47,5 +47,5 @@ project. We welcome you to deploy slashtime using either approach.
 4) trademarks and acknowledgments
 ----------------------------------
 
-Java is a trademark of Sun Microsystems.
+Java is a trademark of Oracle Corporation.
 

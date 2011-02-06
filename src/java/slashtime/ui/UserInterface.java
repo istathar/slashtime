@@ -1,7 +1,7 @@
 /*
  * Slashtime, a small program which displays the time in various places.
  *
- * Copyright © 2008-2010 Operational Dynamics Consulting, Pty Ltd
+ * Copyright © 2008-2011 Operational Dynamics Consulting, Pty Ltd
  *
  * The code in this file, and the program it is a part of, is made available
  * to you by its authors as open source software: you can redistribute it
@@ -20,6 +20,7 @@ package slashtime.ui;
 
 import java.io.FileNotFoundException;
 
+import org.gnome.gdk.InterpType;
 import org.gnome.gdk.Pixbuf;
 import org.gnome.gtk.AboutDialog;
 import org.gnome.gtk.Gtk;
@@ -65,12 +66,11 @@ public class UserInterface
 
     private void loadImages() {
         try {
-            images.marble = new Pixbuf("share/pixmaps/slashtime-marble.png");
-            images.tray = new Pixbuf("share/pixmaps/slashtime-marble.png", 20, 20, true);
-            images.gmt = new Pixbuf("share/pixmaps/slashtime-marble.png", 22, 22, true);
-            images.home = new Pixbuf("share/pixmaps/slashtime-home.png", 24, 24, true);
-            images.local = new Pixbuf("share/pixmaps/slashtime-local.png", 24, 24, true);
-            images.calendar = new Pixbuf("share/pixmaps/slashtime-meeting.png", 20, 20, true);
+            images.marble = new Pixbuf("share/icons/hicolor/48x48/apps/slashtime.png");
+            images.gmt = images.marble.scale(22, 22, InterpType.BILINEAR);
+            images.home = new Pixbuf("share/slashtime/images/home.png", 24, 24, true);
+            images.local = new Pixbuf("share/slashtime/images/local.png", 24, 24, true);
+            images.calendar = new Pixbuf("share/slashtime/images/meeting.png", 20, 20, true);
         } catch (FileNotFoundException fnfe) {
             System.err.println("Icon file not found: " + fnfe.getMessage());
         }
@@ -89,7 +89,7 @@ public class UserInterface
         });
         dialog.setComments(_("Show the time in various places!"));
         dialog.setCopyright(_("Copyright")
-                + " \u00A9 2003-2010 Operational Dynamics Consulting Pty Ltd, " + _("and Others"));
+                + " \u00A9 2003-2011 Operational Dynamics Consulting, Pty Ltd " + _("and Others"));
         dialog.setLicense(_("licence-text"));
         dialog.setLogo(images.marble);
         dialog.setTranslatorCredits(_("translator-credits"));
@@ -137,11 +137,6 @@ class images
      * The application icon.
      */
     static Pixbuf marble;
-
-    /**
-     * The application icon, small for the notification area.
-     */
-    static Pixbuf tray;
 
     /**
      * The MeetingWindow icon.
