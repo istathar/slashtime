@@ -1,7 +1,7 @@
 /*
  * Slashtime, a small program which displays the time in various places.
  *
- * Copyright © 2006-2010 Operational Dynamics Consulting, Pty Ltd
+ * Copyright © 2006-2011 Operational Dynamics Consulting, Pty Ltd
  *
  * The code in this file, and the program it is a part of, is made available
  * to you by its authors as open source software: you can redistribute it
@@ -83,4 +83,6 @@ public final class Master
     private static void specifyHome(String zonename) {
         Place.setHomeZoneName(zonename);
     }
+
+    public static final boolean DEBUG = false;
 }
