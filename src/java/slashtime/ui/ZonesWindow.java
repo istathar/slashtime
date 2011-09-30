@@ -152,6 +152,7 @@ class ZonesWindow
         window.setTitle("slashtime");
         window.setDecorated(false);
         window.setBorderWidth(1);
+        window.setHasResizeGrip(false);
 
         top = new VBox(false, 0);
 
