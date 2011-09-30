@@ -499,13 +499,13 @@ if ($os eq "gentoo") {
 		check_prereq(@java_gnome_jars,
 			"java-gnome UI library",
 			"java-gnome",
-			"$java_gnome_home/share/java/gtk-4.0.jar",
-			"$java_gnome_home/tmp/gtk-4.0.jar");
+			"$java_gnome_home/share/java/gtk-4.1.jar",
+			"$java_gnome_home/tmp/gtk-4.1.jar");
 	} else {
 		check_prereq(@java_gnome_jars,
 			"java-gnome UI library",
 			"java-gnome",
-			"/usr/share/java-gnome-4.0/lib/gtk.jar");
+			"/usr/share/java-gnome-4.1/lib/gtk.jar");
 	}
 
 
@@ -515,15 +515,15 @@ if ($os eq "gentoo") {
 		check_prereq(@java_gnome_jars,
 			"java-gnome UI library",
 			"java-gnome",
-			"$java_gnome_home/share/java/gtk-4.0.jar",
-			"$java_gnome_home/tmp/gtk-4.0.jar");
+			"$java_gnome_home/share/java/gtk-4.1.jar",
+			"$java_gnome_home/tmp/gtk-4.1.jar");
 	} else {
 		check_prereq(@java_gnome_jars,
 			"java-gnome UI library",
 			"java-gnome",
-			"$prefix/share/java/gtk-4.0.jar",
-			"/usr/share/java/gtk-4.0.jar",
-			"~/share/java/gtk-4.0.jar");
+			"$prefix/share/java/gtk-4.1.jar",
+			"/usr/share/java/gtk-4.1.jar",
+			"~/share/java/gtk-4.1.jar");
 	}
 
 	
@@ -532,24 +532,24 @@ if ($os eq "gentoo") {
 	check_prereq(@java_gnome_jars,
 		"java-gnome UI library",
 		"java-gnome",
-		"$java_gnome_home/share/java/gtk-4.0.jar",
-		"~/share/java/gtk-4.0.jar");
+		"$java_gnome_home/share/java/gtk-4.1.jar",
+		"~/share/java/gtk-4.1.jar");
 
 } elsif ($os eq "arch") {
 
 	check_prereq(@java_gnome_jars,
 		"java-gnome UI library",
 		"java-gnome",
-		"$java_gnome_home/share/java/gtk-4.0.jar",
-		"~/share/java/gtk-4.0.jar");
+		"$java_gnome_home/share/java/gtk-4.1.jar",
+		"~/share/java/gtk-4.1.jar");
 
 } elsif ($os eq "suse") {
 
 	check_prereq(@java_gnome_jars,
 		"java-gnome UI library",
 		"java-gnome",
-		"$java_gnome_home/share/java-gnome/lib/gtk-4.0.jar",
-		"~/share/java/gtk-4.0.jar");
+		"$java_gnome_home/share/java-gnome/lib/gtk-4.1.jar",
+		"~/share/java/gtk-4.1.jar");
 
 } elsif ($os eq "mandriva") {
 
@@ -557,15 +557,15 @@ if ($os eq "gentoo") {
 		check_prereq(@java_gnome_jars,
 			"java-gnome UI library",
 			"java-gnome",
-			"$java_gnome_home/share/java/gtk-4.0.jar",
-			"$java_gnome_home/tmp/gtk-4.0.jar");
+			"$java_gnome_home/share/java/gtk-4.1.jar",
+			"$java_gnome_home/tmp/gtk-4.1.jar");
 	} else {
 		check_prereq(@java_gnome_jars,
 			"java-gnome UI library",
 			"java-gnome",
-			"$prefix/share/java/gtk-4.0.jar",
-			"/usr/share/java/gtk-4.0.jar",
-			"~/share/java/gtk-4.0.jar");
+			"$prefix/share/java/gtk-4.1.jar",
+			"/usr/share/java/gtk-4.1.jar",
+			"~/share/java/gtk-4.1.jar");
 	}
 
 } elsif ($os eq "solaris") {
@@ -573,8 +573,8 @@ if ($os eq "gentoo") {
 	check_prereq(@java_gnome_jars,
 		"java-gnome UI library",
 		"java-gnome",
-		"$java_gnome_home/share/java-gnome/lib/gtk-4.0.jar",
-		"~/share/java/gtk-4.0.jar");
+		"$java_gnome_home/share/java-gnome/lib/gtk-4.1.jar",
+		"~/share/java/gtk-4.1.jar");
 	
 } else {
 	bail "failed!", "This OS not configured with defaults!\nTHIS IS AN INTERNAL ERROR, PLEASE FILE A BUG.";

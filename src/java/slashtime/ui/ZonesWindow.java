@@ -1,7 +1,7 @@
 /*
  * Slashtime, a small program which displays the time in various places.
  *
- * Copyright © 2006-2010 Operational Dynamics Consulting, Pty Ltd and Others
+ * Copyright © 2006-2011 Operational Dynamics Consulting, Pty Ltd and Others
  *
  * The code in this file, and the program it is a part of, is made available
  * to you by its authors as open source software: you can redistribute it
@@ -18,7 +18,6 @@
  */
 package slashtime.ui;
 
-import org.gnome.gdk.Color;
 import org.gnome.gdk.CrossingMode;
 import org.gnome.gdk.Event;
 import org.gnome.gdk.EventButton;
@@ -27,6 +26,7 @@ import org.gnome.gdk.EventVisibility;
 import org.gnome.gdk.Keyval;
 import org.gnome.gdk.ModifierType;
 import org.gnome.gdk.MouseButton;
+import org.gnome.gdk.RGBA;
 import org.gnome.gdk.VisibilityState;
 import org.gnome.gtk.AcceleratorGroup;
 import org.gnome.gtk.Action;
@@ -44,7 +44,7 @@ import org.gnome.gtk.ListStore;
 import org.gnome.gtk.Menu;
 import org.gnome.gtk.MenuItem;
 import org.gnome.gtk.SortType;
-import org.gnome.gtk.StateType;
+import org.gnome.gtk.StateFlags;
 import org.gnome.gtk.Stock;
 import org.gnome.gtk.TreeIter;
 import org.gnome.gtk.TreeModelSort;
@@ -66,6 +66,7 @@ import static org.freedesktop.bindings.Time.setTimeZone;
 import static org.gnome.gtk.Alignment.CENTER;
 import static org.gnome.gtk.Alignment.LEFT;
 import static org.gnome.gtk.Alignment.TOP;
+import static slashtime.client.Master.DEBUG;
 import static slashtime.client.Master.ui;
 import static slashtime.services.Loader.loadPlaceList;
 
@@ -112,7 +113,7 @@ class ZonesWindow
 
     private DataColumnString rowBackground;
 
-    private DataColumnReference placeObject;
+    private DataColumnReference<Place> placeObject;
 
     private Place current;
 
@@ -151,6 +152,7 @@ class ZonesWindow
         window.setTitle("slashtime");
         window.setDecorated(false);
         window.setBorderWidth(1);
+        window.setHasResizeGrip(false);
 
         top = new VBox(false, 0);
 
@@ -168,17 +170,17 @@ class ZonesWindow
         offsetMarkup = new DataColumnString();
         rowColor = new DataColumnString();
         rowBackground = new DataColumnString();
-        placeObject = new DataColumnReference();
+        placeObject = new DataColumnReference<Place>();
 
         model = new ListStore(new DataColumn[] {
-                iconImage,
-                placeMarkup,
-                timeMarkup,
-                timeSort,
-                offsetMarkup,
-                rowColor,
-                rowBackground,
-                placeObject,
+            iconImage,
+            placeMarkup,
+            timeMarkup,
+            timeSort,
+            offsetMarkup,
+            rowColor,
+            rowBackground,
+            placeObject,
         });
 
         sorted = new TreeModelSort(model);
@@ -257,7 +259,7 @@ class ZonesWindow
                 final TreeIter row;
 
                 row = sorted.getIter(path);
-                current = (Place) sorted.getValue(row, placeObject);
+                current = sorted.getValue(row, placeObject);
 
                 if (ui.meeting == null) {
                     updateNow();
@@ -276,7 +278,7 @@ class ZonesWindow
                 row = selection.getSelected();
 
                 if (row != null) {
-                    target = (Place) sorted.getValue(row, placeObject);
+                    target = sorted.getValue(row, placeObject);
                 }
 
                 /*
@@ -501,7 +503,7 @@ class ZonesWindow
         setTimeZone(current.getZoneName());
         center = calculateOffset(when);
 
-        if (false) {
+        if (DEBUG) {
             System.out.println("update(" + formatTime("%e %b %y %H:%M:%S", when) + ")");
         }
 
@@ -514,7 +516,7 @@ class ZonesWindow
             final String code;
             int halvesSinceMidnight;
 
-            p = (Place) model.getValue(pointer, placeObject);
+            p = model.getValue(pointer, placeObject);
 
             setTimeZone(p.getZoneName());
 
@@ -687,11 +689,11 @@ class ZonesWindow
     }
 
     void indicateCorrectTime() {
-        window.modifyBackground(StateType.NORMAL, Color.BLACK);
+        window.overrideBackground(StateFlags.NORMAL, RGBA.BLACK);
     }
 
     void indicateWrongTime() {
-        window.modifyBackground(StateType.NORMAL, Color.RED);
+        window.overrideBackground(StateFlags.NORMAL, RGBA.RED);
     }
 
     Place getCurrent() {
