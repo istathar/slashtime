@@ -685,6 +685,11 @@ class ZonesWindow
     void present() {
         final int s_w, s_h, w, h;
 
+        model.clear();
+        populateZonesIntoModel();
+
+        updateNow();
+
         s_w = window.getScreen().getWidth();
         s_h = window.getScreen().getHeight();
 
