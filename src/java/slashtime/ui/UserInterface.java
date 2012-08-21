@@ -29,6 +29,7 @@ import org.gnome.gtk.Window;
 import slashtime.client.Version;
 
 import static org.freedesktop.bindings.Internationalization._;
+import static slashtime.client.Master.app;
 
 /**
  * Harness for the UI code.
@@ -53,15 +54,15 @@ public class UserInterface
      * this would be constructed once, by the client layer, and assigned to
      * Master.ui
      */
-    public UserInterface(boolean show) {
+    public UserInterface() {
         loadImages();
         setupApplication();
-        setupWindows(show);
+        setupWindows();
     }
 
-    private void setupWindows(boolean show) {
+    private void setupWindows() {
         meeting = null;
-        zones = new ZonesWindow(show);
+        zones = new ZonesWindow();
     }
 
     private void loadImages() {
@@ -116,11 +117,14 @@ public class UserInterface
         if (zones != null) {
             w = zones.getWindow();
             w.hide();
+            app.removeWindow(w);
         }
-
-        Gtk.mainQuit();
+        app.quit();
     }
 
+    public void display() {
+        zones.present();
+    }
 }
 
 /**

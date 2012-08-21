@@ -67,6 +67,7 @@ import static org.gnome.gtk.Alignment.CENTER;
 import static org.gnome.gtk.Alignment.LEFT;
 import static org.gnome.gtk.Alignment.TOP;
 import static slashtime.client.Master.DEBUG;
+import static slashtime.client.Master.app;
 import static slashtime.client.Master.ui;
 import static slashtime.services.Loader.loadPlaceList;
 
@@ -78,14 +79,6 @@ import static slashtime.services.Loader.loadPlaceList;
 class ZonesWindow
 {
     private Window window;
-
-    /**
-     * Our perception of whether or not the ZonesWindow is currently on screen
-     * to front versus minimized or obscured.
-     */
-    private boolean up = false;
-
-    private boolean showOnStartup;
 
     private VBox top;
 
@@ -124,9 +117,7 @@ class ZonesWindow
     /**
      * Build the main GUI window
      */
-    ZonesWindow(boolean show) {
-        showOnStartup = show;
-
+    ZonesWindow() {
         setupWindow();
         setupTreeView();
         setupContextMenu();
@@ -157,6 +148,7 @@ class ZonesWindow
         top = new VBox(false, 0);
 
         window.add(top);
+        app.addWindow(window);
     }
 
     private void setupTreeView() {
@@ -309,13 +301,10 @@ class ZonesWindow
                 state = event.getState();
 
                 if (state == VisibilityState.FULLY_OBSCURED) {
-                    up = false;
                     clock.setRunning(false);
                 } else if (state == VisibilityState.PARTIAL) {
-                    up = false;
                     clock.setRunning(true);
                 } else {
-                    up = true;
                     clock.setRunning(true);
                 }
 
@@ -325,7 +314,6 @@ class ZonesWindow
 
         window.connect(new Widget.UnmapEvent() {
             public boolean onUnmapEvent(Widget source, Event event) {
-                up = false;
                 clock.setRunning(false);
                 return false;
             }
@@ -668,21 +656,11 @@ class ZonesWindow
         indicateCorrectTime();
 
         /*
-         * Position the window and present. FUTURE If this becomes an applet,
-         * then the position will have to be south docked onto the panel above
-         * the time display.
+         * Position the window and present.
          */
 
         window.showAll();
         window.hide();
-
-        /*
-         * Toggle the ZonesWindow onto the screen. Among other things, this
-         * will size, and present.
-         */
-        if (showOnStartup) {
-            toggle();
-        }
 
         // has to be after map to screen
         selection.unselectAll();
@@ -704,28 +682,25 @@ class ZonesWindow
      * Toggle the ZonesWindow on to or off of the screen. The boolean
      * parameter allows us to avoid a double tap update on startup.
      */
-    void toggle() {
+    void present() {
         final int s_w, s_h, w, h;
 
-        if (up) {
-            window.hide();
-            up = false;
+        model.clear();
+        populateZonesIntoModel();
 
-            clock.setRunning(false);
-        } else {
-            s_w = window.getScreen().getWidth();
-            s_h = window.getScreen().getHeight();
+        updateNow();
 
-            w = window.getWidth();
-            h = window.getHeight();
+        s_w = window.getScreen().getWidth();
+        s_h = window.getScreen().getHeight();
 
-            window.move(s_w - w - 20, s_h - h - 30);
+        w = window.getWidth();
+        h = window.getHeight();
 
-            window.present();
-            up = true;
+        window.move(s_w - w - 20, s_h - h - 10);
 
-            clock.setRunning(true);
-        }
+        window.present();
+
+        clock.setRunning(true);
     }
 
     /**

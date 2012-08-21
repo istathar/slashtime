@@ -19,11 +19,16 @@
 package slashtime.client;
 
 import org.freedesktop.bindings.Internationalization;
+import org.gnome.glib.ApplicationCommandLine;
+import org.gnome.glib.ApplicationFlags;
 import org.gnome.glib.Glib;
+import org.gnome.gtk.Application;
 import org.gnome.gtk.Gtk;
 
 import slashtime.domain.Place;
 import slashtime.ui.UserInterface;
+
+import static java.lang.System.exit;
 
 /**
  * Main entry point for slashtime program.
@@ -36,19 +41,37 @@ public final class Master
      * Global re-entry point for code in other layers to be able to request
      * actions of the user interface.
      */
-    public static UserInterface ui = null;
+    public static UserInterface ui;
+
+    public static Application app;
 
     public static void main(String[] args) {
-        boolean startMaximized = true;
+        final int status;
 
         Glib.setProgramName("slashtime");
         Gtk.init(args);
         Internationalization.init("slashtime", "share/locale/");
 
+        app = new Application("com.operationaldynamics.Slashtime", ApplicationFlags.HANDLES_COMMAND_LINE);
+
         /*
-         * An optional first "--hidden" argument allows starting minimized in
-         * tray by not toggle() in ZonesWindow.initialPresentation().
-         * 
+         * Now, on to business. Build the GUI and attach it to the global
+         * re-entry point
+         */
+
+        app.connect(new Application.Startup() {
+            public void onStartup(Application source) {
+                ui = new UserInterface();
+            }
+        });
+
+        app.connect(new Application.Activate() {
+            public void onActivate(Application source) {
+                ui.display();
+            }
+        });
+
+        /*
          * If you specify a zone name on the command line it will become a
          * third icon in the ZonesWindow denoting where "home" is (as opposed
          * to where you are now). This is a bit of a hack at the moment, but
@@ -56,28 +79,41 @@ public final class Master
          * setting once we have a GConf binding.
          */
 
-        for (String s : args) {
-            if ("--hidden".compareTo(s) == 0) {
-                startMaximized = false;
-                continue;
+        app.connect(new Application.CommandLine() {
+            public int onCommandLine(Application source, ApplicationCommandLine remote) {
+                final String[] args;
+
+                args = remote.getArguments();
+
+                if (args.length > 1) {
+                    specifyHome(args[1]);
+                }
+
+                /*
+                 * Trigger the Application.Activate signal, where the
+                 * ZonesWindow is raised to front.
+                 */
+
+                app.activate();
+
+                /*
+                 * Indicate that the remote instance that sent us the command
+                 * line arguments should terminate as soon as possible.
+                 */
+
+                remote.exit();
+
+                return 0;
             }
-
-            specifyHome(s);
-            break;
-        }
+        });
 
         /*
-         * Now, on to business. Build the GUI and attach it to the global
-         * re-entry point
+         * And, fire the main event loop. This blocks.
          */
 
-        ui = new UserInterface(startMaximized);
+        status = app.run(args);
 
-        /*
-         * And, fire the main event loop.
-         */
-
-        Gtk.main();
+        exit(status);
     }
 
     private static void specifyHome(String zonename) {
