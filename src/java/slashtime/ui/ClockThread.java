@@ -18,6 +18,9 @@
  */
 package slashtime.ui;
 
+import org.gnome.glib.Glib;
+import org.gnome.glib.Handler;
+
 import static java.lang.System.currentTimeMillis;
 import static slashtime.client.Master.ui;
 
@@ -53,7 +56,12 @@ class ClockThread
                                 continue;
                             }
 
-                            ui.zones.updateNow();
+                            Glib.idleAdd(new Handler() {
+                                public boolean run() {
+                                    ui.zones.updateNow();
+                                    return false;
+                                }
+                            });
                         } else {
                             synchronized (timer) {
                                 wait();
