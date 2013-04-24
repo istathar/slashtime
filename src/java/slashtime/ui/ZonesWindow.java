@@ -27,6 +27,7 @@ import org.gnome.gdk.Keyval;
 import org.gnome.gdk.ModifierType;
 import org.gnome.gdk.MouseButton;
 import org.gnome.gdk.RGBA;
+import org.gnome.gdk.Rectangle;
 import org.gnome.gdk.VisibilityState;
 import org.gnome.gtk.AcceleratorGroup;
 import org.gnome.gtk.Action;
@@ -659,8 +660,29 @@ class ZonesWindow
          * Position the window and present.
          */
 
+        view.connect(new Widget.SizeAllocate() {
+            public void onSizeAllocate(Widget source, Rectangle allocation) {
+                int h;
+
+                System.out.println("Widget.SizeAllocate: " + allocation.toString());
+                System.out.println("Widget.SizeAllocate: " + source.getPreferredHeightMinimum());
+
+                h = source.getPreferredHeightMinimum();
+                if (h > 0) {
+                    window.setSizeRequest(-1, h);
+                    window.showAll();
+                }
+            }
+        });
+
         window.showAll();
-        window.hide();
+
+        /*
+         * FIXME There used to be a call to window.hide() here, but that
+         * prevented us getting the necessary size request which in turn
+         * prevented us from setting the top level size properly. Instead, we
+         * get the horrible map then resize behaviour.
+         */
 
         // has to be after map to screen
         selection.unselectAll();
@@ -697,7 +719,10 @@ class ZonesWindow
         h = window.getHeight();
 
         window.move(s_w - w - 20, s_h - h - 10);
+        System.out.println("present() PreferredHeightMinimum: " + view.getPreferredHeightMinimum());
+        System.out.println("present() PreferredHeightNatural: " + view.getPreferredHeightNatural());
 
+        System.out.println("present() AllocatedHeight:        " + view.getAllocatedHeight());
         window.present();
 
         clock.setRunning(true);
