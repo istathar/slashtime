@@ -27,7 +27,6 @@ import org.gnome.gdk.Keyval;
 import org.gnome.gdk.ModifierType;
 import org.gnome.gdk.MouseButton;
 import org.gnome.gdk.RGBA;
-import org.gnome.gdk.Rectangle;
 import org.gnome.gdk.VisibilityState;
 import org.gnome.gtk.AcceleratorGroup;
 import org.gnome.gtk.Action;
@@ -653,35 +652,10 @@ class ZonesWindow
          * showing.
          */
         updateNow();
-
         indicateCorrectTime();
 
-        /*
-         * Position the window and present.
-         */
-
-        view.connect(new Widget.SizeAllocate() {
-            public void onSizeAllocate(Widget source, Rectangle allocation) {
-                int h;
-
-                h = source.getPreferredHeightMinimum();
-                if (h > 0) {
-                    window.setSizeRequest(-1, h);
-                    window.showAll();
-                }
-            }
-        });
-
+        // unselect has to be after map, hence the showAll() first.
         window.showAll();
-
-        /*
-         * FIXME There used to be a call to window.hide() here, but that
-         * prevented us getting the necessary size request which in turn
-         * prevented us from setting the top level size properly. Instead, we
-         * get the horrible map then resize behaviour.
-         */
-
-        // has to be after map to screen
         selection.unselectAll();
     }
 
@@ -698,26 +672,24 @@ class ZonesWindow
     }
 
     /**
-     * Toggle the ZonesWindow on to or off of the screen. The boolean
-     * parameter allows us to avoid a double tap update on startup.
+     * Put the ZonesWindow on the screen.
+     */
+    /*
+     * Note change to using preferred width and height; this only works
+     * because there's a showAll() back in initialPresentation().
      */
     void present() {
-        final int s_w, s_h, w, h;
-
-        model.clear();
-        populateZonesIntoModel();
-
-        updateNow();
+        final int p_w, p_h, s_w, s_h;
 
         s_w = window.getScreen().getWidth();
         s_h = window.getScreen().getHeight();
 
-        w = window.getWidth();
-        h = window.getHeight();
+        p_w = window.getPreferredWidthMinimum();
+        p_h = window.getPreferredHeightMinimum();
 
-        window.move(s_w - w - 20, s_h - h - 10);
+        window.move(s_w - p_w - 20, s_h - p_h - 10);
 
-        window.showAll();
+        updateNow();
         window.present();
 
         clock.setRunning(true);
