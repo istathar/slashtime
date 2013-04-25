@@ -135,6 +135,8 @@ sub check_prereq (\@$$@) {
 			$str .= "apt-get install";
 		} elsif ($os eq "fedora") {
 			$str .= "yum install";
+		} elsif ($os eq "arch") {
+			$str .= "pacman -S";
 		} elsif ($os eq "suse") {
 			$str .= "zypper install";
 		} elsif ($os eq "mandriva") {
@@ -533,6 +535,7 @@ if ($os eq "gentoo") {
 		"java-gnome UI library",
 		"java-gnome",
 		"$java_gnome_home/share/java/gtk-4.1.jar",
+		"$java_gnome_home/tmp/gtk-4.1.jar",
 		"~/share/java/gtk-4.1.jar");
 
 } elsif ($os eq "arch") {
@@ -541,6 +544,7 @@ if ($os eq "gentoo") {
 		"java-gnome UI library",
 		"java-gnome",
 		"$java_gnome_home/share/java/gtk-4.1.jar",
+		"$java_gnome_home/tmp/gtk-4.1.jar",
 		"~/share/java/gtk-4.1.jar");
 
 } elsif ($os eq "suse") {
@@ -793,31 +797,24 @@ if ($os eq "gentoo") {
 	# we can do much better than this, especially for java/javac.
 	# Should we just go with known paths, or...? `which` is so lame
 
-	# check ecj, the standalone Eclipse compiler.
-	check_compiler($ecj, "Eclipse ecj", which("ecj"), "-g -preserveAllLocals -nowarn -source 1.5 -target 1.5");
-
 	my $javac_candidate;
 	my $javah_candidate;
 	my $jar_candidate;
 	my $javadoc_candidate;
 	my $vendor;
 	if ($jdk_home) {
-		$javac_candidate = "$jdk_home/bin/javac";
-		$javah_candidate = "$jdk_home/bin/javah";
-		$jar_candidate = "$jdk_home/bin/jar";
-		$javadoc_candidate = "$jdk_home/bin/javadoc";
 		$vendor = "Specified";
 	} else {
-		$javac_candidate = "/opt/java/bin/javac";
-		$javah_candidate = "/opt/java/bin/javah";
-		$jar_candidate = "/opt/java/bin/jar";
-		$javadoc_candidate = "/opt/java/bin/javadoc";
-		$vendor = "Sun";
+		$vendor = "System";
+		$jdk_home = $ENV{"JAVA_HOME"};
 	}
-	check_compiler($javac, "$vendor javac", $javac_candidate, "-g");
 
-	# check for kaffe's compiler
-	check_compiler($kaffec, "Kaffe javac", which("kaffec"), "");
+	$javac_candidate = "$jdk_home/bin/javac";
+	$javah_candidate = "$jdk_home/bin/javah";
+	$jar_candidate = "$jdk_home/bin/jar";
+	$javadoc_candidate = "$jdk_home/bin/javadoc";
+
+	check_compiler($javac, "$vendor javac", $javac_candidate, "-g");
 
 	check_jar($jar, "$vendor jar", $jar_candidate, "");
 	check_javadoc($javadoc, "$vendor javadoc", $javadoc_candidate, "");

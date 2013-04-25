@@ -652,17 +652,10 @@ class ZonesWindow
          * showing.
          */
         updateNow();
-
         indicateCorrectTime();
 
-        /*
-         * Position the window and present.
-         */
-
+        // unselect has to be after map, hence the showAll() first.
         window.showAll();
-        window.hide();
-
-        // has to be after map to screen
         selection.unselectAll();
     }
 
@@ -679,25 +672,24 @@ class ZonesWindow
     }
 
     /**
-     * Toggle the ZonesWindow on to or off of the screen. The boolean
-     * parameter allows us to avoid a double tap update on startup.
+     * Put the ZonesWindow on the screen.
+     */
+    /*
+     * Note change to using preferred width and height; this only works
+     * because there's a showAll() back in initialPresentation().
      */
     void present() {
-        final int s_w, s_h, w, h;
-
-        model.clear();
-        populateZonesIntoModel();
-
-        updateNow();
+        final int p_w, p_h, s_w, s_h;
 
         s_w = window.getScreen().getWidth();
         s_h = window.getScreen().getHeight();
 
-        w = window.getWidth();
-        h = window.getHeight();
+        p_w = window.getPreferredWidthMinimum();
+        p_h = window.getPreferredHeightMinimum();
 
-        window.move(s_w - w - 20, s_h - h - 10);
+        window.move(s_w - p_w - 20, s_h - p_h - 10);
 
+        updateNow();
         window.present();
 
         clock.setRunning(true);
