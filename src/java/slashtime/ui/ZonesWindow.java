@@ -664,9 +664,6 @@ class ZonesWindow
             public void onSizeAllocate(Widget source, Rectangle allocation) {
                 int h;
 
-                System.out.println("Widget.SizeAllocate: " + allocation.toString());
-                System.out.println("Widget.SizeAllocate: " + source.getPreferredHeightMinimum());
-
                 h = source.getPreferredHeightMinimum();
                 if (h > 0) {
                     window.setSizeRequest(-1, h);
@@ -719,10 +716,8 @@ class ZonesWindow
         h = window.getHeight();
 
         window.move(s_w - w - 20, s_h - h - 10);
-        System.out.println("present() PreferredHeightMinimum: " + view.getPreferredHeightMinimum());
-        System.out.println("present() PreferredHeightNatural: " + view.getPreferredHeightNatural());
 
-        System.out.println("present() AllocatedHeight:        " + view.getAllocatedHeight());
+        window.showAll();
         window.present();
 
         clock.setRunning(true);
