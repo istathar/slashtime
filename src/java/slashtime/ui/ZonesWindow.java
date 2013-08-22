@@ -55,6 +55,7 @@ import org.gnome.gtk.TreeViewColumn;
 import org.gnome.gtk.VBox;
 import org.gnome.gtk.Widget;
 import org.gnome.gtk.Window;
+import org.gnome.pango.FontDescription;
 
 import slashtime.domain.Place;
 
@@ -182,6 +183,8 @@ class ZonesWindow
         view.setRulesHint(false);
         view.setHeadersVisible(false);
         view.setEnableSearch(false);
+
+        view.overrideFont(new FontDescription("DejaVu Sans, 11"));
 
         /*
          * Unusually, we can pack all the CellRenderers into one
