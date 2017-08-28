@@ -312,6 +312,9 @@ sub check_runtime (\$$$$) {
 		chomp $version[$i];
 
 		if (!($version[$i] =~ /^\d+$/)) {
+			if ($i > 0 && $version[0] >= 9) {
+				last;
+			}
 			output "can't parse version\n";
 			$$scalarref = "";
 			return
