@@ -17,7 +17,7 @@ For the impatient:
 	$ ./configure
 	$ make
 
-but don't forget to create a `.tzlist` file; see [`PLACES`](PLACES.html).
+but don't forget to create a `.tzlist` file; see [`PLACES`](PLACES).
 
 
 PREREQUISITES
@@ -132,7 +132,7 @@ Places list
 -----------
 
 The cities shown by slashtime is drawn from the list found in a file called
-.tzlist in your home directory. See the [PLACES](PLACES.html) file for a fully
+.tzlist in your home directory. See the [PLACES](PLACES) file for a fully
 documented example.
 
 Don't whine to me about the lack of UI to change the hard coded Places list. If
