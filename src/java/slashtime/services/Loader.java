@@ -52,7 +52,7 @@ public final class Loader
     public static Place[] loadPlaceList() {
         final File file;
 
-        file = new File(getProperty("user.home") + "/.tzlist");
+        file = new File(getProperty("user.home") + "/.config/slashtime/tzlist");
 
         if (file.exists()) {
             return loadUserZoneList(file);
