@@ -1,2 +1,5 @@
 /slashtime
 /share/locale
+/.stack-work/
+/stack.yaml.lock
+/slashtime.cabal

@@ -1,0 +1,33 @@
+name: slashtime
+version: 0.7.1
+synopsis: Display the time in various places
+description: |
+  A small GUI application that shows you the time in various places.
+
+stability: experimental
+license: MIT
+license-file: LICENSE
+author: Andrew Cowie <istathar@gmail.com>
+maintainer: Andrew Cowie <istathar@gmail.com>
+copyright: © 2003-2020 Athae Eredh Siniath and Others
+category: Text
+tested-with: GHC == 8.8
+github: istathar/slashtime
+
+dependencies:
+ - base >= 4.11 && < 5
+ - core-text
+ - core-data
+ - core-program
+ - gi-gtk >= 3.0 && < 4
+ - haskell-gi-base
+
+ghc-options: -threaded -Wall -Wwarn -fwarn-tabs
+
+executables:
+  slashtime:
+    source-dirs: src
+    main: GraphicalMain.hs
+    other-modules:
+     - GraphicalWindow
+
