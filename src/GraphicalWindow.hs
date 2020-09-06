@@ -1,7 +1,7 @@
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE OverloadedLabels #-}
-{-# OPTIONS_ghc -fno-warn-unused-do-bind #-}
-{-# OPTIONS_ghc -fno-warn-unused-imports #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# OPTIONS_GHC -fno-warn-unused-do-bind #-}
+{-# OPTIONS_GHC -fno-warn-unused-imports #-}
 
 module GraphicalWindow where
 
@@ -14,7 +14,13 @@ program :: Program None ()
 program = do
   Gtk.init Nothing
 
-  window <- new Gtk.Window [#title := "Hi there"]
+  window <-
+    new
+      Gtk.Window
+      [ #title := "slashtime",
+        #decorated := False,
+        #borderWidth := 1
+      ]
 
   on window #destroy Gtk.mainQuit
 
