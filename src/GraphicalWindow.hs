@@ -111,5 +111,24 @@ hookupSelectionSignals view = do
 
 initialPresentation :: Gtk.Window -> Gtk.TreeSelection -> Program None ()
 initialPresentation window selection = do
+  -- It's necessary to update the time fields here as a preload to ensure the
+  -- TreeView is properly sized and that all columns are showing.
+
+  updateNow window
+  indicateCorrectTime window
+
+  -- unselect has to be after map, hence the showAll() first.
   #showAll window
   #unselectAll selection
+
+updateNow :: Gtk.Window -> Program None ()
+updateNow window = undefined
+
+indicateCorrectTime :: Gtk.Window -> Program None ()
+indicateCorrectTime window = do
+  #overrideBackgroundColor window [Gtk.StateFlagsNormal] Nothing
+
+indicateWrongTime :: Gtk.Window -> Program None ()
+indicateWrongTime window = do
+  color <- new Gdk.RGBA [ #red := 1.0, #green := 0.0, #blue := 0.0 ]
+  #overrideBackgroundColor window [Gtk.StateFlagsNormal] (Just color)
