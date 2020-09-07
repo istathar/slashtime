@@ -8,6 +8,7 @@ module GraphicalWindow where
 import Core.Program
 import Core.Text
 import Data.GI.Base
+import qualified GI.Gdk as Gdk
 import qualified GI.Gtk as Gtk
 
 data ZonesWindow = ZonesWindow
@@ -18,12 +19,13 @@ program :: Program None ()
 program = do
   Gtk.init Nothing
 
-  (window,top) <- setupWindow
+  (window, top) <- setupWindow
   view <- setupTreeView top
   -- setupContextMenu
 
-  -- hookupWindowManagement
   selection <- hookupSelectionSignals view
+  hookupWindowManagement window selection
+
   -- hookupReactingToWindowVisibilityChanges
 
   -- populateZonesIntoModel
@@ -34,7 +36,7 @@ program = do
   Gtk.main
 
 -- Initialize and pack outer Widgets; prepare Window properties.
-setupWindow :: Program None (Gtk.Window,Gtk.Box)
+setupWindow :: Program None (Gtk.Window, Gtk.Box)
 setupWindow = do
   window <-
     new
@@ -54,7 +56,7 @@ setupWindow = do
       ]
 
   #add window top
-  return (window,top)
+  return (window, top)
 
 setupTreeView :: Gtk.Box -> Program None Gtk.TreeView
 setupTreeView top = do
@@ -77,9 +79,29 @@ setupTreeView top = do
   #add window button
 -}
 
-hookupWindowManagement :: Gtk.Window -> Program None ()
-hookupWindowManagement window = do
-  on window #destroy Gtk.mainQuit
+--
+-- When focus leaves the ZonesWindow, deselect so that it's not left
+-- with a blue selected row for no terribly useful reason.
+--
+hookupWindowManagement :: Gtk.Window -> Gtk.TreeSelection -> Program None ()
+hookupWindowManagement window selection = do
+  on
+    window
+    #destroy
+    Gtk.mainQuit
+
+  on
+    window
+    #leaveNotifyEvent
+    ( \eventCrossing -> do
+        mode <- get eventCrossing #mode
+        case mode of
+          Gdk.CrossingModeGrab -> do
+            #unselectAll selection
+            return False
+          _ -> do
+            return False
+    )
   return ()
 
 hookupSelectionSignals :: Gtk.TreeView -> Program None Gtk.TreeSelection
