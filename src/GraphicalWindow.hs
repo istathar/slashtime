@@ -18,8 +18,8 @@ program :: Program None ()
 program = do
   Gtk.init Nothing
 
-  window <- setupWindow
-  view <- setupTreeView
+  (window,top) <- setupWindow
+  view <- setupTreeView top
   -- setupContextMenu
 
   -- hookupWindowManagement
@@ -33,7 +33,8 @@ program = do
 
   Gtk.main
 
-setupWindow :: Program None Gtk.Window
+-- Initialize and pack outer Widgets; prepare Window properties.
+setupWindow :: Program None (Gtk.Window,Gtk.Box)
 setupWindow = do
   window <-
     new
@@ -44,10 +45,22 @@ setupWindow = do
         #hasResizeGrip := False
       ]
 
-  return window
+  top <-
+    new
+      Gtk.Box
+      [ #orientation := Gtk.OrientationVertical,
+        #homogeneous := False,
+        #spacing := 0
+      ]
+
+  #add window top
+  return (window,top)
+
+setupTreeView :: Gtk.Box -> Program None Gtk.TreeView
+setupTreeView top = do
+  return undefined
 
 {-
-  on window #destroy Gtk.mainQuit
 
   button <- new Gtk.Button [#label := "Click me"]
 
@@ -63,6 +76,11 @@ setupWindow = do
 
   #add window button
 -}
+
+hookupWindowManagement :: Gtk.Window -> Program None ()
+hookupWindowManagement window = do
+  on window #destroy Gtk.mainQuit
+  return ()
 
 hookupSelectionSignals :: Gtk.TreeView -> Program None Gtk.TreeSelection
 hookupSelectionSignals view = do
