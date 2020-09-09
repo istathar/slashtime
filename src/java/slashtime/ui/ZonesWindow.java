@@ -134,23 +134,9 @@ class ZonesWindow
     }
 
     /**
-     * Initialize and pack outer Widgets; prepare Window properties.
+     * 
      */
     private void setupWindow() {
-        window = new Window();
-
-        window.setIcon(images.marble);
-
-        window.setTitle("slashtime");
-        window.setDecorated(false);
-        window.setBorderWidth(1);
-        window.setHasResizeGrip(false);
-
-        top = new VBox(false, 0);
-
-        window.add(top);
-        app.addWindow(window);
-    }
 
     private void setupTreeView() {
         CellRendererPixbuf image;
@@ -223,29 +209,6 @@ class ZonesWindow
         text.setBackground(rowBackground);
 
         top.packStart(view, true, true, 0);
-    }
-
-    private void hookupWindowManagement() {
-        window.connect(new Window.DeleteEvent() {
-            public boolean onDeleteEvent(Widget source, Event event) {
-                ui.shutdown();
-                return false;
-            }
-        });
-
-        /*
-         * When focus leaves the ZonesWindow, deselect so that it's not left
-         * with a blue selected row for no terribly useful reason.
-         */
-
-        view.connect(new Widget.LeaveNotifyEvent() {
-            public boolean onLeaveNotifyEvent(Widget source, EventCrossing event) {
-                if (event.getMode() != CrossingMode.GRAB) {
-                    selection.unselectAll();
-                }
-                return false;
-            }
-        });
     }
 
     private void hookupSelectionSignals() {
@@ -646,28 +609,6 @@ class ZonesWindow
 
             i++;
         } while (pointer.iterNext());
-    }
-
-    private void initialPresentation() {
-        /*
-         * It's necessary to update the time fields here as a preload to
-         * ensure the TreeView is properly sized and that all columns are
-         * showing.
-         */
-        updateNow();
-        indicateCorrectTime();
-
-        // unselect has to be after map, hence the showAll() first.
-        window.showAll();
-        selection.unselectAll();
-    }
-
-    void indicateCorrectTime() {
-        window.overrideBackground(StateFlags.NORMAL, RGBA.BLACK);
-    }
-
-    void indicateWrongTime() {
-        window.overrideBackground(StateFlags.NORMAL, RGBA.RED);
     }
 
     Place getCurrent() {
