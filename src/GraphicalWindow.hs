@@ -5,9 +5,9 @@
 
 module GraphicalWindow where
 
-import Core.Program
-import Core.Text
+import Core.Program (None, Program)
 import Data.GI.Base
+import Data.GI.Base.GType
 import qualified GI.Gdk as Gdk
 import qualified GI.Gtk as Gtk
 
@@ -60,6 +60,32 @@ setupWindow = do
 
 setupTreeView :: Gtk.Box -> Program None Gtk.TreeView
 setupTreeView top = do
+  model <-
+    Gtk.listStoreNew
+      [ -- icon image
+        gtypeObject,
+        -- place markup
+        gtypeString,
+        -- time markup
+        gtypeString,
+        -- time sort
+        gtypeInt,
+        -- offset markup
+        gtypeString,
+        -- row colour
+        gtypeString
+      ]
+
+  
+  -- sorted <- Gtk.treeModelSortNewWithModel model
+  sorted <- new Gtk.TreeModelSort [ #model := model ]
+  #setSortColumnId sorted 3 Gtk.SortTypeAscending
+  
+  view <- new Gtk.TreeView [ #model := sorted ]
+  #setRulesHint view False
+  #setHeadersVisible view False
+  #setEnableSearch view False
+
   return undefined
 
 {-
@@ -130,5 +156,5 @@ indicateCorrectTime window = do
 
 indicateWrongTime :: Gtk.Window -> Program None ()
 indicateWrongTime window = do
-  color <- new Gdk.RGBA [ #red := 1.0, #green := 0.0, #blue := 0.0 ]
+  color <- new Gdk.RGBA [#red := 1.0, #green := 0.0, #blue := 0.0]
   #overrideBackgroundColor window [Gtk.StateFlagsNormal] (Just color)
