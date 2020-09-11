@@ -62,31 +62,81 @@ setupTreeView :: Gtk.Box -> Program None Gtk.TreeView
 setupTreeView top = do
   model <-
     Gtk.listStoreNew
-      [ -- icon image
+      [ -- 0 icon image
         gtypeObject,
-        -- place markup
+        -- 1 place markup
         gtypeString,
-        -- time markup
+        -- 2 time markup
         gtypeString,
-        -- time sort
+        -- 3 time sort
         gtypeInt,
-        -- offset markup
+        -- 4 offset markup
         gtypeString,
-        -- row colour
+        -- 5 row colour
+        gtypeString,
+        -- 6 row background
         gtypeString
       ]
 
-  
   -- sorted <- Gtk.treeModelSortNewWithModel model
-  sorted <- new Gtk.TreeModelSort [ #model := model ]
+  sorted <- new Gtk.TreeModelSort [#model := model]
   #setSortColumnId sorted 3 Gtk.SortTypeAscending
-  
-  view <- new Gtk.TreeView [ #model := sorted ]
+
+  view <- new Gtk.TreeView [#model := sorted]
   #setRulesHint view False
   #setHeadersVisible view False
   #setEnableSearch view False
 
-  return undefined
+  -- Unusually, we can pack all the CellRenderers into one TreeViewColumn as
+  -- they reserve a constant width per actual row. This has the nice side
+  -- effect of eliminating the one pixel boundary between the former
+  -- TreeViewColumns whose headings we weren't looking at anyway.
+
+  vertical <- new Gtk.TreeViewColumn []
+  #appendColumn view vertical
+
+  image <-
+    new
+      Gtk.CellRendererPixbuf
+      []
+
+  #addAttribute vertical image "pixbuf" 0
+  #addAttribute vertical image "cell-background" 6
+
+  place <-
+    new
+      Gtk.CellRendererText
+      [ #xalign := 0.0,
+        #yalign := 0.0
+      ]
+
+  #addAttribute vertical place "markup" 1
+  #addAttribute vertical place "foreground" 5
+  #addAttribute vertical place "cell-background" 6
+
+  datetime <-
+    new
+      Gtk.CellRendererText
+      [ #xalign := 0.5,
+        #yalign := 0.0
+      ]
+  #addAttribute vertical datetime "markup" 2
+  #addAttribute vertical datetime "foreground" 5
+  #addAttribute vertical datetime "cell-background" 6
+
+  offset <-
+    new
+      Gtk.CellRendererText
+      [ #xalign := 0.5,
+        #yalign := 0.0
+      ]
+  #addAttribute vertical offset "markup" 4
+  #addAttribute vertical offset "foreground" 5
+  #addAttribute vertical offset "cell-background" 6
+
+  #packStart top view True True 0
+
+  return view
 
 {-
 

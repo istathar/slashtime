@@ -162,53 +162,8 @@ class ZonesWindow
             placeObject,
         });
 
-        sorted = new TreeModelSort(model);
-        sorted.setSortColumn(timeSort, SortType.ASCENDING);
-
-        view = new TreeView(sorted);
-        view.setRulesHint(false);
-        view.setHeadersVisible(false);
-        view.setEnableSearch(false);
-
         view.overrideFont(new FontDescription("DejaVu Sans, 11"));
 
-        /*
-         * Unusually, we can pack all the CellRenderers into one
-         * TreeViewColumn as they reserve a constant width per actual row.
-         * This has the nice side effect of eliminating the one pixel boundary
-         * between the former TreeViewColumns whose headings we weren't
-         * looking at anyway.
-         */
-
-        vertical = view.appendColumn();
-
-        /* Icon */
-        image = new CellRendererPixbuf(vertical);
-        image.setPixbuf(iconImage);
-        image.setBackground(rowBackground);
-
-        /* Place */
-        text = new CellRendererText(vertical);
-        text.setAlignment(LEFT, TOP);
-        text.setMarkup(placeMarkup);
-        text.setForeground(rowColor);
-        text.setBackground(rowBackground);
-
-        /* Date and Time */
-        text = new CellRendererText(vertical);
-        text.setAlignment(CENTER, Alignment.TOP);
-        text.setMarkup(timeMarkup);
-        text.setForeground(rowColor);
-        text.setBackground(rowBackground);
-
-        /* Offset */
-        text = new CellRendererText(vertical);
-        text.setAlignment(Alignment.CENTER, Alignment.TOP);
-        text.setMarkup(offsetMarkup);
-        text.setForeground(rowColor);
-        text.setBackground(rowBackground);
-
-        top.packStart(view, true, true, 0);
     }
 
     private void hookupSelectionSignals() {
