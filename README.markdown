@@ -19,6 +19,10 @@ For the impatient:
 
 but don't forget to create a `.tzlist` file; see [`PLACES`](PLACES).
 
+There is also the old Perl script which is a standalone command line version,
+it doesn't need building, just copying somewhere where binaries live:
+
+	$ cp slashtime.pl ~/.local/bin/
 
 PREREQUISITES
 -------------
