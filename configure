@@ -537,6 +537,7 @@ if ($os eq "gentoo") {
 	check_prereq(@java_gnome_jars,
 		"java-gnome UI library",
 		"java-gnome",
+		"$java_gnome_home/lib/java/gtk.jar",
 		"$java_gnome_home/share/java/gtk-4.1.jar",
 		"$java_gnome_home/tmp/gtk-4.1.jar",
 		"~/share/java/gtk-4.1.jar");
