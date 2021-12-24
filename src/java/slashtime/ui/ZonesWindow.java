@@ -14,7 +14,7 @@
  *
  * You should have received a copy of the GPL along with this program. If not,
  * see http://www.gnu.org/licenses/. The authors of this program may be
- * contacted through http://research.operationaldynamics.com/projects/slashtime/.
+ * contacted through https://github.com/istathar/slashtime/.
  */
 package slashtime.ui;
 
