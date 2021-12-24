@@ -1,5 +1,5 @@
 #
-# Example .tzlist Place list file, as used by slashtime
+# Example tzlist Place list file, as used by slashtime
 #
 # Copyright (c) 2003-2008 Operational Dynamics Consulting Pty Ltd 
 # 
@@ -8,9 +8,9 @@
 # version 2". See the LICENCE file for the terms governing usage and
 # redistribution.
 #
-# =========================================================
-# ** THIS FILE SHOULD BE .tzlist IN YOUR $HOME DIRECTORY **
-# =========================================================
+# ========================================================
+# ** THIS FILE SHOULD BE $HOME/.config/slashtime/tzlist **
+# ========================================================
 # 
 # Purpose
 # -------
@@ -71,6 +71,7 @@
 
 #
 # Now that you've read all this, you can get rid of the comments, change
-# the Places to things that make you happy, and copy the file to ~/.tzlist
+# the Places to things that make you happy, and copy the file to
+# ~/.config/slashtime/tzlist
 #
 # vim: set ts=25:

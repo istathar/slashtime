@@ -180,7 +180,7 @@ public class TimeZoneHelper
                 + "\t# echo \"Europe/Paris\" > /etc/timezone\n\n"
                 + " - set the TZ variable either globally or when running the program:\n\n"
                 + "\t$ TZ=\"Europe/Paris\" ./slashtime\n\n"
-                + "The zone you specify does need to be in your ~/.tzlist file.");
+                + "The zone you specify does need to be in your ~/.config/slashtime/tzlist file.");
 
         return "";
     }

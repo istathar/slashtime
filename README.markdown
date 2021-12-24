@@ -17,7 +17,7 @@ For the impatient:
 	$ ./configure
 	$ make
 
-but don't forget to create a `.tzlist` file; see [`PLACES`](PLACES).
+but don't forget to create a `tzlist` file; see [`PLACES`](PLACES).
 
 There is also the old Perl script which is a standalone command line version,
 it doesn't need building, just copying somewhere where binaries live:
@@ -135,12 +135,13 @@ menu.
 Places list
 -----------
 
-The cities shown by slashtime is drawn from the list found in a file called
-.tzlist in your home directory. See the [PLACES](PLACES) file for a fully
+The cities shown by slashtime is drawn from the list found in a file located
+at $HOME/.config/slashtime/tzlist. See the [PLACES](PLACES) file for a fully
 documented example.
 
 Don't whine to me about the lack of UI to change the hard coded Places list. If
-you want your own list of cities, then whip up a `~/.tzlist` file.
+you want your own list of cities, then whip up a `~/.config/slashtime/tzlist`
+file.
 
 
 HISTORY
