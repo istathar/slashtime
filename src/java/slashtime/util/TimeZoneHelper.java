@@ -14,7 +14,7 @@
  *
  * You should have received a copy of the GPL along with this program. If not,
  * see http://www.gnu.org/licenses/. The authors of this program may be
- * contacted through http://research.operationaldynamics.com/projects/slashtime/.
+ * contacted through https://github.com/istathar/slashtime/.
  */
 package slashtime.util;
 
@@ -180,7 +180,7 @@ public class TimeZoneHelper
                 + "\t# echo \"Europe/Paris\" > /etc/timezone\n\n"
                 + " - set the TZ variable either globally or when running the program:\n\n"
                 + "\t$ TZ=\"Europe/Paris\" ./slashtime\n\n"
-                + "The zone you specify does need to be in your ~/.tzlist file.");
+                + "The zone you specify does need to be in your ~/.config/slashtime/tzlist file.");
 
         return "";
     }
