@@ -524,7 +524,7 @@ class ZonesWindow
 
             time.append("\n");
 
-            time.append("<span size='x-small' font_desc='Mono' color='");
+            time.append("<span size='x-small'color='");
             time.append(GRAY);
             time.append("'>");
             /*
@@ -557,10 +557,10 @@ class ZonesWindow
 
             offset = new StringBuffer();
 
-            offset.append("<span font_desc='Mono'>");
+            offset.append("<span size='x-small'>");
             offset.append(abs(halves) > 19 ? "" : " ");
 
-            offset.append("<span size='x-small' rise='2000'>");
+            offset.append("<span size='x-small'>");
             if (halves == 0) {
                 offset.append(" ");
             } else {
@@ -571,12 +571,12 @@ class ZonesWindow
 
             offset.append(abs(halves / 2));
 
-            offset.append("<span font_desc='Mono'>");
+            offset.append("<span>");
             offset.append(halves % 2 == 0 ? " " : "\u00bd");
             offset.append("</span>");
             offset.append("\n");
 
-            offset.append("<span size='x-small' font_desc='Mono' color='");
+            offset.append("<span size='x-small' color='");
             offset.append(GRAY);
             offset.append("'>");
             code = formatTime("%Z", when);
@@ -690,7 +690,7 @@ class ZonesWindow
         p_w = window.getPreferredWidthMinimum();
         p_h = window.getPreferredHeightMinimum();
 
-        window.move(s_w - p_w - 20, s_h - p_h - 10);
+        window.move(s_w - p_w - 10, 40);
 
         updateNow();
         window.present();

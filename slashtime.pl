@@ -34,7 +34,7 @@ use POSIX qw(strftime);
 use POSIX qw(tzset);
 use Date::Parse;
 
-my $TZLIST="$ENV{'HOME'}/.tzlist";
+my $TZLIST="$ENV{'HOME'}/.config/slashtime/tzlist";
 my $SYSTZ="/etc/timezone";
 my $FORMAT="%H:%M %a, %e %b %y";
 
