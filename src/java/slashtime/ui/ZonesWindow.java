@@ -690,7 +690,7 @@ class ZonesWindow
         p_w = window.getPreferredWidthMinimum();
         p_h = window.getPreferredHeightMinimum();
 
-        window.move(s_w - p_w - 20, s_h - p_h - 10);
+        window.move(s_w - p_w - 10, 40);
 
         updateNow();
         window.present();
