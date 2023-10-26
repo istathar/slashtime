@@ -1,0 +1,12 @@
+[package]
+name = "slashtime"
+version = "0.1.0"
+edition = "2021"
+
+[profile.release]
+strip = true
+lto = true
+
+[dependencies]
+glib = "*"
+gtk4 = "^0.7.3"
