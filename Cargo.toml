@@ -8,5 +8,6 @@ strip = true
 lto = true
 
 [dependencies]
+gio = "*"
 glib = "*"
-gtk4 = "^0.7.3"
+gtk4 = { version = "^0.7.3", features = [ "v4_10" ] }
