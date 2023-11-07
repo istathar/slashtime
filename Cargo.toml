@@ -9,3 +9,5 @@ lto = true
 
 [dependencies]
 chrono = "0.4"
+chrono-tz = "0.8"
+iana-time-zone = "*"
