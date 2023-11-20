@@ -1,3 +1,5 @@
+use csv::ReaderBuilder;
+use serde::Deserialize;
 use std::fs::File;
 use std::io::Read;
 use tz::TimeZone;
@@ -39,7 +41,16 @@ fn main() -> Result<(), TzError> {
 
     println!("And now {:?}", lima.find_current_local_time_type()?);
 
-    tzinfo_parser();
+    let places = tzinfo_parser().unwrap();
+
+    for place in places {
+        println!("{:?}", place);
+
+        let tz = tz::TimeZone::from_posix_tz(&place.iana_zone)?;
+        let now = tz::DateTime::now(tz.as_ref())?;
+
+        println!("{}", now);
+    }
 
     Ok(())
 }
@@ -47,6 +58,7 @@ fn main() -> Result<(), TzError> {
 // a struct for the IANA zone name, then human readable city name, and human
 // radable country name, none of which are in the continent/capital scheme
 // used by the IANA zoneinfo names.
+#[derive(Debug, Deserialize)]
 struct Place {
     iana_zone: String,
     city_name: String,
@@ -56,24 +68,18 @@ struct Place {
 // parse a file containing three tab separated columns: first with a IANA zone
 // info name, second city name, third country name. Ignore lines beginning
 // with # as comments
-fn tzinfo_parser() -> Vec<Place> {
+fn tzinfo_parser() -> Result<Vec<Place>, csv::Error> {
+    let file = File::open("/home/andrew/.config/slashtime/tzlist")?;
+    let mut rdr = ReaderBuilder::new()
+        .delimiter(b'\t')
+        .has_headers(false)
+        .comment(Some(b'#'))
+        .from_reader(file);
+
     let mut places = Vec::new();
-    let mut file =
-        File::open("/home/andrew/.config/slashtime/tzlist").expect("Couldn't open tzlist file");
-    let mut contents = String::new();
-    file.read_to_string(&mut contents)
-        .expect("Couldn't read file");
-    for line in contents.lines() {
-        if line.starts_with("#") {
-            continue;
-        }
-        let fields: Vec<&str> = line.split('\t').collect();
-        let place = Place {
-            iana_zone: fields[0].to_string(),
-            city_name: fields[1].to_string(),
-            country_name: fields[2].to_string(),
-        };
+    for result in rdr.deserialize() {
+        let place: Place = result?;
         places.push(place);
     }
-    places
+    Ok(places)
 }
