@@ -1,24 +1,32 @@
 use csv::ReaderBuilder;
 use serde::Deserialize;
 use std::fs::File;
-use std::io::Read;
 use tz::DateTime;
 use tz::TimeZone;
-use tz::TimeZoneRef;
 
 fn main() -> Result<(), tz::TzError> {
-    let lima = TimeZone::local()?;
-    let utc = TimeZone::utc();
+    let lima = tz::TimeZone::local()?;
+    let utc = tz::TimeZone::utc();
     let now = tz::UtcDateTime::now()?;
     println!("UTC now:\t{}", now);
 
     let places = tzinfo_parser().unwrap();
+    let mut locations = Vec::with_capacity(places.len());
 
     for place in places {
         let tz = tz::TimeZone::from_posix_tz(&place.iana_zone)?;
+        let offset = tz.find_current_local_time_type()?.ut_offset();
+        locations.push(Locality {
+            zone: tz,
+            offset_minutes: offset,
+            city_name: place.city_name,
+            country_name: place.country_name,
+        });
+    }
 
-        let there = now.project(tz.as_ref())?;
-        println!("{}", format_line(&place, &there));
+    for location in locations {
+        let there = now.project(location.zone.as_ref())?;
+        println!("{}", format_line(&location, &there));
     }
 
     Ok(())
@@ -30,6 +38,14 @@ fn main() -> Result<(), tz::TzError> {
 #[derive(Debug, Deserialize)]
 struct Place {
     iana_zone: String,
+    city_name: String,
+    country_name: String,
+}
+
+#[derive(Debug)]
+struct Locality {
+    zone: TimeZone,
+    offset_minutes: i32,
     city_name: String,
     country_name: String,
 }
@@ -53,17 +69,17 @@ fn tzinfo_parser() -> Result<Vec<Place>, csv::Error> {
     Ok(places)
 }
 
-fn format_line(place: &Place, when: &DateTime) -> String {
+fn format_line(location: &Locality, when: &DateTime) -> String {
     format!(
         "{:22.22}  {}  {}",
-        format_place(place),
+        format_locality(location),
         format_time(when),
         format_date(when)
     )
 }
 
-fn format_place(place: &Place) -> String {
-    format!("{}, {}", &place.city_name, &place.country_name)
+fn format_locality(location: &Locality) -> String {
+    format!("{}, {}", &location.city_name, &location.country_name)
 }
 
 fn format_time(when: &DateTime) -> String {
