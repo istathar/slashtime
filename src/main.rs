@@ -6,12 +6,17 @@ use tz::TimeZone;
 
 fn main() -> Result<(), tz::TzError> {
     let lima = tz::TimeZone::local()?;
-    let utc = tz::TimeZone::utc();
     let now = tz::UtcDateTime::now()?;
-    println!("UTC now:\t{}", now);
 
     let places = tzinfo_parser().unwrap();
-    let mut locations = Vec::with_capacity(places.len());
+    let mut locations = Vec::with_capacity(places.len() + 1);
+
+    locations.push(Locality {
+        zone: tz::TimeZone::utc(),
+        offset_seconds: 0,
+        city_name: "Zulu".to_string(),
+        country_name: "Universal Time".to_string(),
+    });
 
     for place in places {
         let tz = tz::TimeZone::from_posix_tz(&place.iana_zone)?;
