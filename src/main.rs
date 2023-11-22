@@ -18,7 +18,7 @@ fn main() -> Result<(), tz::TzError> {
         let offset = tz.find_current_local_time_type()?.ut_offset();
         locations.push(Locality {
             zone: tz,
-            offset_minutes: offset,
+            offset_seconds: offset,
             city_name: place.city_name,
             country_name: place.country_name,
         });
@@ -45,7 +45,7 @@ struct Place {
 #[derive(Debug)]
 struct Locality {
     zone: TimeZone,
-    offset_minutes: i32,
+    offset_seconds: i32,
     city_name: String,
     country_name: String,
 }
@@ -71,10 +71,11 @@ fn tzinfo_parser() -> Result<Vec<Place>, csv::Error> {
 
 fn format_line(location: &Locality, when: &DateTime) -> String {
     format!(
-        "{:22.22}  {}  {}",
+        "{:22.22}  {}  {}  {}",
         format_locality(location),
         format_time(when),
-        format_date(when)
+        format_date(when),
+        format_offset(location)
     )
 }
 
@@ -127,4 +128,16 @@ fn format_month(mon: u8) -> String {
         _ => "???",
     }
     .to_string()
+}
+
+fn format_offset(location: &Locality) -> String {
+    let offset_minutes = location.offset_seconds / 60;
+    let hours = offset_minutes / 60;
+    let halves = if offset_minutes % 60 == 0 { ' ' } else { '½' };
+
+    if offset_minutes == 0 {
+        format!("  0 ")
+    } else {
+        format!("{:+3}{:1}", hours, halves)
+    }
 }
