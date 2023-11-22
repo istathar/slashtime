@@ -18,26 +18,59 @@ fn main() -> Result<(), tz::TzError> {
         let tz = tz::TimeZone::from_posix_tz(&place.iana_zone)?;
 
         let there = now.project(tz.as_ref())?;
-        println!(
-            "{:23.23} {}  {}",
-            format_place(&place),
-            format_time(&place, &there),
-            format_date(&place, &there)
-        );
+        println!("{}", format_line(&place, &there));
     }
 
     Ok(())
+}
+
+// a struct for the IANA zone name, then human readable city name, and human
+// radable country name, none of which are in the continent/capital scheme
+// used by the IANA zoneinfo names.
+#[derive(Debug, Deserialize)]
+struct Place {
+    iana_zone: String,
+    city_name: String,
+    country_name: String,
+}
+
+// parse a file containing three tab separated columns: first with a IANA zone
+// info name, second city name, third country name. Ignore lines beginning
+// with # as comments
+fn tzinfo_parser() -> Result<Vec<Place>, csv::Error> {
+    let file = File::open("/home/andrew/.config/slashtime/tzlist")?;
+    let mut rdr = ReaderBuilder::new()
+        .delimiter(b'\t')
+        .comment(Some(b'#'))
+        .has_headers(false)
+        .from_reader(file);
+
+    let mut places = Vec::new();
+    for result in rdr.deserialize() {
+        let place: Place = result?;
+        places.push(place);
+    }
+    Ok(places)
+}
+
+fn format_line(place: &Place, when: &DateTime) -> String {
+    format!(
+        "{:22.22}  {}  {}",
+        format_place(place),
+        format_time(when),
+        format_date(when)
+    )
 }
 
 fn format_place(place: &Place) -> String {
     format!("{}, {}", &place.city_name, &place.country_name)
 }
 
-fn format_time(place: &Place, when: &DateTime) -> String {
+fn format_time(when: &DateTime) -> String {
     format!("{:02}:{:02}", when.hour(), when.minute())
 }
 
-fn format_date(place: &Place, when: &DateTime) -> String {
+fn format_date(when: &DateTime) -> String {
     format!(
         "{}, {:2} {} {}",
         format_day(when.week_day()),
@@ -78,33 +111,4 @@ fn format_month(mon: u8) -> String {
         _ => "???",
     }
     .to_string()
-}
-
-// a struct for the IANA zone name, then human readable city name, and human
-// radable country name, none of which are in the continent/capital scheme
-// used by the IANA zoneinfo names.
-#[derive(Debug, Deserialize)]
-struct Place {
-    iana_zone: String,
-    city_name: String,
-    country_name: String,
-}
-
-// parse a file containing three tab separated columns: first with a IANA zone
-// info name, second city name, third country name. Ignore lines beginning
-// with # as comments
-fn tzinfo_parser() -> Result<Vec<Place>, csv::Error> {
-    let file = File::open("/home/andrew/.config/slashtime/tzlist")?;
-    let mut rdr = ReaderBuilder::new()
-        .delimiter(b'\t')
-        .comment(Some(b'#'))
-        .has_headers(false)
-        .from_reader(file);
-
-    let mut places = Vec::new();
-    for result in rdr.deserialize() {
-        let place: Place = result?;
-        places.push(place);
-    }
-    Ok(places)
 }
