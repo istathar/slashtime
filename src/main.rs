@@ -8,7 +8,13 @@ fn main() -> Result<(), tz::TzError> {
     let lima = tz::TimeZone::local()?;
     let now = tz::UtcDateTime::now()?;
 
+    // Ingest the user's tzinfo file.
+
     let places = tzinfo_parser().unwrap();
+
+    // We now set about converting into Localities. First add an entry for
+    // UTC, then convert the user supplied places.
+
     let mut locations = Vec::with_capacity(places.len() + 1);
 
     locations.push(Locality {
@@ -17,6 +23,8 @@ fn main() -> Result<(), tz::TzError> {
         city_name: "Zulu".to_string(),
         country_name: "Universal Time".to_string(),
     });
+
+    // Now add an entry for each of the places present in the tzinfo file.
 
     for place in places {
         let tz = tz::TimeZone::from_posix_tz(&place.iana_zone)?;
@@ -29,7 +37,11 @@ fn main() -> Result<(), tz::TzError> {
         });
     }
 
+    // Order the locations by offset.
+
     locations.sort();
+
+    // Output the formatted locality, time, date, and offest for each location.
 
     for location in locations {
         let there = now.project(location.zone.as_ref())?;
