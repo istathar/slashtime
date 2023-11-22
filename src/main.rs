@@ -24,6 +24,8 @@ fn main() -> Result<(), tz::TzError> {
         });
     }
 
+    locations.sort();
+
     for location in locations {
         let there = now.project(location.zone.as_ref())?;
         println!("{}", format_line(&location, &there));
@@ -48,6 +50,26 @@ struct Locality {
     offset_seconds: i32,
     city_name: String,
     country_name: String,
+}
+
+impl PartialEq for Locality {
+    fn eq(&self, other: &Self) -> bool {
+        self.offset_seconds == other.offset_seconds
+    }
+}
+
+impl Eq for Locality {}
+
+impl PartialOrd for Locality {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        self.offset_seconds.partial_cmp(&other.offset_seconds)
+    }
+}
+
+impl Ord for Locality {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.offset_seconds.cmp(&other.offset_seconds)
+    }
 }
 
 // parse a file containing three tab separated columns: first with a IANA zone
