@@ -2,6 +2,7 @@ use csv::ReaderBuilder;
 use serde::Deserialize;
 use std::fs::File;
 use std::io::Read;
+use tz::DateTime;
 use tz::TimeZone;
 use tz::TimeZoneRef;
 
@@ -17,10 +18,66 @@ fn main() -> Result<(), tz::TzError> {
         let tz = tz::TimeZone::from_posix_tz(&place.iana_zone)?;
 
         let there = now.project(tz.as_ref())?;
-        println!("{}, {}\t{}", &place.city_name, &place.country_name, there);
+        println!(
+            "{:23.23} {}  {}",
+            format_place(&place),
+            format_time(&place, &there),
+            format_date(&place, &there)
+        );
     }
 
     Ok(())
+}
+
+fn format_place(place: &Place) -> String {
+    format!("{}, {}", &place.city_name, &place.country_name)
+}
+
+fn format_time(place: &Place, when: &DateTime) -> String {
+    format!("{:02}:{:02}", when.hour(), when.minute())
+}
+
+fn format_date(place: &Place, when: &DateTime) -> String {
+    format!(
+        "{}, {:2} {} {}",
+        format_day(when.week_day()),
+        when.month_day(),
+        format_month(when.month()),
+        when.year()
+    )
+}
+
+fn format_day(day: u8) -> String {
+    match day {
+        0 => "Sun",
+        1 => "Mon",
+        2 => "Tue",
+        3 => "Wed",
+        4 => "Thu",
+        5 => "Fri",
+        6 => "Sat",
+        _ => "???",
+    }
+    .to_string()
+}
+
+fn format_month(mon: u8) -> String {
+    match mon {
+        1 => "Jan",
+        2 => "Feb",
+        3 => "Mar",
+        4 => "Apr",
+        5 => "May",
+        6 => "Jun",
+        7 => "Jul",
+        8 => "Aug",
+        9 => "Sep",
+        10 => "Oct",
+        11 => "Nov",
+        12 => "Dec",
+        _ => "???",
+    }
+    .to_string()
 }
 
 // a struct for the IANA zone name, then human readable city name, and human
