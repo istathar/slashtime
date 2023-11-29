@@ -6,6 +6,8 @@ use tz::TimeZone;
 
 fn main() -> Result<(), tz::TzError> {
     let lima = tz::TimeZone::local()?;
+    let local_offset = lima.find_current_local_time_type()?.ut_offset();
+
     let now = tz::UtcDateTime::now()?;
 
     // Ingest the user's tzinfo file.
@@ -19,7 +21,8 @@ fn main() -> Result<(), tz::TzError> {
 
     locations.push(Locality {
         zone: tz::TimeZone::utc(),
-        offset_seconds: 0,
+        offset_zulu: 0,
+        offset_local: 0 - local_offset,
         city_name: "Zulu".to_string(),
         country_name: "Universal Time".to_string(),
     });
@@ -31,7 +34,8 @@ fn main() -> Result<(), tz::TzError> {
         let offset = tz.find_current_local_time_type()?.ut_offset();
         locations.push(Locality {
             zone: tz,
-            offset_seconds: offset,
+            offset_zulu: offset,
+            offset_local: offset - local_offset,
             city_name: place.city_name,
             country_name: place.country_name,
         });
@@ -64,14 +68,15 @@ struct Place {
 #[derive(Debug)]
 struct Locality {
     zone: TimeZone,
-    offset_seconds: i32,
+    offset_zulu: i32,  // seconds
+    offset_local: i32, // seconds
     city_name: String,
     country_name: String,
 }
 
 impl PartialEq for Locality {
     fn eq(&self, other: &Self) -> bool {
-        self.offset_seconds == other.offset_seconds
+        self.offset_zulu == other.offset_zulu
     }
 }
 
@@ -79,13 +84,13 @@ impl Eq for Locality {}
 
 impl PartialOrd for Locality {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        self.offset_seconds.partial_cmp(&other.offset_seconds)
+        self.offset_zulu.partial_cmp(&other.offset_zulu)
     }
 }
 
 impl Ord for Locality {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        self.offset_seconds.cmp(&other.offset_seconds)
+        self.offset_zulu.cmp(&other.offset_zulu)
     }
 }
 
@@ -170,7 +175,7 @@ fn format_month(mon: u8) -> String {
 }
 
 fn format_offset(location: &Locality) -> String {
-    let offset_minutes = location.offset_seconds / 60;
+    let offset_minutes = location.offset_local / 60;
     let hours = offset_minutes / 60;
     let halves = if offset_minutes % 60 == 0 { ' ' } else { '½' };
 
