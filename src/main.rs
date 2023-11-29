@@ -32,13 +32,17 @@ fn main() -> Result<(), tz::TzError> {
         offset_local: -local_offset,
         city_name: "Zulu".to_string(),
         country_name: "Universal Time".to_string(),
+        abbreviation: "UTC".to_string(),
     });
 
     // Now add an entry for each of the places present in the tzinfo file.
 
     for place in places {
         let tz = tz::TimeZone::from_posix_tz(&place.iana_zone)?;
-        let offset = tz.find_current_local_time_type()?.ut_offset();
+        let local = tz.find_current_local_time_type()?;
+        let offset = local.ut_offset();
+        let code = local.time_zone_designation().to_string();
+
         let home = tz == lima;
 
         locations.push(Locality {
@@ -49,6 +53,7 @@ fn main() -> Result<(), tz::TzError> {
             offset_local: offset - local_offset,
             city_name: place.city_name,
             country_name: place.country_name,
+            abbreviation: code,
         });
     }
 
@@ -116,6 +121,7 @@ struct Locality {
     offset_local: i32, // seconds
     city_name: String,
     country_name: String,
+    abbreviation: String,
 }
 
 impl PartialEq for Locality {
@@ -159,10 +165,11 @@ fn tzinfo_parser() -> Result<Vec<Place>, csv::Error> {
 
 fn format_line(location: &Locality, when: &DateTime) -> String {
     format!(
-        "{:22.22}  {}  {}  {}",
+        "{:22.22}  {}  {}  {}  {}",
         format_locality(location),
         format_time(when),
         format_date(when),
+        format_abbreviation(location),
         format_offset(location)
     )
 }
@@ -216,6 +223,10 @@ fn format_month(mon: u8) -> String {
         _ => "???",
     }
     .to_string()
+}
+
+fn format_abbreviation(location: &Locality) -> String {
+    format!("{:>4}", &location.abbreviation)
 }
 
 fn format_offset(location: &Locality) -> String {
