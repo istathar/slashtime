@@ -41,7 +41,7 @@ fn main() -> Result<(), tz::TzError> {
         let tz = tz::TimeZone::from_posix_tz(&place.iana_zone)?;
         let local = tz.find_current_local_time_type()?;
         let offset = local.ut_offset();
-        let code = local.time_zone_designation().to_string();
+        let code = refine_zone_abbreviation(&place.iana_zone, local.time_zone_designation());
 
         let home = tz == lima;
 
@@ -221,6 +221,19 @@ fn format_month(mon: u8) -> String {
         11 => "Nov",
         12 => "Dec",
         _ => "???",
+    }
+    .to_string()
+}
+
+// handle some known exceptions. Singapore's zoneinfo file, for example,
+// returns a code of "+08" which is annoying seeing as how there is a widely
+// used abbreviation for Singapre Time.
+fn refine_zone_abbreviation(iana_zone: &str, code: &str) -> String {
+    match iana_zone {
+        "America/Sao_Paulo" => "BRT",
+        "Asia/Singapore" => "SGT",
+        "Asia/Dubai" => "GST",
+        _ => code,
     }
     .to_string()
 }
