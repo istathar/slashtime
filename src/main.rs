@@ -252,6 +252,7 @@ fn refine_zone_abbreviation(iana_zone: &str, code: &str) -> String {
         "America/Sao_Paulo" => "BRT",
         "Asia/Singapore" => "SGT",
         "Asia/Dubai" => "GST",
+        "Asia/Tashkent" => "UZT",
         _ => code,
     }
     .to_string()
