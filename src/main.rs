@@ -18,7 +18,8 @@ fn main() -> Result<(), tz::TzError> {
 
     // Ingest the user's tzinfo file.
 
-    let places = tzinfo_parser().unwrap();
+    let path = find_tzlist_file()?;
+    let places = tzinfo_parser(&path).unwrap();
 
     // We now set about converting into Localities. First add an entry for
     // UTC, then convert the user supplied places.
@@ -145,11 +146,28 @@ impl Ord for Locality {
     }
 }
 
+// return the path to the tzlist configuration file in the XDG_CONFIG_DIR.
+fn find_tzlist_file() -> Result<PathBuf, std::io::Error> {
+    let mut path =
+        dirs::config_dir().expect("XDG_CONFIG_DIR not set and default fallback not working either");
+    path.push("slashtime");
+    path.push("tzlist");
+
+    if path.exists() {
+        Ok(path)
+    } else {
+        Err(std::io::Error::new(
+            std::io::ErrorKind::NotFound,
+            "tzlist file not found",
+        ))
+    }
+}
+
 // parse a file containing three tab separated columns: first with a IANA zone
 // info name, second city name, third country name. Ignore lines beginning
 // with # as comments
-fn tzinfo_parser() -> Result<Vec<Place>, csv::Error> {
-    let file = File::open("/home/andrew/.config/slashtime/tzlist")?;
+fn tzinfo_parser(filename: &Path) -> Result<Vec<Place>, csv::Error> {
+    let file = File::open(filename)?;
     let mut rdr = ReaderBuilder::new()
         .delimiter(b'\t')
         .comment(Some(b'#'))
