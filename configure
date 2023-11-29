@@ -450,8 +450,9 @@ if (( -f "/etc/gentoo-release" ) || ( -f "/etc/make.conf" )) {
 	output "Debian\n";
 	# and Ubuntu
 	$os = "debian";
-} elsif ( -f "/etc/fedora-release" ) {
-	output "Fedora Core";
+} elsif ( -f "/etc/redhat-release" ) {
+	output "Fedora";
+	# and Red Hat, CentOS, etc.
 	$os = "fedora";
 } elsif ( -f "/etc/SuSE-release" ) {
 	output "Open SuSE";
@@ -537,6 +538,7 @@ if ($os eq "gentoo") {
 	check_prereq(@java_gnome_jars,
 		"java-gnome UI library",
 		"java-gnome",
+		"$java_gnome_home/lib/java/gtk.jar",
 		"$java_gnome_home/share/java/gtk-4.1.jar",
 		"$java_gnome_home/tmp/gtk-4.1.jar",
 		"~/share/java/gtk-4.1.jar");

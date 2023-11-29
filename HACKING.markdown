@@ -3,11 +3,8 @@ A guide to hacking on slashtime:
 RETRIEVING THE SOURCE CODE
 --------------------------
 
-	$ bzr init-repo slashtime
+	$ git clone https://github.com/istathar/slashtime.git
 	$ cd slashtime
-	$ bzr checkout http://research.operationaldynamics.com/bzr/slashtime/mainline
-	$ bzr branch mainline working
-	$ cd working
 	$ ./configure
 	$ make
 
