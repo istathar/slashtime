@@ -14,7 +14,7 @@
  *
  * You should have received a copy of the GPL along with this program. If not,
  * see http://www.gnu.org/licenses/. The authors of this program may be
- * contacted through http://research.operationaldynamics.com/projects/slashtime/.
+ * contacted through https://github.com/istathar/slashtime/.
  */
 package slashtime.ui;
 
@@ -86,7 +86,7 @@ public class UserInterface
 
         dialog = new AboutDialog();
         dialog.setAuthors(new String[] {
-            "Andrew Cowie <andrew@operationaldynamics.com>",
+            "Andrew Cowie <istathar@gmail.com>",
         });
         dialog.setComments(_("Show the time in various places!"));
         dialog.setCopyright(_("Copyright")
@@ -95,7 +95,7 @@ public class UserInterface
         dialog.setLogo(images.marble);
         dialog.setTranslatorCredits(_("translator-credits"));
         dialog.setVersion(Version.VERSION);
-        dialog.setWebsite("http://research.operationaldynamics.com/projects/slashtime/");
+        dialog.setWebsite("https://github.com/istathar/slashtime/");
         dialog.setWebsiteLabel(_("Website"));
         dialog.setWrapLicense(true);
 

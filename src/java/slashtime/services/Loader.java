@@ -14,7 +14,7 @@
  *
  * You should have received a copy of the GPL along with this program. If not,
  * see http://www.gnu.org/licenses/. The authors of this program may be
- * contacted through http://research.operationaldynamics.com/projects/slashtime/.
+ * contacted through https://github.com/istathar/slashtime/.
  */
 package slashtime.services;
 
@@ -62,7 +62,7 @@ public final class Loader
     }
 
     /**
-     * Attempt to parse ~/.tzlist for Place data. The file format is
+     * Attempt to parse ~/.config/slashtime/tzlist for Place data. The file format is
      * 
      * "zonename" "City" "Country"
      * 
@@ -155,7 +155,7 @@ public final class Loader
      * file. UTC first, as required elsewhere.
      */
     private static Place[] loadFallbackData() {
-        System.err.println("Warning: ~/.tzlist not found. Using fallback Place list instead.");
+        System.err.println("Warning: ~/.config/slashtime/tzlist not found. Using fallback Place list instead.");
 
         return new Place[] {
             new Place("UTC", "Zulu", "Universal Time"),
