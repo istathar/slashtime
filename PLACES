@@ -1,13 +1,6 @@
 #
 # Example tzlist Place list file, as used by slashtime
 #
-# Copyright (c) 2003-2008 Operational Dynamics Consulting Pty Ltd 
-# 
-# The code in this file, and the program it is a part of, are made available
-# to you by its authors under the terms of the "GNU General Public Licence,
-# version 2". See the LICENCE file for the terms governing usage and
-# redistribution.
-#
 # ========================================================
 # ** THIS FILE SHOULD BE $HOME/.config/slashtime/tzlist **
 # ========================================================
@@ -20,10 +13,6 @@
 # happens to be the reference location for this timezone. Likewise, sometimes
 # the official country name isn't quite how you think of the place; perhaps
 # you'd rather there be just the abbreviation, etc.
-#
-# Each line will be translated to a Place and displayed in the ZonesWindow by
-# slashtime. Keep the list below 20 or so; if you don't, it won't fit on
-# screen vertically.
 #
 # Format
 # ------
@@ -53,11 +42,11 @@
 "America/Vancouver"	"Vancouver"	"Canada"
 "Australia/Sydney"	"Sydney"	"Australia"
 "Europe/Berlin"	"Munich"	"Germany"
-"America/Halifax"	"Fredericton"	"Canada"
+"America/Halifax"	"Halifax"	"Canada"
 "Europe/London"	"London"	"UK"
 "Asia/Calcutta"	"Bangalore"	"India"
 "Asia/Hong_Kong"	"Hong Kong"	"China"
-"Pacific/Auckland"	"Auckland"	"New Zealand"
+"Pacific/Auckland"	"Wellington"	"New Zealand"
 "Pacific/Honolulu"	"Hawaii"	"USA"
 "America/Los_Angeles"	"Los Angeles"	"USA"
 "America/New_York"	"New York"	"USA"
@@ -67,7 +56,6 @@
 "Asia/Singapore"	"Singapore"	"Singapore"
 "Asia/Dubai"	"Dubai"	"UAE"
 "Australia/Perth"	"Perth"	"Australia"
-"Europe/Moscow"	"Moscow"	"Russia"
 
 #
 # Now that you've read all this, you can get rid of the comments, change
