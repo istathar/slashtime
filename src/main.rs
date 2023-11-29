@@ -1,3 +1,9 @@
+use crossterm::{
+    cursor::MoveTo,
+    queue,
+    style::{Color, Print, ResetColor, SetBackgroundColor, SetForegroundColor},
+    terminal::{Clear, ClearType},
+};
 use csv::ReaderBuilder;
 use serde::Deserialize;
 use std::fs::File;
@@ -49,9 +55,29 @@ fn main() -> Result<(), tz::TzError> {
 
     // Output the formatted locality, time, date, and offest for each location.
 
+    let mut out = std::io::stdout();
+
     for location in locations {
         let there = now.project(location.zone.as_ref())?;
-        println!("{}", format_line(&location, &there));
+        if location.is_zulu {
+            // using the macro
+            queue!(
+                out,
+                SetForegroundColor(Color::DarkGreen),
+                Print(format_line(&location, &there)),
+                Clear(ClearType::UntilNewLine),
+                ResetColor,
+                Print("\n"),
+            )?;
+        } else {
+            queue!(
+                out,
+                Print(format_line(&location, &there)),
+                Clear(ClearType::UntilNewLine),
+                ResetColor,
+                Print("\n"),
+            )?;
+        }
     }
 
     Ok(())
