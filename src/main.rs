@@ -1,7 +1,6 @@
 use crossterm::{
-    cursor::MoveTo,
     queue,
-    style::{Color, Print, ResetColor, SetBackgroundColor, SetForegroundColor},
+    style::{Color, Print, ResetColor, SetForegroundColor},
     terminal::{Clear, ClearType},
 };
 use csv::ReaderBuilder;
@@ -28,6 +27,7 @@ fn main() -> Result<(), tz::TzError> {
     locations.push(Locality {
         zone: tz::TimeZone::utc(),
         is_zulu: true,
+        is_home: false,
         offset_zulu: 0,
         offset_local: -local_offset,
         city_name: "Zulu".to_string(),
@@ -39,9 +39,12 @@ fn main() -> Result<(), tz::TzError> {
     for place in places {
         let tz = tz::TimeZone::from_posix_tz(&place.iana_zone)?;
         let offset = tz.find_current_local_time_type()?.ut_offset();
+        let home = tz == lima;
+
         locations.push(Locality {
             zone: tz,
             is_zulu: false,
+            is_home: home,
             offset_zulu: offset,
             offset_local: offset - local_offset,
             city_name: place.city_name,
@@ -69,6 +72,15 @@ fn main() -> Result<(), tz::TzError> {
                 ResetColor,
                 Print("\n"),
             )?;
+        } else if location.is_home {
+            queue!(
+                out,
+                SetForegroundColor(Color::DarkCyan),
+                Print(format_line(&location, &there)),
+                Clear(ClearType::UntilNewLine),
+                ResetColor,
+                Print("\n")
+            )?;
         } else {
             queue!(
                 out,
@@ -93,13 +105,13 @@ struct Place {
     country_name: String,
 }
 
-
 // a struct storing the Place information transformed into absolute and
 // relative offsets usable when ordering and displaying times.
 #[derive(Debug)]
 struct Locality {
     zone: TimeZone,
     is_zulu: bool,
+    is_home: bool,
     offset_zulu: i32,  // seconds
     offset_local: i32, // seconds
     city_name: String,
