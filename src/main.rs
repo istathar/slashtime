@@ -21,8 +21,9 @@ fn main() -> Result<(), tz::TzError> {
 
     locations.push(Locality {
         zone: tz::TimeZone::utc(),
+        is_zulu: true,
         offset_zulu: 0,
-        offset_local: 0 - local_offset,
+        offset_local: -local_offset,
         city_name: "Zulu".to_string(),
         country_name: "Universal Time".to_string(),
     });
@@ -34,6 +35,7 @@ fn main() -> Result<(), tz::TzError> {
         let offset = tz.find_current_local_time_type()?.ut_offset();
         locations.push(Locality {
             zone: tz,
+            is_zulu: false,
             offset_zulu: offset,
             offset_local: offset - local_offset,
             city_name: place.city_name,
@@ -65,9 +67,13 @@ struct Place {
     country_name: String,
 }
 
+
+// a struct storing the Place information transformed into absolute and
+// relative offsets usable when ordering and displaying times.
 #[derive(Debug)]
 struct Locality {
     zone: TimeZone,
+    is_zulu: bool,
     offset_zulu: i32,  // seconds
     offset_local: i32, // seconds
     city_name: String,
