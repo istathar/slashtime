@@ -181,6 +181,9 @@ fn format_offset(location: &Locality) -> String {
 
     if offset_minutes == 0 {
         format!("  0 ")
+    } else if offset_minutes == -30 {
+        // handle the annoying case of a half hour behind needing to show -ve
+        format!(" -0½")
     } else {
         format!("{:+3}{:1}", hours, halves)
     }
