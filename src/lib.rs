@@ -1,8 +1,3 @@
-use crossterm::{
-    queue,
-    style::{Color, Print, ResetColor, SetForegroundColor},
-    terminal::{Clear, ClearType},
-};
 use csv::ReaderBuilder;
 use serde::Deserialize;
 use std::fs::File;
@@ -10,120 +5,28 @@ use std::path::{Path, PathBuf};
 use tz::DateTime;
 use tz::TimeZone;
 
-fn main() -> Result<(), tz::TzError> {
-    let lima = tz::TimeZone::local()?;
-    let local_offset = lima.find_current_local_time_type()?.ut_offset();
-
-    let now = tz::UtcDateTime::now()?;
-
-    // Ingest the user's tzinfo file.
-
-    let path = find_tzlist_file()?;
-    let places = tzinfo_parser(&path).unwrap();
-
-    // We now set about converting into Localities. First add an entry for
-    // UTC, then convert the user supplied places.
-
-    let mut locations = Vec::with_capacity(places.len() + 1);
-
-    locations.push(Locality {
-        zone: tz::TimeZone::utc(),
-        is_zulu: true,
-        is_home: false,
-        offset_zulu: 0,
-        offset_local: -local_offset,
-        city_name: "Zulu".to_string(),
-        country_name: "Universal Time".to_string(),
-        abbreviation: "UTC".to_string(),
-    });
-
-    // Now add an entry for each of the places present in the tzinfo file.
-
-    for place in places {
-        let tz = tz::TimeZone::from_posix_tz(&place.iana_zone)?;
-        let local = tz.find_current_local_time_type()?;
-        let offset = local.ut_offset();
-        let code = refine_zone_abbreviation(&place.iana_zone, local.time_zone_designation());
-
-        let home = tz == lima;
-
-        locations.push(Locality {
-            zone: tz,
-            is_zulu: false,
-            is_home: home,
-            offset_zulu: offset,
-            offset_local: offset - local_offset,
-            city_name: place.city_name,
-            country_name: place.country_name,
-            abbreviation: code,
-        });
-    }
-
-    // Order the locations by offset.
-
-    locations.sort();
-
-    // Output the formatted locality, time, date, and offest for each location.
-
-    let mut out = std::io::stdout();
-
-    for location in locations {
-        let there = now.project(location.zone.as_ref())?;
-        if location.is_zulu {
-            // using the macro
-            queue!(
-                out,
-                SetForegroundColor(Color::DarkGreen),
-                Print(format_line(&location, &there)),
-                Clear(ClearType::UntilNewLine),
-                ResetColor,
-                Print("\n"),
-            )?;
-        } else if location.is_home {
-            queue!(
-                out,
-                SetForegroundColor(Color::DarkCyan),
-                Print(format_line(&location, &there)),
-                Clear(ClearType::UntilNewLine),
-                ResetColor,
-                Print("\n")
-            )?;
-        } else {
-            queue!(
-                out,
-                Print(format_line(&location, &there)),
-                Clear(ClearType::UntilNewLine),
-                ResetColor,
-                Print("\n"),
-            )?;
-        }
-    }
-
-    Ok(())
-}
-
 // a struct for the IANA zone name, then human readable city name, and human
 // radable country name, none of which are in the continent/capital scheme
 // used by the IANA zoneinfo names.
 #[derive(Debug, Deserialize)]
-struct Place {
-    iana_zone: String,
-    city_name: String,
-    country_name: String,
+pub struct Place {
+    pub iana_zone: String,
+    pub city_name: String,
+    pub country_name: String,
 }
 
 // a struct storing the Place information transformed into absolute and
 // relative offsets usable when ordering and displaying times.
 #[derive(Debug)]
-struct Locality {
-    zone: TimeZone,
-    is_zulu: bool,
-    is_home: bool,
-    offset_zulu: i32,  // seconds
-    offset_local: i32, // seconds
-    city_name: String,
-    country_name: String,
-    abbreviation: String,
+pub struct Locality {
+    pub zone: TimeZone,
+    pub is_zulu: bool,
+    pub is_home: bool,
+    pub offset_zulu: i32,  // seconds
+    pub offset_local: i32, // seconds
+    pub city_name: String,
+    pub country_name: String,
+    pub abbreviation: String,
 }
 
 impl PartialEq for Locality {
@@ -147,7 +50,7 @@ impl Ord for Locality {
 }
 
 // return the path to the tzlist configuration file in the XDG_CONFIG_DIR.
-fn find_tzlist_file() -> Result<PathBuf, std::io::Error> {
+pub fn find_tzlist_file() -> Result<PathBuf, std::io::Error> {
     let mut path =
         dirs::config_dir().expect("XDG_CONFIG_DIR not set and default fallback not working either");
     path.push("slashtime");
@@ -166,7 +69,7 @@ fn find_tzlist_file() -> Result<PathBuf, std::io::Error> {
 // parse a file containing three tab separated columns: first with a IANA zone
 // info name, second city name, third country name. Ignore lines beginning
 // with # as comments
-fn tzinfo_parser(filename: &Path) -> Result<Vec<Place>, csv::Error> {
+pub fn tzinfo_parser(filename: &Path) -> Result<Vec<Place>, csv::Error> {
     let file = File::open(filename)?;
     let mut rdr = ReaderBuilder::new()
         .delimiter(b'\t')
@@ -182,7 +85,7 @@ fn tzinfo_parser(filename: &Path) -> Result<Vec<Place>, csv::Error> {
     Ok(places)
 }
 
-fn format_line(location: &Locality, when: &DateTime) -> String {
+pub fn format_line(location: &Locality, when: &DateTime) -> String {
     format!(
         "{:22.22}  {}  {}  {}  {}",
         format_locality(location),
@@ -247,7 +150,7 @@ fn format_month(mon: u8) -> String {
 // handle some known exceptions. Singapore's zoneinfo file, for example,
 // returns a code of "+08" which is annoying seeing as how there is a widely
 // used abbreviation for Singapre Time.
-fn refine_zone_abbreviation(iana_zone: &str, code: &str) -> String {
+pub fn refine_zone_abbreviation(iana_zone: &str, code: &str) -> String {
     match iana_zone {
         "America/Sao_Paulo" => "BRT",
         "Asia/Singapore" => "SGT",
