@@ -1,7 +1,7 @@
-use gtk::{glib, prelude::*};
+use glib::clone;
 use gtk::{
-    Application, ApplicationWindow, Label, ListView, NoSelection, PolicyType, ScrolledWindow,
-    SignalListItemFactory, StringList, StringObject,
+    glib, prelude::*, Application, ApplicationWindow, EventControllerMotion, Label, ListView,
+    PolicyType, ScrolledWindow, SignalListItemFactory, SingleSelection, StringList, StringObject,
 };
 use slashtime::format_line;
 
@@ -58,7 +58,19 @@ fn build_ui(app: &Application) {
         }
     });
 
-    let selection_model = NoSelection::new(Some(model));
+    let selection_model = SingleSelection::new(Some(model));
+    selection_model.set_autoselect(false);
+    selection_model.set_can_unselect(true);
+
+    // Capture motion events so we can react to the mouse pointer leaving the window.
+    let motion = EventControllerMotion::new();
+
+    // Connect the leave event
+    motion.connect_leave(clone!(@weak selection_model => move |_| {
+        println!("Mouse pointer left the widget");
+        selection_model.unselect_all();
+    }));
+
     let list_view = ListView::new(Some(selection_model), Some(factory));
 
     let scrolled_window = ScrolledWindow::builder()
@@ -74,6 +86,8 @@ fn build_ui(app: &Application) {
         .default_height(300)
         .child(&scrolled_window)
         .build();
+
+    list_view.add_controller(motion);
 
     window.present();
 }
