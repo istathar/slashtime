@@ -1,7 +1,19 @@
-use super::{refine_zone_abbreviation, Locality, Place};
+use super::{refine_zone_abbreviation, Locality};
 use csv::ReaderBuilder;
+use serde::Deserialize;
 use std::fs::File;
 use std::path::{Path, PathBuf};
+
+// a struct for the IANA zone name, then human readable city name, and human
+// radable country name, none of which are in the continent/capital scheme
+// used by the IANA zoneinfo names. It just represents the CSV-ish data in the
+// tzlist file.
+#[derive(Debug, Deserialize)]
+struct Place {
+    iana_zone: String,
+    city_name: String,
+    country_name: String,
+}
 
 pub fn load_tzlist() -> Result<Vec<Locality>, tz::TzError> {
     let lima = tz::TimeZone::local()?;
@@ -12,7 +24,7 @@ pub fn load_tzlist() -> Result<Vec<Locality>, tz::TzError> {
     let path = find_tzlist_file()?;
     let places = tzinfo_parser(&path).unwrap();
 
-    // We now set about converting into Localities. First add an ent}ry for
+    // We now set about converting into Localities. First add an entry for
     // UTC, then convert the user supplied places.
 
     let mut locations = Vec::with_capacity(places.len() + 1);

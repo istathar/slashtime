@@ -1,18 +1,7 @@
-use serde::Deserialize;
 use tz::DateTime;
 use tz::TimeZone;
 
 pub mod loading;
-
-// a struct for the IANA zone name, then human readable city name, and human
-// radable country name, none of which are in the continent/capital scheme
-// used by the IANA zoneinfo names.
-#[derive(Debug, Deserialize)]
-pub struct Place {
-    pub iana_zone: String,
-    pub city_name: String,
-    pub country_name: String,
-}
 
 // a struct storing the Place information transformed into absolute and
 // relative offsets usable when ordering and displaying times.
