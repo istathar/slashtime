@@ -1,9 +1,8 @@
-use csv::ReaderBuilder;
 use serde::Deserialize;
-use std::fs::File;
-use std::path::{Path, PathBuf};
 use tz::DateTime;
 use tz::TimeZone;
+
+pub mod loading;
 
 // a struct for the IANA zone name, then human readable city name, and human
 // radable country name, none of which are in the continent/capital scheme
@@ -47,42 +46,6 @@ impl Ord for Locality {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
         self.offset_zulu.cmp(&other.offset_zulu)
     }
-}
-
-// return the path to the tzlist configuration file in the XDG_CONFIG_DIR.
-pub fn find_tzlist_file() -> Result<PathBuf, std::io::Error> {
-    let mut path =
-        dirs::config_dir().expect("XDG_CONFIG_DIR not set and default fallback not working either");
-    path.push("slashtime");
-    path.push("tzlist");
-
-    if path.exists() {
-        Ok(path)
-    } else {
-        Err(std::io::Error::new(
-            std::io::ErrorKind::NotFound,
-            "tzlist file not found",
-        ))
-    }
-}
-
-// parse a file containing three tab separated columns: first with a IANA zone
-// info name, second city name, third country name. Ignore lines beginning
-// with # as comments
-pub fn tzinfo_parser(filename: &Path) -> Result<Vec<Place>, csv::Error> {
-    let file = File::open(filename)?;
-    let mut rdr = ReaderBuilder::new()
-        .delimiter(b'\t')
-        .comment(Some(b'#'))
-        .has_headers(false)
-        .from_reader(file);
-
-    let mut places = Vec::new();
-    for result in rdr.deserialize() {
-        let place: Place = result?;
-        places.push(place);
-    }
-    Ok(places)
 }
 
 pub fn format_line(location: &Locality, when: &DateTime) -> String {
