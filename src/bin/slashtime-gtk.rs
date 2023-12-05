@@ -59,22 +59,30 @@ fn build_ui(app: &Application) {
         }
     });
 
-    let selection_model = SingleSelection::builder()
+    // Intermediate between the underlying model and the view is a
+    // SelectionModel. We set that up so that by default nothing is selected,
+    // but when the mouse goes over a row that row becomes selected, again
+    // unselecting on exit.
+
+    let selection = SingleSelection::builder()
         .model(&model)
         .autoselect(false)
         .can_unselect(true)
         .build();
 
+    let pos = selection.selected();
+    selection.unselect_item(pos);
+
     // Capture motion events so we can react to the mouse pointer leaving the window.
     let motion = EventControllerMotion::new();
 
     // Connect the leave event
-    motion.connect_leave(clone!(@weak selection_model => move |_| {
+    motion.connect_leave(clone!(@weak selection => move |_| {
         // for some reason, unselect_all() doesn't work here, returning false.
         // So we get the currently selected row, explicitly call
         // unselect_item() on it, and that works.
-        let pos = selection_model.selected();
-        selection_model.unselect_item(pos);
+        let pos = selection.selected();
+        selection.unselect_item(pos);
     }));
 
     // Connect to what used to be the 'button-press-event' signal for right-clicks
@@ -82,28 +90,26 @@ fn build_ui(app: &Application) {
         .button(gdk::BUTTON_SECONDARY) // right click
         .build();
 
-    gesture.connect_pressed(clone!(@weak selection_model => move |_, _, x, y| {
-        let row = selection_model.selected();
+    gesture.connect_pressed(clone!(@weak selection => move |_, _, x, y| {
+        let row = selection.selected();
         println!("Right click at {},{} row {}", x, y, row);
     }));
 
-    let list_view = ListView::builder()
-        .model(&selection_model)
+    let view = ListView::builder()
+        .model(&selection)
         .factory(&factory)
         .single_click_activate(true)
         .build();
 
-    let scrolled_window = ScrolledWindow::builder()
+    // unclear whether we need a ScrolledWindow or not. It may be unnecessary.
+    let scrolled = ScrolledWindow::builder()
         .hscrollbar_policy(PolicyType::Never)
         .vscrollbar_policy(PolicyType::Never)
         .min_content_width(360)
-        .child(&list_view)
+        .child(&view)
         .build();
 
-    /*
-    Sort out the icon for the application.
-    */
-
+    // Sort out the icon for the application.
     let display = gdk::Display::default().expect("Unable to get default display");
     let theme = IconTheme::for_display(&display);
     theme.add_search_path("./share/icons/hicolor");
@@ -116,17 +122,17 @@ fn build_ui(app: &Application) {
         .icon_name("slashtime")
         .default_width(600)
         .default_height(300)
-        .child(&scrolled_window)
+        .child(&scrolled)
         .build();
 
     // Connect to what used to be the 'row-activated' signal
-    list_view.connect_activate(move |_, row| {
+    view.connect_activate(move |_, row| {
         println!("Left click on row {}", row);
     });
 
-    list_view.add_controller(gesture);
+    view.add_controller(gesture);
 
-    list_view.add_controller(motion);
+    view.add_controller(motion);
 
     window.present();
 }
