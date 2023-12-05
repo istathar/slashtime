@@ -14,6 +14,7 @@ chrono-tz = "0.8"
 crossterm = "0.27"
 dirs = "5.0"
 glib = "*"
+gdk = "*"
 gtk = { version = "0.7.3", package = "gtk4" }
 iana-time-zone = "*"
 serde = { version = "1.0", features = ["derive"] }
