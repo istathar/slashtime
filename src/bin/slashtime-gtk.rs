@@ -1,8 +1,8 @@
 use glib::clone;
 use gtk::{
-    prelude::*, Application, ApplicationWindow, EventControllerMotion, GestureClick, Label,
-    ListView, PolicyType, ScrolledWindow, SignalListItemFactory, SingleSelection, StringList,
-    StringObject,
+    prelude::*, Application, ApplicationWindow, EventControllerMotion, GestureClick, IconTheme,
+    Label, ListView, PolicyType, ScrolledWindow, SignalListItemFactory, SingleSelection,
+    StringList, StringObject,
 };
 use slashtime::format_line;
 
@@ -100,10 +100,20 @@ fn build_ui(app: &Application) {
         .child(&list_view)
         .build();
 
+    /*
+    Sort out the icon for the application.
+    */
+
+    let display = gdk::Display::default().expect("Unable to get default display");
+    let theme = IconTheme::for_display(&display);
+    theme.add_search_path("./share/icons/hicolor");
+    theme.add_resource_path("slashtime.png");
+
     let window = ApplicationWindow::builder()
         .application(app)
         .decorated(false)
         .title("Slashtime")
+        .icon_name("slashtime")
         .default_width(600)
         .default_height(300)
         .child(&scrolled_window)
