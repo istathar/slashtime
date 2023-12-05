@@ -71,7 +71,21 @@ fn build_ui(app: &Application) {
         selection_model.unselect_all();
     }));
 
-    let list_view = ListView::new(Some(selection_model), Some(factory));
+    // Connect to what used to be the 'button-press-event' signal for right-clicks
+    let gesture = GestureClick::builder()
+        .button(gdk::BUTTON_SECONDARY) // right click
+        .build();
+
+    gesture.connect_pressed(clone!(@weak selection_model => move |_, _, x, y| {
+        let row = selection_model.selected();
+        println!("Right click at {},{} row {}", x, y, row);
+    }));
+
+    let list_view = ListView::builder()
+        .model(&selection_model)
+        .factory(&factory)
+        .single_click_activate(true)
+        .build();
 
     let scrolled_window = ScrolledWindow::builder()
         .hscrollbar_policy(PolicyType::Never)
@@ -88,6 +102,13 @@ fn build_ui(app: &Application) {
         .default_height(300)
         .child(&scrolled_window)
         .build();
+
+    // Connect to what used to be the 'row-activated' signal
+    list_view.connect_activate(move |_, row| {
+        println!("Left click on row {}", row);
+    });
+
+    list_view.add_controller(gesture);
 
     list_view.add_controller(motion);
 
