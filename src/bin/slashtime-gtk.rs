@@ -75,13 +75,15 @@ fn build_ui(app: &Application) {
 
     let scrolled_window = ScrolledWindow::builder()
         .hscrollbar_policy(PolicyType::Never)
+        .vscrollbar_policy(PolicyType::Never)
         .min_content_width(360)
         .child(&list_view)
         .build();
 
     let window = ApplicationWindow::builder()
         .application(app)
-        .title("My GTK App")
+        .decorated(false)
+        .title("Slashtime")
         .default_width(600)
         .default_height(300)
         .child(&scrolled_window)
