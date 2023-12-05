@@ -1,7 +1,8 @@
 use glib::clone;
 use gtk::{
-    glib, prelude::*, Application, ApplicationWindow, EventControllerMotion, Label, ListView,
-    PolicyType, ScrolledWindow, SignalListItemFactory, SingleSelection, StringList, StringObject,
+    prelude::*, Application, ApplicationWindow, EventControllerMotion, GestureClick, Label,
+    ListView, PolicyType, ScrolledWindow, SignalListItemFactory, SingleSelection, StringList,
+    StringObject,
 };
 use slashtime::format_line;
 
@@ -58,17 +59,22 @@ fn build_ui(app: &Application) {
         }
     });
 
-    let selection_model = SingleSelection::new(Some(model));
-    selection_model.set_autoselect(false);
-    selection_model.set_can_unselect(true);
+    let selection_model = SingleSelection::builder()
+        .model(&model)
+        .autoselect(false)
+        .can_unselect(true)
+        .build();
 
     // Capture motion events so we can react to the mouse pointer leaving the window.
     let motion = EventControllerMotion::new();
 
     // Connect the leave event
     motion.connect_leave(clone!(@weak selection_model => move |_| {
-        println!("Mouse pointer left the widget");
-        selection_model.unselect_all();
+        // for some reason, unselect_all() doesn't work here, returning false.
+        // So we get the currently selected row, explicitly call
+        // unselect_item() on it, and that works.
+        let pos = selection_model.selected();
+        selection_model.unselect_item(pos);
     }));
 
     // Connect to what used to be the 'button-press-event' signal for right-clicks
