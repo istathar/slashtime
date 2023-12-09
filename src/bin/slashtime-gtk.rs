@@ -5,6 +5,7 @@ use gtk::{
     StringList, StringObject,
 };
 use slashtime::format_line;
+use slashtime::find_home;
 
 const APP_ID: &str = "org.aesiniath.Slashtime";
 
@@ -26,9 +27,12 @@ fn build_ui(app: &Application) {
 
     let mut strings: Vec<String> = Vec::with_capacity(locations.len());
 
-    for location in locations {
+    let home = find_home(&locations).unwrap();
+
+    for location in &locations {
         let there = now.project(location.zone.as_ref()).unwrap();
-        let string = format_line(&location, &there);
+
+        let string = format_line(&location, &home, &there);
         strings.push(string);
     }
 

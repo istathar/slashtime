@@ -37,14 +37,30 @@ impl Ord for Locality {
     }
 }
 
-pub fn format_line(location: &Locality, when: &DateTime) -> String {
+// Output a single line with all the relevant information. The target is the
+// location that is being represented, and from is the location this is
+// relative to (usually the home aka where you are now).
+pub fn format_line(target: &Locality, from: &Locality, when: &DateTime) -> String {
+    // FIXME not current time, but at timestamp
+    let offset_target = (target.zone)
+        .find_current_local_time_type()
+        .unwrap()
+        .ut_offset();
+
+    let offset_home = (from.zone)
+        .find_current_local_time_type()
+        .unwrap()
+        .ut_offset();
+
+    let offset_seconds = offset_target - offset_home;
+
     format!(
         "{:22.22}  {}  {}  {}  {}",
-        format_locality(location),
+        format_locality(target),
         format_time(when),
         format_date(when),
-        format_abbreviation(location),
-        format_offset(location)
+        format_abbreviation(target),
+        format_offset(offset_seconds)
     )
 }
 
@@ -117,8 +133,8 @@ fn format_abbreviation(location: &Locality) -> String {
     format!("{:>4}", &location.abbreviation)
 }
 
-fn format_offset(location: &Locality) -> String {
-    let offset_minutes = location.offset_local / 60;
+fn format_offset(offset_seconds: i32) -> String {
+    let offset_minutes = offset_seconds / 60;
     let hours = offset_minutes / 60;
     let halves = if offset_minutes % 60 == 0 { ' ' } else { '½' };
 
@@ -130,4 +146,13 @@ fn format_offset(location: &Locality) -> String {
     } else {
         format!("{:+3}{:1}", hours, halves)
     }
+}
+
+pub fn find_home(locations: &[Locality]) -> Option<&Locality> {
+    for location in locations {
+        if location.is_home {
+            return Some(location);
+        }
+    }
+    None
 }
