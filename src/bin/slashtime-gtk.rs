@@ -1,11 +1,15 @@
 use glib::clone;
+use glib::ControlFlow;
 use gtk::{
     prelude::*, Application, ApplicationWindow, EventControllerMotion, GestureClick, IconTheme,
     Label, ListView, PolicyType, ScrolledWindow, SignalListItemFactory, SingleSelection,
     StringList, StringObject,
 };
-use slashtime::format_line;
 use slashtime::find_home;
+use slashtime::format_line;
+use slashtime::Locality;
+use tz::DateTime;
+use tz::TimeZoneRef;
 
 const APP_ID: &str = "org.aesiniath.Slashtime";
 
@@ -21,24 +25,11 @@ fn main() -> glib::ExitCode {
 }
 
 fn build_ui(app: &Application) {
-    let now = tz::UtcDateTime::now().unwrap();
-
     let locations = slashtime::loading::load_tzlist().unwrap();
-
-    let mut strings: Vec<String> = Vec::with_capacity(locations.len());
 
     let home = find_home(&locations).unwrap();
 
-    for location in &locations {
-        let there = now.project(location.zone.as_ref()).unwrap();
-
-        let string = format_line(&location, &home, &there);
-        strings.push(string);
-    }
-
-    // convert Strings to &str and then load StringList from there. Ugh.
-    let slices: Vec<&str> = strings.iter().map(|s| s.as_str()).collect();
-    let model: StringList = StringList::new(slices.as_slice());
+    let model: StringList = StringList::new(&[]);
 
     let factory = SignalListItemFactory::new();
 
@@ -131,12 +122,44 @@ fn build_ui(app: &Application) {
 
     // Connect to what used to be the 'row-activated' signal
     view.connect_activate(move |_, row| {
-        println!("Left click on row {}", row);
+        println!("Activation on row {}", row);
     });
 
     view.add_controller(gesture);
 
     view.add_controller(motion);
 
+    // Initial data insertion
+    let utc = TimeZoneRef::utc();
+    let now = tz::DateTime::now(utc).unwrap();
+    populate_model(&model, &locations, &home, &now);
+
+    // Setup a timer to refresh the data every second
+    glib::timeout_add_local(
+        std::time::Duration::from_millis(1000),
+        clone!(@strong home => move || {
+            let utc = TimeZoneRef::utc();
+            let now = tz::DateTime::now(utc).unwrap();
+
+            populate_model(&model, &locations, &home, &now);
+            ControlFlow::Continue
+        }),
+    );
+
     window.present();
+}
+
+fn populate_model(model: &StringList, locations: &[Locality], home: &Locality, when: &DateTime) {
+    // remove existing entries
+    let len = model.n_items();
+    model.splice(0, len, &[]);
+
+    // (re)load new entries
+    for location in locations {
+        let there = when.project(location.zone.as_ref()).unwrap();
+
+        let string = format_line(&location, &home, &there);
+
+        model.append(&string);
+    }
 }

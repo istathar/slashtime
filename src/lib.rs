@@ -5,7 +5,7 @@ pub mod loading;
 
 // a struct storing the Place information transformed into absolute and
 // relative offsets usable when ordering and displaying times.
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Locality {
     pub zone: TimeZone,
     pub is_zulu: bool,
