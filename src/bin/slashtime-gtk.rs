@@ -141,7 +141,9 @@ fn build_ui(app: &Application) {
             let utc = TimeZoneRef::utc();
             let now = tz::DateTime::now(utc).unwrap();
 
-            populate_model(&model, &locations, &home, &now);
+            if now.second() == 0 {
+                populate_model(&model, &locations, &home, &now);
+            }
             ControlFlow::Continue
         }),
     );
