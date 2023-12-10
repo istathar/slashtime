@@ -8,6 +8,8 @@ use gtk::{
 use slashtime::find_home;
 use slashtime::format_line;
 use slashtime::Locality;
+use std::cell::RefCell;
+use std::rc::Rc;
 use tz::DateTime;
 use tz::TimeZoneRef;
 
@@ -28,6 +30,7 @@ fn build_ui(app: &Application) {
     let locations = slashtime::loading::load_tzlist().unwrap();
 
     let home = find_home(&locations).unwrap();
+    let home = Rc::new(RefCell::new(home.clone()));
 
     let model: StringList = StringList::new(&[]);
 
@@ -93,7 +96,7 @@ fn build_ui(app: &Application) {
     let view = ListView::builder()
         .model(&selection)
         .factory(&factory)
-        .single_click_activate(true)
+        .single_click_activate(false)
         .build();
 
     // unclear whether we need a ScrolledWindow or not. It may be unnecessary.
@@ -121,10 +124,19 @@ fn build_ui(app: &Application) {
         .build();
 
     // Connect to what used to be the 'row-activated' signal
-    view.connect_activate(move |_, row| {
-        println!("Activation on row {}", row);
-    });
+    view.connect_activate(
+        clone!(@strong locations, @weak model, @weak home => move |_, row| {
+            // update the shared mutable reference "home" to point to the new location
+            *home.borrow_mut() = locations[row as usize].clone();
 
+            // repopulate model to update to new home accordingly
+            let utc = TimeZoneRef::utc();
+            let now = tz::DateTime::now(utc).unwrap();
+            let from = home.borrow().clone();
+
+            populate_model(&model, &locations, &from, &now);
+        }),
+    );
     view.add_controller(gesture);
 
     view.add_controller(motion);
@@ -132,7 +144,10 @@ fn build_ui(app: &Application) {
     // Initial data insertion
     let utc = TimeZoneRef::utc();
     let now = tz::DateTime::now(utc).unwrap();
-    populate_model(&model, &locations, &home, &now);
+
+    let from = home.borrow().clone();
+
+    populate_model(&model, &locations, &from, &now);
 
     // Setup a timer to refresh the data every second
     glib::timeout_add_local(
@@ -140,9 +155,10 @@ fn build_ui(app: &Application) {
         clone!(@strong home => move || {
             let utc = TimeZoneRef::utc();
             let now = tz::DateTime::now(utc).unwrap();
+            let from = home.borrow().clone();
 
             if now.second() == 0 {
-                populate_model(&model, &locations, &home, &now);
+                populate_model(&model, &locations, &from, &now);
             }
             ControlFlow::Continue
         }),
@@ -151,7 +167,7 @@ fn build_ui(app: &Application) {
     window.present();
 }
 
-fn populate_model(model: &StringList, locations: &[Locality], home: &Locality, when: &DateTime) {
+fn populate_model(model: &StringList, locations: &[Locality], from: &Locality, when: &DateTime) {
     // remove existing entries
     let len = model.n_items();
     model.splice(0, len, &[]);
@@ -160,7 +176,7 @@ fn populate_model(model: &StringList, locations: &[Locality], home: &Locality, w
     for location in locations {
         let there = when.project(location.zone.as_ref()).unwrap();
 
-        let string = format_line(&location, &home, &there);
+        let string = format_line(&location, &from, &there);
 
         model.append(&string);
     }
