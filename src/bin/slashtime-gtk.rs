@@ -37,23 +37,28 @@ fn build_ui(app: &Application) {
     let factory = SignalListItemFactory::new();
 
     // Setup signal: Create and initialize widgets
-    factory.connect_setup(move |_, list_item| {
+    factory.connect_setup(move |_, object| {
         let label = Label::new(None);
-        list_item.set_child(Some(&label));
+        let item = object
+            .downcast_ref::<gtk::ListItem>()
+            .expect("The object should be a ListItem");
+        item.set_child(Some(&label));
     });
 
     // Bind signal: Bind data to widgets
-    factory.connect_bind(move |_, list_item| {
-        if let Some(item) = list_item.item() {
-            let object = item
-                .downcast_ref::<StringObject>()
-                .expect("The item should be a StringObject");
-            if let Some(label) = list_item
-                .child()
-                .and_then(|child| child.downcast::<Label>().ok())
-            {
-                label.set_label(&object.string());
-            }
+    factory.connect_bind(move |_, object| {
+        let item = object
+            .downcast_ref::<gtk::ListItem>()
+            .expect("The object should be a ListItem");
+        let actual = item
+            .item()
+            .and_then(|this| this.downcast::<StringObject>().ok())
+            .expect("The ListItem's item should be a StringObject");
+        if let Some(label) = item
+            .child()
+            .and_then(|child| child.downcast::<Label>().ok())
+        {
+            label.set_label(&actual.string());
         }
     });
 
