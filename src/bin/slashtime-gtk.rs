@@ -45,6 +45,14 @@ fn build_ui(app: &Application) {
         item.set_child(Some(&label));
     });
 
+    // Probably unnecessary but included for correctness
+    factory.connect_teardown(move |_, object| {
+        let item = object
+            .downcast_ref::<gtk::ListItem>()
+            .expect("The object should be a ListItem");
+        item.set_child(None::<&gtk::Label>);
+    });
+
     // Bind signal: Bind data to widgets
     factory.connect_bind(move |_, object| {
         let item = object
@@ -64,6 +72,21 @@ fn build_ui(app: &Application) {
             .expect("The ListItem's child should be a Label");
 
         label.set_label(&actual.string());
+    });
+
+    // Probably unnecessary but included for correctness
+    factory.connect_unbind(move |_, object| {
+        let item = object
+            .downcast_ref::<gtk::ListItem>()
+            .expect("The object should be a ListItem");
+
+        let label = item
+            .child()
+            .expect("The ListItem's child should be present")
+            .downcast::<Label>()
+            .expect("The ListItem's child should be a Label");
+
+        label.set_label("");
     });
 
     // Intermediate between the underlying model and the view is a
