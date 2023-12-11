@@ -50,16 +50,20 @@ fn build_ui(app: &Application) {
         let item = object
             .downcast_ref::<gtk::ListItem>()
             .expect("The object should be a ListItem");
+
         let actual = item
             .item()
-            .and_then(|this| this.downcast::<StringObject>().ok())
+            .expect("The ListItem's item should be present")
+            .downcast::<StringObject>()
             .expect("The ListItem's item should be a StringObject");
-        if let Some(label) = item
+
+        let label = item
             .child()
-            .and_then(|child| child.downcast::<Label>().ok())
-        {
-            label.set_label(&actual.string());
-        }
+            .expect("The ListItem's child should be present")
+            .downcast::<Label>()
+            .expect("The ListItem's child should be a Label");
+
+        label.set_label(&actual.string());
     });
 
     // Intermediate between the underlying model and the view is a
