@@ -1,8 +1,8 @@
 use glib::clone;
 use glib::ControlFlow;
 use gtk::{
-    prelude::*, Application, ApplicationWindow, EventControllerMotion, GestureClick, IconTheme,
-    Label, ListView, PolicyType, ScrolledWindow, SignalListItemFactory, SingleSelection,
+    prelude::*, Application, ApplicationWindow, ColumnView, EventControllerMotion, GestureClick,
+    IconTheme, Label, ListView, PolicyType, ScrolledWindow, SignalListItemFactory, SingleSelection,
     StringList, StringObject,
 };
 use slashtime::find_home;
@@ -34,10 +34,12 @@ fn build_ui(app: &Application) {
 
     let model: StringList = StringList::new(&[]);
 
-    let factory = SignalListItemFactory::new();
+    let city_factory = SignalListItemFactory::new();
+    let time_factory = SignalListItemFactory::new();
+    let zone_factory = SignalListItemFactory::new();
 
     // Setup signal: Create and initialize widgets
-    factory.connect_setup(move |_, object| {
+    city_factory.connect_setup(move |_, object| {
         let label = Label::new(None);
         let item = object
             .downcast_ref::<gtk::ListItem>()
@@ -46,7 +48,7 @@ fn build_ui(app: &Application) {
     });
 
     // Probably unnecessary but included for correctness
-    factory.connect_teardown(move |_, object| {
+    city_factory.connect_teardown(move |_, object| {
         let item = object
             .downcast_ref::<gtk::ListItem>()
             .expect("The object should be a ListItem");
@@ -54,7 +56,7 @@ fn build_ui(app: &Application) {
     });
 
     // Bind signal: Bind data to widgets
-    factory.connect_bind(move |_, object| {
+    city_factory.connect_bind(move |_, object| {
         let item = object
             .downcast_ref::<gtk::ListItem>()
             .expect("The object should be a ListItem");
@@ -75,7 +77,113 @@ fn build_ui(app: &Application) {
     });
 
     // Probably unnecessary but included for correctness
-    factory.connect_unbind(move |_, object| {
+    city_factory.connect_unbind(move |_, object| {
+        let item = object
+            .downcast_ref::<gtk::ListItem>()
+            .expect("The object should be a ListItem");
+
+        let label = item
+            .child()
+            .expect("The ListItem's child should be present")
+            .downcast::<Label>()
+            .expect("The ListItem's child should be a Label");
+
+        label.set_label("");
+    });
+
+    // Setup signal: Create and initialize widgets
+    time_factory.connect_setup(move |_, object| {
+        let label = Label::new(None);
+        let item = object
+            .downcast_ref::<gtk::ListItem>()
+            .expect("The object should be a ListItem");
+        item.set_child(Some(&label));
+    });
+
+    // Probably unnecessary but included for correctness
+    time_factory.connect_teardown(move |_, object| {
+        let item = object
+            .downcast_ref::<gtk::ListItem>()
+            .expect("The object should be a ListItem");
+        item.set_child(None::<&gtk::Label>);
+    });
+
+    // Bind signal: Bind data to widgets
+    time_factory.connect_bind(move |_, object| {
+        let item = object
+            .downcast_ref::<gtk::ListItem>()
+            .expect("The object should be a ListItem");
+
+        let actual = item
+            .item()
+            .expect("The ListItem's item should be present")
+            .downcast::<StringObject>()
+            .expect("The ListItem's item should be a StringObject");
+
+        let label = item
+            .child()
+            .expect("The ListItem's child should be present")
+            .downcast::<Label>()
+            .expect("The ListItem's child should be a Label");
+
+        label.set_label(&actual.string());
+    });
+
+    // Probably unnecessary but included for correctness
+    time_factory.connect_unbind(move |_, object| {
+        let item = object
+            .downcast_ref::<gtk::ListItem>()
+            .expect("The object should be a ListItem");
+
+        let label = item
+            .child()
+            .expect("The ListItem's child should be present")
+            .downcast::<Label>()
+            .expect("The ListItem's child should be a Label");
+
+        label.set_label("");
+    });
+
+    // Setup signal: Create and initialize widgets
+    zone_factory.connect_setup(move |_, object| {
+        let label = Label::new(None);
+        let item = object
+            .downcast_ref::<gtk::ListItem>()
+            .expect("The object should be a ListItem");
+        item.set_child(Some(&label));
+    });
+
+    // Probably unnecessary but included for correctness
+    zone_factory.connect_teardown(move |_, object| {
+        let item = object
+            .downcast_ref::<gtk::ListItem>()
+            .expect("The object should be a ListItem");
+        item.set_child(None::<&gtk::Label>);
+    });
+
+    // Bind signal: Bind data to widgets
+    zone_factory.connect_bind(move |_, object| {
+        let item = object
+            .downcast_ref::<gtk::ListItem>()
+            .expect("The object should be a ListItem");
+
+        let actual = item
+            .item()
+            .expect("The ListItem's item should be present")
+            .downcast::<StringObject>()
+            .expect("The ListItem's item should be a StringObject");
+
+        let label = item
+            .child()
+            .expect("The ListItem's child should be present")
+            .downcast::<Label>()
+            .expect("The ListItem's child should be a Label");
+
+        label.set_label(&actual.string());
+    });
+
+    // Probably unnecessary but included for correctness
+    zone_factory.connect_unbind(move |_, object| {
         let item = object
             .downcast_ref::<gtk::ListItem>()
             .expect("The object should be a ListItem");
@@ -125,11 +233,30 @@ fn build_ui(app: &Application) {
         println!("Right click at {},{} row {}", x, y, row);
     }));
 
-    let view = ListView::builder()
+    let city_column = gtk::ColumnViewColumn::builder()
+        .title("City")
+        .expand(false)
+        .factory(&city_factory)
+        .build();
+    let time_column = gtk::ColumnViewColumn::builder()
+        .title("Time & Date")
+        .expand(false)
+        .factory(&time_factory)
+        .build();
+    let zone_column = gtk::ColumnViewColumn::builder()
+        .title("Offset")
+        .expand(false)
+        .factory(&zone_factory)
+        .build();
+
+    let view = ColumnView::builder()
         .model(&selection)
-        .factory(&factory)
         .single_click_activate(false)
         .build();
+    view.append_column(&city_column);
+    view.append_column(&time_column);
+    view.append_column(&zone_column);
+    view.set_header_factory(None::<&gtk::SignalListItemFactory>);
 
     // unclear whether we need a ScrolledWindow or not. It may be unnecessary.
     let scrolled = ScrolledWindow::builder()
