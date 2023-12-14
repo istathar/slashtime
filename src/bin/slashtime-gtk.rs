@@ -13,6 +13,8 @@ use std::rc::Rc;
 use tz::DateTime;
 use tz::TimeZoneRef;
 
+use slashtime::object::LocalityObject;
+
 const APP_ID: &str = "org.aesiniath.Slashtime";
 
 fn main() -> glib::ExitCode {
