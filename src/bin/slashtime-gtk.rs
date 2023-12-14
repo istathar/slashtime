@@ -17,7 +17,9 @@ const APP_ID: &str = "org.aesiniath.Slashtime";
 
 fn main() -> glib::ExitCode {
     // Create a new application
-    let app = Application::builder().application_id(APP_ID).build();
+    let app = Application::builder()
+        .application_id(APP_ID)
+        .build();
 
     // Connect to "activate" signal of `app`
     app.connect_activate(build_ui);
@@ -177,7 +179,9 @@ fn build_ui(app: &Application) {
     let utc = TimeZoneRef::utc();
     let now = tz::DateTime::now(utc).unwrap();
 
-    let from = home.borrow().clone();
+    let from = home
+        .borrow()
+        .clone();
 
     populate_model(&model, &locations, &from, &now);
 
@@ -206,7 +210,13 @@ fn populate_model(model: &StringList, locations: &[Locality], from: &Locality, w
 
     // (re)load new entries
     for location in locations {
-        let there = when.project(location.zone.as_ref()).unwrap();
+        let there = when
+            .project(
+                location
+                    .zone
+                    .as_ref(),
+            )
+            .unwrap();
 
         let string = format_line(&location, &from, &there);
 

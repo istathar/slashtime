@@ -3,6 +3,8 @@ use tz::TimeZone;
 
 pub mod loading;
 
+pub mod object;
+
 // a struct storing the Place information transformed into absolute and
 // relative offsets usable when ordering and displaying times.
 #[derive(Clone, Debug)]
@@ -27,13 +29,15 @@ impl Eq for Locality {}
 
 impl PartialOrd for Locality {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        self.offset_zulu.partial_cmp(&other.offset_zulu)
+        self.offset_zulu
+            .partial_cmp(&other.offset_zulu)
     }
 }
 
 impl Ord for Locality {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        self.offset_zulu.cmp(&other.offset_zulu)
+        self.offset_zulu
+            .cmp(&other.offset_zulu)
     }
 }
 
