@@ -1057,6 +1057,7 @@ dependencies = [
  "csv",
  "dirs",
  "gdk4",
+ "gio",
  "glib",
  "gtk4",
  "iana-time-zone",

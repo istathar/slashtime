@@ -1,9 +1,10 @@
+use gio;
 use glib::clone;
 use glib::ControlFlow;
 use gtk::{
     prelude::*, Application, ApplicationWindow, EventControllerMotion, GestureClick, IconTheme,
     Label, ListView, PolicyType, ScrolledWindow, SignalListItemFactory, SingleSelection,
-    StringList, StringObject,
+    StringObject,
 };
 use slashtime::find_home;
 use slashtime::format_line;
@@ -34,9 +35,12 @@ fn build_ui(app: &Application) {
     let locations = slashtime::loading::load_tzlist().unwrap();
 
     let home = find_home(&locations).unwrap();
-    let home = Rc::new(RefCell::new(home.clone()));
+    let now = tz::UtcDateTime::now().unwrap();
 
-    let model: StringList = StringList::new(&[]);
+    let home = Rc::new(RefCell::new(home.clone()));
+    let when = Rc::new(RefCell::new(now));
+
+    let model: gio::ListStore = gio::ListStore::new::<LocalityObject>();
 
     let factory = SignalListItemFactory::new();
 
@@ -58,7 +62,7 @@ fn build_ui(app: &Application) {
     });
 
     // Bind signal: Bind data to widgets
-    factory.connect_bind(move |_, object| {
+    factory.connect_bind(clone!(@weak home => move |_, object| {
         let item = object
             .downcast_ref::<gtk::ListItem>()
             .expect("The object should be a ListItem");
@@ -66,8 +70,8 @@ fn build_ui(app: &Application) {
         let actual = item
             .item()
             .expect("The ListItem's item should be present")
-            .downcast::<StringObject>()
-            .expect("The ListItem's item should be a StringObject");
+            .downcast::<LocalityObject>()
+            .expect("The ListItem's item should be a LocalityObject");
 
         let label = item
             .child()
@@ -75,8 +79,25 @@ fn build_ui(app: &Application) {
             .downcast::<Label>()
             .expect("The ListItem's child should be a Label");
 
-        label.set_label(&actual.string());
-    });
+        // now format the text to go into the rows
+
+        let location = actual.get();
+
+        let from = home.borrow();
+
+        let there = when
+            .borrow()
+            .project(
+                location
+                    .zone
+                    .as_ref(),
+            )
+            .unwrap();
+
+        let string = format_line(&location, &from, &there);
+
+        label.set_label(&string);
+    }));
 
     // Probably unnecessary but included for correctness
     factory.connect_unbind(move |_, object| {
@@ -168,9 +189,8 @@ fn build_ui(app: &Application) {
             // repopulate model to update to new home accordingly
             let utc = TimeZoneRef::utc();
             let now = tz::DateTime::now(utc).unwrap();
-            let from = home.borrow().clone();
 
-            populate_model(&model, &locations, &from, &now);
+            populate_model(&model, &locations);
         }),
     );
     view.add_controller(gesture);
@@ -178,50 +198,33 @@ fn build_ui(app: &Application) {
     view.add_controller(motion);
 
     // Initial data insertion
-    let utc = TimeZoneRef::utc();
-    let now = tz::DateTime::now(utc).unwrap();
-
-    let from = home
-        .borrow()
-        .clone();
-
-    populate_model(&model, &locations, &from, &now);
+    populate_model(&model, &locations);
 
     // Setup a timer to refresh the data every second
     glib::timeout_add_local(
         std::time::Duration::from_millis(1000),
-        clone!(@strong home => move || {
+        move || {
             let utc = TimeZoneRef::utc();
             let now = tz::DateTime::now(utc).unwrap();
-            let from = home.borrow().clone();
 
             if now.second() == 0 {
-                populate_model(&model, &locations, &from, &now);
+                populate_model(&model, &locations);
             }
             ControlFlow::Continue
-        }),
+        },
     );
 
     window.present();
 }
 
-fn populate_model(model: &StringList, locations: &[Locality], from: &Locality, when: &DateTime) {
+fn populate_model(model: &gio::ListStore, locations: &[Locality]) {
     // remove existing entries
-    let len = model.n_items();
-    model.splice(0, len, &[]);
+    model.remove_all();
 
     // (re)load new entries
     for location in locations {
-        let there = when
-            .project(
-                location
-                    .zone
-                    .as_ref(),
-            )
-            .unwrap();
+        let object = slashtime::object::LocalityObject::new(&location);
 
-        let string = format_line(&location, &from, &there);
-
-        model.append(&string);
+        model.append(&object);
     }
 }
