@@ -16,7 +16,11 @@ fn main() -> Result<(), tz::TzError> {
     let mut out = std::io::stdout();
 
     for location in &locations {
-        let there = now.project(location.zone.as_ref())?;
+        let there = now.project(
+            location
+                .zone
+                .as_ref(),
+        )?;
         if location.is_zulu {
             // using the macro
             queue!(

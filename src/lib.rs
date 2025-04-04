@@ -1,13 +1,14 @@
-use tz::DateTime;
-use tz::TimeZone;
+use tz;
 
 pub mod loading;
+
+pub mod object;
 
 // a struct storing the Place information transformed into absolute and
 // relative offsets usable when ordering and displaying times.
 #[derive(Clone, Debug)]
 pub struct Locality {
-    pub zone: TimeZone,
+    pub zone: tz::TimeZone,
     pub is_zulu: bool,
     pub is_home: bool,
     pub offset_zulu: i32,  // seconds
@@ -15,6 +16,23 @@ pub struct Locality {
     pub city_name: String,
     pub country_name: String,
     pub abbreviation: String,
+}
+
+impl Default for Locality {
+    fn default() -> Self {
+        let utc = tz::TimeZone::utc();
+
+        Locality {
+            zone: utc,
+            is_zulu: true,
+            is_home: false,
+            offset_zulu: 0,
+            offset_local: 0,
+            city_name: "Zulu".to_string(),
+            country_name: "Universal Time".to_string(),
+            abbreviation: "UTC".to_string(),
+        }
+    }
 }
 
 impl PartialEq for Locality {
@@ -27,20 +45,22 @@ impl Eq for Locality {}
 
 impl PartialOrd for Locality {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        self.offset_zulu.partial_cmp(&other.offset_zulu)
+        self.offset_zulu
+            .partial_cmp(&other.offset_zulu)
     }
 }
 
 impl Ord for Locality {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        self.offset_zulu.cmp(&other.offset_zulu)
+        self.offset_zulu
+            .cmp(&other.offset_zulu)
     }
 }
 
 // Output a single line with all the relevant information. The target is the
 // location that is being represented, and from is the location this is
 // relative to (usually the home aka where you are now).
-pub fn format_line(target: &Locality, from: &Locality, when: &DateTime) -> String {
+pub fn format_line(target: &Locality, from: &Locality, when: &tz::DateTime) -> String {
     // FIXME not current time, but at timestamp
     let offset_target = (target.zone)
         .find_current_local_time_type()
@@ -68,11 +88,11 @@ fn format_locality(location: &Locality) -> String {
     format!("{}, {}", &location.city_name, &location.country_name)
 }
 
-fn format_time(when: &DateTime) -> String {
+fn format_time(when: &tz::DateTime) -> String {
     format!("{:02}:{:02}", when.hour(), when.minute())
 }
 
-fn format_date(when: &DateTime) -> String {
+fn format_date(when: &tz::DateTime) -> String {
     format!(
         "{}, {:2} {} {}",
         format_day(when.week_day()),

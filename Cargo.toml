@@ -1,6 +1,6 @@
 [package]
 name = "slashtime"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 
 [profile.release]
@@ -13,6 +13,7 @@ chrono = "0.4"
 chrono-tz = "0.8"
 crossterm = "0.27"
 dirs = "5.0"
+gio = "*"
 glib = "*"
 gdk = { version = "*", package = "gdk4" }
 gtk = { version = "0.7.3", package = "gtk4", features = ["v4_12"]  }
