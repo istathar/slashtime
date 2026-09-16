@@ -110,13 +110,15 @@ pub fn format_time(when: &DateTime) -> String {
     format!("{:02}:{:02}", when.hour(), when.minute())
 }
 
+// two digit year, as both the perl and the java original used; the century is
+// not in doubt and the column is narrow.
 pub fn format_date(when: &DateTime) -> String {
     format!(
-        "{}, {:2} {} {}",
+        "{}, {:2} {} {:02}",
         format_day(when.week_day()),
         when.month_day(),
         format_month(when.month()),
-        when.year()
+        when.year() % 100
     )
 }
 

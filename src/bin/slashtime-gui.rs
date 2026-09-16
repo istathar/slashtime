@@ -15,16 +15,104 @@ const LOCAL: egui::Color32 = egui::Color32::from_rgb(0x00, 0x00, 0xff);
 const ZULU: egui::Color32 = egui::Color32::from_rgb(0x2f, 0xb9, 0x25);
 const LOCAL_DARK: egui::Color32 = egui::Color32::from_rgb(0x32, 0xfd, 0xff);
 const ZULU_DARK: egui::Color32 = egui::Color32::from_rgb(0xa0, 0xff, 0x97);
+const HOVER: egui::Color32 = egui::Color32::from_rgb(0x35, 0x84, 0xe4);
 
-const WIDTH: f32 = 340.0;
-const ROW_HEIGHT: f32 = 31.0;
-const VALUE_SIZE: f32 = 15.0;
+// the original window was about seven times as tall as it was wide with a
+// list this long, and fifteen years of muscle memory is worth honouring.
+const WIDTH: f32 = 259.0;
+const ROW_HEIGHT: f32 = 37.0;
+const VALUE_SIZE: f32 = 14.7;
 const CAPTION_SIZE: f32 = 9.5;
 const EDGE: f32 = 8.0;
 
+// the icon sits in a reserved column at the left, so that the city names line
+// up whether or not a given row has one.
+const ICON_COLUMN: f32 = 26.0;
+const ICON_SIZE: f32 = 20.0;
+
 // width set aside at the right hand end for the offset and the zone code,
 // which the time and date are then right aligned against.
-const OFFSET_COLUMN: f32 = 52.0;
+const OFFSET_COLUMN: f32 = 46.0;
+
+// The original asked for "DejaVu Sans, 11". What matters about that face here
+// is that its numerals are all one width, so the clock does not shuffle
+// sideways as the minutes turn over - without it being a teletype monospace.
+// Every face listed has that property; the desktop's own Adwaita Sans and
+// Cantarell do not, their digits varying by nearly a third.
+const FACES: [&str; 3] = [
+    "/usr/share/fonts/dejavu-sans-fonts/DejaVuSans.ttf",
+    "/usr/share/fonts/google-noto-vf/NotoSans[wght].ttf",
+    "/usr/share/fonts/liberation-sans-fonts/LiberationSans-Regular.ttf",
+];
+
+// Put the first face we can actually read at the head of the family, leaving
+// egui's built in fonts behind it to cover anything the face is missing.
+fn install_fonts(ctx: &egui::Context) {
+    let Some(bytes) = FACES.iter().find_map(|path| std::fs::read(path).ok()) else {
+        return;
+    };
+
+    let mut fonts = egui::FontDefinitions::default();
+
+    fonts.font_data.insert(
+        "sans".to_string(),
+        std::sync::Arc::new(egui::FontData::from_owned(bytes)),
+    );
+    fonts
+        .families
+        .entry(egui::FontFamily::Proportional)
+        .or_default()
+        .insert(0, "sans".to_string());
+
+    ctx.set_fonts(fonts);
+}
+
+// the icons are embedded rather than read from disk; they are tiny, and this
+// saves the program having to work out where it was installed.
+const HOME_PNG: &[u8] = include_bytes!("../../share/slashtime/images/home.png");
+const LOCAL_PNG: &[u8] = include_bytes!("../../share/slashtime/images/local.png");
+const ZULU_PNG: &[u8] = include_bytes!("../../share/icons/hicolor/48x48/apps/slashtime.png");
+
+struct Icons {
+    home: egui::TextureHandle,
+    local: egui::TextureHandle,
+    zulu: egui::TextureHandle,
+}
+
+impl Icons {
+    fn load(ctx: &egui::Context) -> Self {
+        Icons {
+            home: texture(ctx, "home", HOME_PNG),
+            local: texture(ctx, "local", LOCAL_PNG),
+            zulu: texture(ctx, "zulu", ZULU_PNG),
+        }
+    }
+
+    // which marker this location gets, in the order the original tested them:
+    // where you are beats where you live, which beats Zulu.
+    fn choose(&self, location: &Locality) -> Option<&egui::TextureHandle> {
+        if location.is_local {
+            Some(&self.local)
+        } else if location.is_home {
+            Some(&self.home)
+        } else if location.is_zulu {
+            Some(&self.zulu)
+        } else {
+            None
+        }
+    }
+}
+
+fn texture(ctx: &egui::Context, name: &str, bytes: &[u8]) -> egui::TextureHandle {
+    let decoded = image::load_from_memory(bytes)
+        .expect("icon should be a readable png")
+        .to_rgba8();
+
+    let size = [decoded.width() as usize, decoded.height() as usize];
+    let image = egui::ColorImage::from_rgba_unmultiplied(size, decoded.as_raw());
+
+    ctx.load_texture(name, image, egui::TextureOptions::LINEAR)
+}
 
 // one location as it appears at a given moment, relative to a given pivot.
 // All of it is derived, so it is recomputed each pass rather than cached and
@@ -101,7 +189,7 @@ fn colours(reading: &Reading) -> (egui::Color32, egui::Color32) {
 // Each row is painted into an exact rectangle rather than laid out from its
 // contents, so that the shaded bands line up and reach both edges regardless
 // of how long a city name happens to be.
-fn row(ui: &mut egui::Ui, reading: &Reading) -> egui::Response {
+fn row(ui: &mut egui::Ui, reading: &Reading, icons: &Icons) -> egui::Response {
     let (rect, response) = ui.allocate_exact_size(
         egui::vec2(ui.available_width(), ROW_HEIGHT),
         egui::Sense::click(),
@@ -113,15 +201,26 @@ fn row(ui: &mut egui::Ui, reading: &Reading) -> egui::Response {
     let caption = egui::FontId::proportional(CAPTION_SIZE);
 
     let upper = rect.top() + 3.0;
-    let lower = upper + VALUE_SIZE + 1.0;
+    let lower = upper + VALUE_SIZE + 5.0;
 
-    let left = rect.left() + EDGE;
+    let left = rect.left() + ICON_COLUMN;
     let middle = rect.right() - OFFSET_COLUMN;
     let right = rect.right() - EDGE;
 
     let painter = ui.painter();
 
     painter.rect_filled(rect, 0.0, background);
+
+    if let Some(icon) = icons.choose(reading.location) {
+        let centre = egui::pos2(rect.left() + ICON_COLUMN / 2.0, rect.center().y);
+
+        painter.image(
+            icon.id(),
+            egui::Rect::from_center_size(centre, egui::vec2(ICON_SIZE, ICON_SIZE)),
+            egui::Rect::from_min_max(egui::pos2(0.0, 0.0), egui::pos2(1.0, 1.0)),
+            egui::Color32::WHITE,
+        );
+    }
 
     painter.text(
         egui::pos2(left, upper),
@@ -168,6 +267,17 @@ fn row(ui: &mut egui::Ui, reading: &Reading) -> egui::Response {
         SUBDUED,
     );
 
+    // the original highlighted whichever row the pointer was over, and
+    // dropped the highlight again on the way out.
+    if response.hovered() {
+        painter.rect_stroke(
+            rect,
+            0.0,
+            egui::Stroke::new(1.0, HOVER),
+            egui::StrokeKind::Inside,
+        );
+    }
+
     response
 }
 
@@ -189,17 +299,21 @@ fn write_ppm(path: &Path, image: &egui::ColorImage) -> std::io::Result<()> {
 struct Slashtime {
     locations: Vec<Locality>,
     pivot: usize,
+    icons: Icons,
     capture: Option<PathBuf>,
     passes: u32,
 }
 
 impl Slashtime {
-    fn new(locations: Vec<Locality>) -> Self {
+    fn new(ctx: &egui::Context, locations: Vec<Locality>) -> Self {
+        install_fonts(ctx);
+
         let pivot = find_local(&locations).unwrap_or(0);
 
         Slashtime {
             locations,
             pivot,
+            icons: Icons::load(ctx),
             capture: std::env::var_os("SLASHTIME_SCREENSHOT").map(PathBuf::from),
             passes: 0,
         }
@@ -249,6 +363,7 @@ impl eframe::App for Slashtime {
         // the readings borrow the location list, so the new pivot is parked
         // here until the loop is done with it.
         let mut chosen = self.pivot;
+        let icons = &self.icons;
 
         egui::Frame::NONE
             .fill(egui::Color32::BLACK)
@@ -259,7 +374,7 @@ impl eframe::App for Slashtime {
                 for reading in &readings {
                     // double clicking a row measures every offset from there
                     // instead, which is the whole point of the program.
-                    if row(ui, reading).double_clicked() {
+                    if row(ui, reading, icons).double_clicked() {
                         chosen = reading.index;
                     }
                 }
@@ -296,6 +411,6 @@ fn main() -> eframe::Result {
     eframe::run_native(
         "slashtime",
         options,
-        Box::new(|_cc| Ok(Box::new(Slashtime::new(locations)))),
+        Box::new(|cc| Ok(Box::new(Slashtime::new(&cc.egui_ctx, locations)))),
     )
 }

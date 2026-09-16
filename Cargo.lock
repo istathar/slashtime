@@ -2134,6 +2134,7 @@ dependencies = [
  "csv",
  "dirs",
  "eframe",
+ "image",
  "serde",
  "tz-rs",
 ]

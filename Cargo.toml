@@ -14,3 +14,4 @@ dirs = "5.0"
 serde = { version = "1.0", features = ["derive"] }
 tz-rs = "0.6"
 eframe = { version = "0.36", default-features = false, features = ["glow", "default_fonts", "wayland", "x11"] }
+image = { version = "0.25", default-features = false, features = ["png"] }
