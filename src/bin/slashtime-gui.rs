@@ -1,0 +1,301 @@
+use eframe::egui;
+use slashtime::{find_local, format_date, format_offset, format_time, Band, Locality};
+use std::path::{Path, PathBuf};
+use tz::{TzError, UtcDateTime};
+
+// the palette carried over from the java-gnome original. The list deliberately
+// ignores the desktop theme; here the shading is data, not chrome.
+const WORK: egui::Color32 = egui::Color32::from_rgb(0xff, 0xff, 0xff);
+const CIVIL: egui::Color32 = egui::Color32::from_rgb(0xdd, 0xdd, 0xdd);
+const NIGHT: egui::Color32 = egui::Color32::from_rgb(0x77, 0x77, 0x77);
+
+const SUBDUED: egui::Color32 = egui::Color32::from_rgb(0xa1, 0xa1, 0xa1);
+const PLAIN: egui::Color32 = egui::Color32::from_rgb(0x00, 0x00, 0x00);
+const LOCAL: egui::Color32 = egui::Color32::from_rgb(0x00, 0x00, 0xff);
+const ZULU: egui::Color32 = egui::Color32::from_rgb(0x2f, 0xb9, 0x25);
+const LOCAL_DARK: egui::Color32 = egui::Color32::from_rgb(0x32, 0xfd, 0xff);
+const ZULU_DARK: egui::Color32 = egui::Color32::from_rgb(0xa0, 0xff, 0x97);
+
+const WIDTH: f32 = 340.0;
+const ROW_HEIGHT: f32 = 31.0;
+const VALUE_SIZE: f32 = 15.0;
+const CAPTION_SIZE: f32 = 9.5;
+const EDGE: f32 = 8.0;
+
+// width set aside at the right hand end for the offset and the zone code,
+// which the time and date are then right aligned against.
+const OFFSET_COLUMN: f32 = 52.0;
+
+// one location as it appears at a given moment, relative to a given pivot.
+// All of it is derived, so it is recomputed each pass rather than cached and
+// invalidated.
+struct Reading<'a> {
+    index: usize,
+    location: &'a Locality,
+    time: String,
+    date: String,
+    offset: String,
+    abbreviation: String,
+    band: Band,
+    key: u8,
+}
+
+fn read<'a>(
+    locations: &'a [Locality],
+    pivot: &Locality,
+    when: &UtcDateTime,
+) -> Result<Vec<Reading<'a>>, TzError> {
+    let mut readings = Vec::with_capacity(locations.len());
+
+    for (index, location) in locations.iter().enumerate() {
+        let there = when.project(location.zone.as_ref())?;
+
+        readings.push(Reading {
+            index,
+            location,
+            time: format_time(&there),
+            date: format_date(&there),
+            offset: format_offset(location.offset(when)? - pivot.offset(when)?)
+                .trim()
+                .to_string(),
+            abbreviation: location.abbreviation(when)?,
+            band: location.band(when)?,
+            key: location.sort_key(when)?,
+        });
+    }
+
+    readings.sort_by_key(|reading| reading.key);
+
+    Ok(readings)
+}
+
+// background comes from the hour, foreground from which location this is.
+fn colours(reading: &Reading) -> (egui::Color32, egui::Color32) {
+    let background = match reading.band {
+        Band::Work => WORK,
+        Band::Civil => CIVIL,
+        Band::Night => NIGHT,
+    };
+
+    let dark = reading.band == Band::Night;
+
+    let foreground = if reading.location.is_local {
+        if dark {
+            LOCAL_DARK
+        } else {
+            LOCAL
+        }
+    } else if reading.location.is_zulu {
+        if dark {
+            ZULU_DARK
+        } else {
+            ZULU
+        }
+    } else {
+        PLAIN
+    };
+
+    (background, foreground)
+}
+
+// Each row is painted into an exact rectangle rather than laid out from its
+// contents, so that the shaded bands line up and reach both edges regardless
+// of how long a city name happens to be.
+fn row(ui: &mut egui::Ui, reading: &Reading) -> egui::Response {
+    let (rect, response) = ui.allocate_exact_size(
+        egui::vec2(ui.available_width(), ROW_HEIGHT),
+        egui::Sense::click(),
+    );
+
+    let (background, foreground) = colours(reading);
+
+    let value = egui::FontId::proportional(VALUE_SIZE);
+    let caption = egui::FontId::proportional(CAPTION_SIZE);
+
+    let upper = rect.top() + 3.0;
+    let lower = upper + VALUE_SIZE + 1.0;
+
+    let left = rect.left() + EDGE;
+    let middle = rect.right() - OFFSET_COLUMN;
+    let right = rect.right() - EDGE;
+
+    let painter = ui.painter();
+
+    painter.rect_filled(rect, 0.0, background);
+
+    painter.text(
+        egui::pos2(left, upper),
+        egui::Align2::LEFT_TOP,
+        &reading.location.city_name,
+        value.clone(),
+        foreground,
+    );
+    painter.text(
+        egui::pos2(left, lower),
+        egui::Align2::LEFT_TOP,
+        &reading.location.country_name,
+        caption.clone(),
+        SUBDUED,
+    );
+
+    painter.text(
+        egui::pos2(middle, upper),
+        egui::Align2::RIGHT_TOP,
+        &reading.time,
+        value.clone(),
+        foreground,
+    );
+    painter.text(
+        egui::pos2(middle, lower),
+        egui::Align2::RIGHT_TOP,
+        &reading.date,
+        caption.clone(),
+        SUBDUED,
+    );
+
+    painter.text(
+        egui::pos2(right, upper),
+        egui::Align2::RIGHT_TOP,
+        &reading.offset,
+        value,
+        foreground,
+    );
+    painter.text(
+        egui::pos2(right, lower),
+        egui::Align2::RIGHT_TOP,
+        &reading.abbreviation,
+        caption,
+        SUBDUED,
+    );
+
+    response
+}
+
+// Screenshots are written as a PPM, which needs no encoder, and converted
+// elsewhere if a real image format is wanted.
+fn write_ppm(path: &Path, image: &egui::ColorImage) -> std::io::Result<()> {
+    let [width, height] = image.size;
+
+    let mut out = Vec::with_capacity(width * height * 3 + 20);
+    out.extend_from_slice(format!("P6\n{} {}\n255\n", width, height).as_bytes());
+
+    for pixel in &image.pixels {
+        out.extend_from_slice(&[pixel.r(), pixel.g(), pixel.b()]);
+    }
+
+    std::fs::write(path, out)
+}
+
+struct Slashtime {
+    locations: Vec<Locality>,
+    pivot: usize,
+    capture: Option<PathBuf>,
+    passes: u32,
+}
+
+impl Slashtime {
+    fn new(locations: Vec<Locality>) -> Self {
+        let pivot = find_local(&locations).unwrap_or(0);
+
+        Slashtime {
+            locations,
+            pivot,
+            capture: std::env::var_os("SLASHTIME_SCREENSHOT").map(PathBuf::from),
+            passes: 0,
+        }
+    }
+
+    // when SLASHTIME_SCREENSHOT names a file, draw a couple of passes to let
+    // the layout settle, ask for the window contents, write them out, and quit.
+    fn capture(&mut self, ctx: &egui::Context) {
+        let Some(path) = &self.capture else {
+            return;
+        };
+
+        self.passes += 1;
+
+        if self.passes == 2 {
+            ctx.send_viewport_cmd(egui::ViewportCommand::Screenshot(egui::UserData::default()));
+        }
+
+        let image = ctx.input(|state| {
+            state.events.iter().find_map(|event| match event {
+                egui::Event::Screenshot { image, .. } => Some(image.clone()),
+                _ => None,
+            })
+        });
+
+        if let Some(image) = image {
+            write_ppm(path, &image).expect("write screenshot");
+            ctx.send_viewport_cmd(egui::ViewportCommand::Close);
+        }
+
+        ctx.request_repaint();
+    }
+}
+
+impl eframe::App for Slashtime {
+    fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
+        let now = UtcDateTime::now().expect("system clock");
+
+        let readings = match read(&self.locations, &self.locations[self.pivot], &now) {
+            Ok(readings) => readings,
+            Err(e) => {
+                ui.label(format!("Unable to read the zone database: {}", e));
+                return;
+            }
+        };
+
+        // the readings borrow the location list, so the new pivot is parked
+        // here until the loop is done with it.
+        let mut chosen = self.pivot;
+
+        egui::Frame::NONE
+            .fill(egui::Color32::BLACK)
+            .inner_margin(egui::Margin::same(1))
+            .show(ui, |ui| {
+                ui.spacing_mut().item_spacing = egui::vec2(0.0, 0.0);
+
+                for reading in &readings {
+                    // double clicking a row measures every offset from there
+                    // instead, which is the whole point of the program.
+                    if row(ui, reading).double_clicked() {
+                        chosen = reading.index;
+                    }
+                }
+            });
+
+        self.pivot = chosen;
+
+        self.capture(ui.ctx());
+
+        // the readouts only change on the minute, so there is no reason to
+        // wake up any more often than that.
+        ui.ctx()
+            .request_repaint_after(std::time::Duration::from_secs(60 - u64::from(now.second())));
+    }
+}
+
+fn main() -> eframe::Result {
+    let locations = slashtime::loading::load_tzlist(None).expect("unable to load tzlist");
+
+    // size the window to the list; there is nothing to scroll if it all fits.
+    let height = locations.len() as f32 * ROW_HEIGHT + 6.0;
+
+    let options = eframe::NativeOptions {
+        viewport: egui::ViewportBuilder::default()
+            .with_inner_size([WIDTH, height])
+            // as the original did: no decorations, the thin black border
+            // around the list is the whole frame.
+            .with_decorations(false)
+            .with_resizable(false)
+            .with_app_id("org.aesiniath.Slashtime"),
+        ..Default::default()
+    };
+
+    eframe::run_native(
+        "slashtime",
+        options,
+        Box::new(|_cc| Ok(Box::new(Slashtime::new(locations)))),
+    )
+}
