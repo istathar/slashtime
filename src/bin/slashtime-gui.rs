@@ -1,5 +1,5 @@
 use eframe::egui;
-use slashtime::{find_local, format_date, format_offset, format_time, Band, Locality};
+use slashtime::{find_local, format_date, format_offset_parts, format_time, Band, Locality};
 use std::path::{Path, PathBuf};
 use tz::{TzError, UtcDateTime};
 
@@ -17,22 +17,26 @@ const LOCAL_DARK: egui::Color32 = egui::Color32::from_rgb(0x32, 0xfd, 0xff);
 const ZULU_DARK: egui::Color32 = egui::Color32::from_rgb(0xa0, 0xff, 0x97);
 const HOVER: egui::Color32 = egui::Color32::from_rgb(0x35, 0x84, 0xe4);
 
+// this has to match the basename of the installed .desktop file, which is how
+// a wayland compositor works out which icon belongs to the window.
+const APP_ID: &str = "org.aesiniath.Slashtime";
+
 // the original window was about seven times as tall as it was wide with a
 // list this long, and fifteen years of muscle memory is worth honouring.
-const WIDTH: f32 = 259.0;
-const ROW_HEIGHT: f32 = 37.0;
+const WIDTH: f32 = 272.0;
+const ROW_HEIGHT: f32 = 39.0;
 const VALUE_SIZE: f32 = 14.7;
 const CAPTION_SIZE: f32 = 9.5;
-const EDGE: f32 = 8.0;
+const EDGE: f32 = 4.0;
 
 // the icon sits in a reserved column at the left, so that the city names line
 // up whether or not a given row has one.
-const ICON_COLUMN: f32 = 26.0;
+const ICON_COLUMN: f32 = 34.0;
 const ICON_SIZE: f32 = 20.0;
 
 // width set aside at the right hand end for the offset and the zone code,
 // which the time and date are then right aligned against.
-const OFFSET_COLUMN: f32 = 46.0;
+const OFFSET_COLUMN: f32 = 50.0;
 
 // The original asked for "DejaVu Sans, 11". What matters about that face here
 // is that its numerals are all one width, so the clock does not shuffle
@@ -123,6 +127,7 @@ struct Reading<'a> {
     time: String,
     date: String,
     offset: String,
+    half: bool,
     abbreviation: String,
     band: Band,
     key: u8,
@@ -137,15 +142,15 @@ fn read<'a>(
 
     for (index, location) in locations.iter().enumerate() {
         let there = when.project(location.zone.as_ref())?;
+        let offset = format_offset_parts(location.offset(when)? - pivot.offset(when)?);
 
         readings.push(Reading {
             index,
             location,
             time: format_time(&there),
             date: format_date(&there),
-            offset: format_offset(location.offset(when)? - pivot.offset(when)?)
-                .trim()
-                .to_string(),
+            offset: offset.0,
+            half: offset.1,
             abbreviation: location.abbreviation(when)?,
             band: location.band(when)?,
             key: location.sort_key(when)?,
@@ -252,15 +257,32 @@ fn row(ui: &mut egui::Ui, reading: &Reading, icons: &Icons) -> egui::Response {
         SUBDUED,
     );
 
+    // The ½ gets a slot of its own whether or not this zone has one, so that
+    // the units column stays put all the way down the list.
+    let slot = painter
+        .layout_no_wrap("½".to_string(), value.clone(), foreground)
+        .size()
+        .x;
+
     painter.text(
-        egui::pos2(right, upper),
+        egui::pos2(right - slot, upper),
         egui::Align2::RIGHT_TOP,
         &reading.offset,
-        value,
+        value.clone(),
         foreground,
     );
+
+    if reading.half {
+        painter.text(
+            egui::pos2(right - slot, upper),
+            egui::Align2::LEFT_TOP,
+            "½",
+            value,
+            foreground,
+        );
+    }
     painter.text(
-        egui::pos2(right, lower),
+        egui::pos2(right - slot, lower),
         egui::Align2::RIGHT_TOP,
         &reading.abbreviation,
         caption,
@@ -391,6 +413,21 @@ impl eframe::App for Slashtime {
     }
 }
 
+// The window icon, for X11 and for anything else that takes the icon from the
+// window itself. Wayland does not; there the compositor matches the app id
+// below against an installed .desktop file and uses the Icon= named there.
+fn marble() -> egui::IconData {
+    let decoded = image::load_from_memory(ZULU_PNG)
+        .expect("icon should be a readable png")
+        .to_rgba8();
+
+    egui::IconData {
+        width: decoded.width(),
+        height: decoded.height(),
+        rgba: decoded.into_raw(),
+    }
+}
+
 fn main() -> eframe::Result {
     let locations = slashtime::loading::load_tzlist(None).expect("unable to load tzlist");
 
@@ -404,7 +441,8 @@ fn main() -> eframe::Result {
             // around the list is the whole frame.
             .with_decorations(false)
             .with_resizable(false)
-            .with_app_id("org.aesiniath.Slashtime"),
+            .with_icon(marble())
+            .with_app_id(APP_ID),
         ..Default::default()
     };
 

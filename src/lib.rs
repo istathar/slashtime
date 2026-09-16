@@ -174,19 +174,32 @@ fn format_abbreviation(code: &str) -> String {
     format!("{:>4}", code)
 }
 
-pub fn format_offset(offset_seconds: i32) -> String {
+// The hours of an offset, and separately whether there is a half hour on the
+// end. Keeping them apart lets a caller reserve a fixed slot for the ½ so that
+// the half hour zones do not shove the units column sideways.
+pub fn format_offset_parts(offset_seconds: i32) -> (String, bool) {
     let offset_minutes = offset_seconds / 60;
     let hours = offset_minutes / 60;
-    let halves = if offset_minutes % 60 == 0 { ' ' } else { '½' };
+    let half = offset_minutes % 60 != 0;
 
-    if offset_minutes == 0 {
-        format!("  0 ")
+    let text = if offset_minutes == 0 {
+        "0".to_string()
     } else if offset_minutes == -30 {
         // handle the annoying case of a half hour behind needing to show -ve
-        format!(" -0½")
+        "-0".to_string()
     } else {
-        format!("{:+3}{:1}", hours, halves)
-    }
+        format!("{:+}", hours)
+    };
+
+    (text, half)
+}
+
+// In a terminal the trailing space and the ½ are the same width, so padding to
+// a fixed four columns is enough to hold the units steady.
+pub fn format_offset(offset_seconds: i32) -> String {
+    let (text, half) = format_offset_parts(offset_seconds);
+
+    format!("{:>3}{}", text, if half { '½' } else { ' ' })
 }
 
 // which location offsets are measured from by default: wherever the system
@@ -261,6 +274,23 @@ mod tests {
 
         assert_eq!(sydney.offset(&summer).unwrap(), 11 * 3600);
         assert_eq!(sydney.abbreviation(&summer).unwrap(), "AEDT");
+    }
+
+    // the ½ occupies a slot that is reserved whether or not it is there, so
+    // that the units column stays put down the whole list.
+    #[test]
+    fn half_hours_do_not_disturb_the_units_column() {
+        assert_eq!(format_offset(0), "  0 ");
+        assert_eq!(format_offset(2 * 3600), " +2 ");
+        assert_eq!(format_offset(-14 * 3600), "-14 ");
+        assert_eq!(format_offset(-30 * 60), " -0½");
+        assert_eq!(format_offset(-4 * 3600 - 30 * 60), " -4½");
+        assert_eq!(format_offset(9 * 3600 + 30 * 60), " +9½");
+
+        // every rendering is the same width, ½ or no ½
+        for seconds in [0, 3600, -3600, -30 * 60, 12 * 3600 + 1800, -20 * 3600] {
+            assert_eq!(format_offset(seconds).chars().count(), 4);
+        }
     }
 
     // the offset shown is relative to the pivot, not to UTC. Sydney in winter
