@@ -17,17 +17,51 @@ const LOCAL_DARK: egui::Color32 = egui::Color32::from_rgb(0x32, 0xfd, 0xff);
 const ZULU_DARK: egui::Color32 = egui::Color32::from_rgb(0xa0, 0xff, 0x97);
 const HOVER: egui::Color32 = egui::Color32::from_rgb(0x35, 0x84, 0xe4);
 
-// this has to match the basename of the installed .desktop file, which is how
-// a wayland compositor works out which icon belongs to the window.
+// This has to match the basename of the installed .desktop file, which is how
+// a wayland compositor works out which icon belongs to the window; there is no
+// other route, as wayland ignores icons set on the window itself.
+//
+// Note that eframe only sends the app id at all when built with its "wayland"
+// feature, which Cargo.toml enables explicitly. Drop that feature and this
+// becomes a silent no-op rather than a compile error.
 const APP_ID: &str = "org.aesiniath.Slashtime";
 
 // the original window was about seven times as tall as it was wide with a
 // list this long, and fifteen years of muscle memory is worth honouring.
 const WIDTH: f32 = 272.0;
-const ROW_HEIGHT: f32 = 39.0;
 const VALUE_SIZE: f32 = 14.7;
 const CAPTION_SIZE: f32 = 9.5;
 const EDGE: f32 = 4.0;
+
+// A row is a little space, the city and time line, a little more space, the
+// caption line, then a little space again. The height of the row follows from
+// those three rather than being a number in its own right: the gap between one
+// row and the next is TRAIL + LEAD, so it can be tuned directly instead of
+// being whatever slack happened to be left under the caption.
+// Clear space wanted between the text and the edge of its coloured band, and
+// between the two lines of a row. PADDING has to be the larger of the two, or
+// a row stops reading as one thing and the list dissolves into stripes. Both
+// are distances to the ink rather than to the line box.
+const PADDING: f32 = 6.0;
+const SEPARATION: f32 = 4.0;
+
+// How tall a line box is, and where the ink sits inside it, for the face and
+// the two sizes above. These belong to the face rather than to the point size,
+// which is why the program insists on one face instead of taking whatever the
+// machine happens to have: it makes the whole vertical layout a constant.
+const VALUE_LINE: f32 = 20.03125;
+const VALUE_ABOVE: f32 = 4.0;
+const VALUE_BELOW: f32 = 4.03125;
+const CAPTION_LINE: f32 = 12.9375;
+const CAPTION_ABOVE: f32 = 3.0;
+const CAPTION_BELOW: f32 = 0.4375;
+
+// Take the slack the face already carries out of each gap, so that what is
+// left is the clear space actually asked for above.
+const LEAD: f32 = PADDING - VALUE_ABOVE;
+const TO_CAPTION: f32 = VALUE_LINE - VALUE_BELOW + SEPARATION - CAPTION_ABOVE;
+const TRAIL: f32 = PADDING - CAPTION_BELOW;
+const ROW_HEIGHT: f32 = LEAD + TO_CAPTION + CAPTION_LINE + TRAIL;
 
 // the icon sits in a reserved column at the left, so that the city names line
 // up whether or not a given row has one.
@@ -38,29 +72,27 @@ const ICON_SIZE: f32 = 20.0;
 // which the time and date are then right aligned against.
 const OFFSET_COLUMN: f32 = 50.0;
 
-// The original asked for "DejaVu Sans, 11". What matters about that face here
-// is that its numerals are all one width, so the clock does not shuffle
-// sideways as the minutes turn over - without it being a teletype monospace.
-// Every face listed has that property; the desktop's own Adwaita Sans and
-// Cantarell do not, their digits varying by nearly a third.
-const FACES: [&str; 3] = [
-    "/usr/share/fonts/dejavu-sans-fonts/DejaVuSans.ttf",
-    "/usr/share/fonts/google-noto-vf/NotoSans[wght].ttf",
-    "/usr/share/fonts/liberation-sans-fonts/LiberationSans-Regular.ttf",
-];
+// The original asked for "DejaVu Sans, 11", which is no longer installed
+// anywhere by default. Noto Sans stands in for it: what matters is that its
+// numerals are all one width, so the clock does not shuffle sideways as the
+// minutes turn over, without it being a teletype monospace.
+//
+// It is embedded rather than looked for on the machine. Every face has its own
+// line heights, so taking whatever happened to be installed would mean
+// measuring at startup and laying out differently from one machine to the
+// next; with the face fixed, the vertical layout above is a constant. Pinned
+// to Regular and subset to the Latin a tzlist can hold, it costs 29kB rather
+// than the 712kB of the full variable font. See share/fonts/OFL.txt.
+const FACE: &[u8] = include_bytes!("../../share/fonts/NotoSans-Regular-subset.ttf");
 
-// Put the first face we can actually read at the head of the family, leaving
-// egui's built in fonts behind it to cover anything the face is missing.
+// Put the face at the head of the family, leaving egui's built in fonts behind
+// it to cover anything it is missing.
 fn install_fonts(ctx: &egui::Context) {
-    let Some(bytes) = FACES.iter().find_map(|path| std::fs::read(path).ok()) else {
-        return;
-    };
-
     let mut fonts = egui::FontDefinitions::default();
 
     fonts.font_data.insert(
         "sans".to_string(),
-        std::sync::Arc::new(egui::FontData::from_owned(bytes)),
+        std::sync::Arc::new(egui::FontData::from_static(FACE)),
     );
     fonts
         .families
@@ -205,8 +237,8 @@ fn row(ui: &mut egui::Ui, reading: &Reading, icons: &Icons) -> egui::Response {
     let value = egui::FontId::proportional(VALUE_SIZE);
     let caption = egui::FontId::proportional(CAPTION_SIZE);
 
-    let upper = rect.top() + 3.0;
-    let lower = upper + VALUE_SIZE + 5.0;
+    let upper = rect.top() + LEAD;
+    let lower = upper + TO_CAPTION;
 
     let left = rect.left() + ICON_COLUMN;
     let middle = rect.right() - OFFSET_COLUMN;
@@ -371,6 +403,11 @@ impl Slashtime {
 }
 
 impl eframe::App for Slashtime {
+    // whatever the list does not cover is part of the border, not a backdrop
+    fn clear_color(&self, _visuals: &egui::Visuals) -> [f32; 4] {
+        egui::Color32::BLACK.to_normalized_gamma_f32()
+    }
+
     fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
         let now = UtcDateTime::now().expect("system clock");
 
@@ -431,8 +468,8 @@ fn marble() -> egui::IconData {
 fn main() -> eframe::Result {
     let locations = slashtime::loading::load_tzlist(None).expect("unable to load tzlist");
 
-    // size the window to the list; there is nothing to scroll if it all fits.
-    let height = locations.len() as f32 * ROW_HEIGHT + 6.0;
+    // size the window to the list; there is nothing to scroll if it all fits
+    let height = locations.len() as f32 * ROW_HEIGHT + 2.0;
 
     let options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
