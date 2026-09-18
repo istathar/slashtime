@@ -1,5 +1,6 @@
 use tz::DateTime;
 use tz::TimeZone;
+use tz::TimeZoneRef;
 use tz::TzError;
 use tz::UtcDateTime;
 
@@ -66,6 +67,27 @@ impl Locality {
         let halves = halves_since_midnight(&there);
 
         Ok(if halves < 3 { halves + 48 } else { halves })
+    }
+
+    // The moment at which the clock here reads the given local time. Daylight
+    // savings makes that ambiguous twice a year: where the reading happens
+    // twice take the earlier, and where it is skipped over entirely the answer
+    // is the moment the clock jumps to, which is the nearest real time to the
+    // one asked for.
+    pub fn instant(
+        &self,
+        year: i32,
+        month: u8,
+        day: u8,
+        hour: u8,
+        minute: u8,
+    ) -> Result<Option<UtcDateTime>, TzError> {
+        let found = DateTime::find(year, month, day, hour, minute, 0, 0, self.zone.as_ref())?;
+
+        match found.earliest() {
+            Some(there) => Ok(Some(UtcDateTime::from_timespec(there.unix_time(), 0)?)),
+            None => Ok(None),
+        }
     }
 
     // the zone abbreviation in effect here at the given moment; "AEST" in
@@ -202,6 +224,24 @@ pub fn format_offset(offset_seconds: i32) -> String {
     format!("{:>3}{}", text, if half { '½' } else { ' ' })
 }
 
+// which day of the week a date falls on, Sunday counting as zero, so that a
+// calendar knows how far into the first row to begin
+pub fn week_day(year: i32, month: u8, day: u8) -> Result<u8, TzError> {
+    let noon = DateTime::find(year, month, day, 12, 0, 0, 0, TimeZoneRef::utc())?;
+
+    Ok(noon.earliest().map_or(0, |when| when.week_day()))
+}
+
+// how many days a month has, which a calendar needs in order to lay itself out
+pub fn days_in_month(year: i32, month: u8) -> u8 {
+    match month {
+        1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
+        4 | 6 | 9 | 11 => 30,
+        2 if year % 4 == 0 && (year % 100 != 0 || year % 400 == 0) => 29,
+        _ => 28,
+    }
+}
+
 // which location offsets are measured from by default: wherever the system
 // clock says we are. Falls back to Zulu if the tzlist happens not to contain
 // the local zone.
@@ -274,6 +314,62 @@ mod tests {
 
         assert_eq!(sydney.offset(&summer).unwrap(), 11 * 3600);
         assert_eq!(sydney.abbreviation(&summer).unwrap(), "AEDT");
+    }
+
+    // setting a wall clock time somewhere gives back the moment it happens,
+    // which is what lets the rest of the list be worked out from it.
+    #[test]
+    fn a_local_time_resolves_to_an_instant() {
+        let sydney = locality("Australia/Sydney");
+        let toronto = locality("America/Toronto");
+
+        // 09:00 in Toronto in July is 23:00 in Sydney the same day
+        let when = toronto.instant(2026, 7, 1, 9, 0).unwrap().unwrap();
+        let there = when.project(sydney.zone.as_ref()).unwrap();
+
+        assert_eq!(there.hour(), 23);
+        assert_eq!(there.month_day(), 1);
+    }
+
+    // a local time inside the hour daylight savings skips never happens, so
+    // the answer is the moment the clock jumps to
+    #[test]
+    fn a_skipped_hour_lands_on_the_transition() {
+        let sydney = locality("Australia/Sydney");
+
+        // clocks go forward at 02:00 on the first Sunday in October
+        let when = sydney.instant(2026, 10, 4, 2, 30).unwrap().unwrap();
+        let there = when.project(sydney.zone.as_ref()).unwrap();
+
+        assert_eq!((there.hour(), there.minute()), (3, 0));
+    }
+
+    // and a local time in the hour that happens twice takes the earlier one
+    #[test]
+    fn a_repeated_hour_takes_the_earlier() {
+        let sydney = locality("Australia/Sydney");
+
+        // clocks go back at 03:00 on the first Sunday in April
+        let when = sydney.instant(2026, 4, 5, 2, 30).unwrap().unwrap();
+
+        assert_eq!(sydney.offset(&when).unwrap(), 11 * 3600);
+    }
+
+    #[test]
+    fn dates_fall_on_the_right_weekday() {
+        assert_eq!(week_day(2026, 9, 17).unwrap(), 4); // a Thursday
+        assert_eq!(week_day(2026, 9, 20).unwrap(), 0); // a Sunday
+        assert_eq!(week_day(2000, 1, 1).unwrap(), 6); // a Saturday
+    }
+
+    #[test]
+    fn months_have_the_right_number_of_days() {
+        assert_eq!(days_in_month(2026, 1), 31);
+        assert_eq!(days_in_month(2026, 2), 28);
+        assert_eq!(days_in_month(2024, 2), 29);
+        assert_eq!(days_in_month(2000, 2), 29);
+        assert_eq!(days_in_month(1900, 2), 28);
+        assert_eq!(days_in_month(2026, 9), 30);
     }
 
     // the ½ occupies a slot that is reserved whether or not it is there, so

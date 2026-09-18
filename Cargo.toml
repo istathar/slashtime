@@ -16,6 +16,9 @@ tz-rs = "0.6"
 eframe = { version = "0.36", default-features = false, features = ["glow", "default_fonts", "wayland", "x11"] }
 image = { version = "0.25", default-features = false, features = ["png"] }
 
+[dev-dependencies]
+egui_kittest = "0.36"
+
 # Ordinary builds carry no debug info at all. Emitting it dominated both the
 # build time and the size of the binary, and it is of no use unless a debugger
 # is actually going to be attached.
