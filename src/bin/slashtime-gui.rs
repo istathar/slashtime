@@ -181,9 +181,7 @@ struct Meeting {
 }
 
 impl Meeting {
-    // the same instant, read off the clock at the given place. Moving the
-    // meeting from one row to another is a change of whose clock is being
-    // read, not of when the meeting is.
+    // the wall clock reading at a place at the given moment
     fn at(locations: &[Locality], place: usize, when: &UtcDateTime) -> Option<Self> {
         let there = when.project(locations[place].zone.as_ref()).ok()?;
 
@@ -626,13 +624,12 @@ impl Slashtime {
         }
 
         // a click says whose clock is being set, which is a different thing
-        // from the pivot the offsets are measured against. The moment stays
-        // where it is; only the clock it is read off changes.
+        // from the pivot the offsets are measured against. That place takes
+        // over at the time it is already showing, so the list stays put.
         if let Some(meeting) = self.meeting.as_mut() {
-            if let Some(index) = target {
-                if let Some(moved) = Meeting::at(&self.locations, index, &when) {
-                    *meeting = moved;
-                }
+            if let Some(moved) = target.and_then(|index| Meeting::at(&self.locations, index, &when))
+            {
+                *meeting = moved;
             }
 
             if days != 0 {
@@ -698,7 +695,6 @@ fn main() -> eframe::Result {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use egui_kittest::kittest::Queryable as _;
     use egui_kittest::Harness;
 
     fn places() -> Vec<Locality> {
@@ -923,5 +919,47 @@ mod tests {
             before,
             "the meeting followed the pointer"
         );
+    }
+
+    // clicking another row hands the meeting to that place at the time it is
+    // already showing, so the list does not move
+    #[test]
+    fn a_click_keeps_the_planned_instant() {
+        let mut harness = harness();
+
+        harness.key_press(egui::Key::M);
+        harness.run();
+
+        let slashtime = app(&harness);
+        let meeting = slashtime.meeting.as_ref().unwrap();
+        let before = meeting.instant(&slashtime.locations).unwrap();
+
+        let readings = read(
+            &slashtime.locations,
+            &slashtime.locations[slashtime.pivot],
+            &before,
+            None,
+        )
+        .unwrap();
+
+        let (position, other) = readings
+            .iter()
+            .enumerate()
+            .find(|(_, reading)| reading.index != meeting.place)
+            .map(|(position, reading)| (position, reading.index))
+            .unwrap();
+
+        let pos = egui::pos2(100.0, 9.0 + (position as f32 + 0.5) * ROW_HEIGHT);
+
+        harness.drag_at(pos);
+        harness.run();
+        harness.drop_at(pos);
+        harness.run();
+
+        let slashtime = app(&harness);
+        let meeting = slashtime.meeting.as_ref().unwrap();
+
+        assert_eq!(meeting.place, other, "the click did not move the meeting");
+        assert_eq!(meeting.instant(&slashtime.locations).unwrap(), before);
     }
 }
