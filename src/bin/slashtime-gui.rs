@@ -181,9 +181,11 @@ struct Meeting {
 }
 
 impl Meeting {
-    // start from the hour just gone where the meeting is, as the original did
-    fn new(locations: &[Locality], place: usize, now: &UtcDateTime) -> Option<Self> {
-        let there = now.project(locations[place].zone.as_ref()).ok()?;
+    // the same instant, read off the clock at the given place. Moving the
+    // meeting from one row to another is a change of whose clock is being
+    // read, not of when the meeting is.
+    fn at(locations: &[Locality], place: usize, when: &UtcDateTime) -> Option<Self> {
+        let there = when.project(locations[place].zone.as_ref()).ok()?;
 
         Some(Meeting {
             place,
@@ -191,8 +193,17 @@ impl Meeting {
             month: there.month(),
             day: there.month_day(),
             hour: there.hour(),
-            minute: 0,
+            minute: there.minute(),
         })
+    }
+
+    // start from the hour just gone where the meeting is, as the original did
+    fn new(locations: &[Locality], place: usize, now: &UtcDateTime) -> Option<Self> {
+        let mut meeting = Meeting::at(locations, place, now)?;
+
+        meeting.minute = 0;
+
+        Some(meeting)
     }
 
     fn instant(&self, locations: &[Locality]) -> Option<UtcDateTime> {
@@ -615,10 +626,13 @@ impl Slashtime {
         }
 
         // a click says whose clock is being set, which is a different thing
-        // from the pivot the offsets are measured against
+        // from the pivot the offsets are measured against. The moment stays
+        // where it is; only the clock it is read off changes.
         if let Some(meeting) = self.meeting.as_mut() {
             if let Some(index) = target {
-                meeting.place = index;
+                if let Some(moved) = Meeting::at(&self.locations, index, &when) {
+                    *meeting = moved;
+                }
             }
 
             if days != 0 {
@@ -864,6 +878,28 @@ mod tests {
         meeting.shift_month(1);
 
         assert_eq!((meeting.month, meeting.day), (2, 28));
+    }
+
+    // moving the meeting to another row is a change of whose clock is being
+    // read; the moment itself does not budge
+    #[test]
+    fn moving_the_meeting_keeps_the_instant() {
+        let places = places();
+
+        let meeting = Meeting {
+            place: 0,
+            year: 2026,
+            month: 9,
+            day: 20,
+            hour: 21,
+            minute: 30,
+        };
+
+        let when = meeting.instant(&places).unwrap();
+        let moved = Meeting::at(&places, 2, &when).unwrap();
+
+        assert_eq!((moved.hour, moved.minute), (12, 30), "London reads 12:30");
+        assert_eq!(moved.instant(&places).unwrap(), when, "the moment moved");
     }
 
     // clicking a row says whose clock the keys are moving
