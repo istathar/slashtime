@@ -99,26 +99,103 @@ const OFFSET_COLUMN: f32 = 50.0;
 // its own line heights, so taking whatever happened to be installed would
 // mean measuring at startup and laying out differently from one machine to
 // the next; with the face fixed, the vertical layout above is a constant.
-// Pinned to Regular and subset to the Latin a tzlist can hold, it costs 29kB
-// rather than the 712kB of the full variable font. See share/fonts/OFL.txt.
+// Pinned to Regular and subset to Latin, it costs 29kB rather than the 712kB
+// of the full variable font; names in other scripts are drawn from fonts the
+// system has. See share/fonts/OFL.txt.
 const FACE: &[u8] = include_bytes!("../../share/fonts/NotoSans-Regular-subset.ttf");
 
-// Put the face at the head of the family, leaving egui's built in fonts behind
-// it to cover anything it is missing.
-fn install_fonts(ctx: &egui::Context) {
+// Put the face at the head of the family, then any system fonts the city and
+// country names need, leaving egui's built in fonts behind them to cover
+// anything still missing. Row heights come from the first font in a family,
+// so the fallbacks do not disturb the vertical layout.
+fn install_fonts(ctx: &egui::Context, locations: &[Locality]) {
     let mut fonts = egui::FontDefinitions::default();
 
+    let mut names = vec!["sans".to_string()];
     fonts.font_data.insert(
         "sans".to_string(),
         std::sync::Arc::new(egui::FontData::from_static(FACE)),
     );
+
+    for (name, data) in fallback_fonts(locations) {
+        fonts
+            .font_data
+            .insert(name.clone(), std::sync::Arc::new(data));
+        names.push(name);
+    }
+
     fonts
         .families
         .entry(egui::FontFamily::Proportional)
         .or_default()
-        .insert(0, "sans".to_string());
+        .splice(0..0, names);
 
     ctx.set_fonts(fonts);
+}
+
+// Ask the system which font it would use for each script that appears in the
+// names but is missing from the embedded face. Usually nothing is missing and
+// the system is never asked. Latin is skipped, as the platform's choice for it
+// is some unrelated face, and so are Common and Inherited, which punctuation
+// and combining marks belong to.
+fn fallback_fonts(locations: &[Locality]) -> Vec<(String, egui::FontData)> {
+    use skrifa::MetadataProvider;
+    use unicode_script::{Script, UnicodeScript};
+
+    let charmap = skrifa::FontRef::new(FACE).expect("embedded face").charmap();
+
+    let mut scripts = Vec::new();
+    for c in locations
+        .iter()
+        .flat_map(|place| place.city_name.chars().chain(place.country_name.chars()))
+    {
+        let script = c.script();
+        if charmap.map(c).is_none()
+            && !matches!(script, Script::Common | Script::Inherited | Script::Latin)
+            && !scripts.contains(&script)
+        {
+            scripts.push(script);
+        }
+    }
+
+    let mut result: Vec<(String, egui::FontData)> = Vec::new();
+    if scripts.is_empty() {
+        return result;
+    }
+
+    let mut collection = fontique::Collection::new(fontique::CollectionOptions::default());
+
+    for script in scripts {
+        let key = fontique::FallbackKey::new(
+            fontique::Script::from_str_unchecked(script.short_name()),
+            None,
+        );
+        let Some(id) = collection.fallback_families(key).next() else {
+            continue;
+        };
+        let Some(family) = collection.family(id) else {
+            continue;
+        };
+
+        // Han and Hangul, for one, usually resolve to the same family
+        let name = family.name().to_string();
+        if result.iter().any(|(n, _)| *n == name) {
+            continue;
+        }
+
+        let Some(font) = family.default_font() else {
+            continue;
+        };
+        let Some(blob) = font.load(None) else {
+            continue;
+        };
+
+        let mut data = egui::FontData::from_owned(blob.as_ref().to_vec());
+        data.index = font.index();
+        result.push((name, data));
+    }
+
+    result
 }
 
 // the icons are embedded rather than read from disk; they are tiny, and this
@@ -492,7 +569,7 @@ struct Slashtime {
 
 impl Slashtime {
     fn new(ctx: &egui::Context, locations: Vec<Locality>) -> Self {
-        install_fonts(ctx);
+        install_fonts(ctx, &locations);
 
         let pivot = find_local(&locations).unwrap_or(0);
 

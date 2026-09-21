@@ -1,6 +1,6 @@
 [package]
 name = "slashtime"
-version = "0.7.0"
+version = "0.7.1"
 edition = "2021"
 
 [profile.release]
@@ -15,6 +15,9 @@ serde = { version = "1.0", features = ["derive"] }
 tz-rs = "0.6"
 eframe = { version = "0.36", default-features = false, features = ["glow", "default_fonts", "wayland", "x11"] }
 image = { version = "0.25", default-features = false, features = ["png"] }
+fontique = { version = "0.11", features = ["fontconfig-dlopen"] }
+skrifa = "0.44"
+unicode-script = "0.5"
 
 [dev-dependencies]
 egui_kittest = "0.36"
