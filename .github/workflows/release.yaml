@@ -1,0 +1,109 @@
+name: Release
+on:
+    release:
+        types: [published]
+permissions:
+    contents: write
+
+jobs:
+    build:
+        name: Build and Upload
+        runs-on: ${{ matrix.os }}
+        strategy:
+            matrix:
+                include:
+                    - os: ubuntu-latest
+                    - os: macos-latest
+                    - os: windows-latest
+
+        steps:
+            - name: Clone project
+              uses: actions/checkout@v6
+              with:
+                  fetch-tags: true
+
+            - name: Validate toolchain
+              shell: bash
+              run: |
+                  echo "RUST_VERSION=$(rustc --version | cut -d ' ' -f 2)" >> ${GITHUB_ENV}
+
+            - uses: actions/cache@v5
+              with:
+                  path: |
+                      ~/.cargo/bin/
+                      ~/.cargo/registry/index/
+                      ~/.cargo/registry/cache/
+                      ~/.cargo/git/db/
+                      target/release
+                  key: cargo-${{ runner.os }}-${{ runner.arch}}-${{ env.RUST_VERSION }}-${{ hashFiles('**/Cargo.lock') }}
+                  restore-keys: |
+                      cargo-${{ runner.os }}-${{ runner.arch}}-${{ env.RUST_VERSION }}-
+
+            - name: Build binaries
+              run: |
+                  cargo build --release
+
+            - name: Prepare target name
+              id: prepare
+              shell: bash
+              run: |
+                  case "${{ runner.os }}" in
+                      Linux)
+                        OS="linux"
+                        ;;
+                      macOS)
+                        OS="darwin"
+                        ;;
+                      Windows)
+                        OS="windows"
+                        ;;
+                  esac
+
+                  case "${{ runner.arch }}" in
+                      ARM)
+                        ARCH="arm"
+                        ;;
+                      ARM64)
+                        ARCH="aarch64"
+                        ;;
+                      X64)
+                        ARCH="x86_64"
+                        ;;
+                      X86)
+                        ARCH="i686"
+                        ;;
+                      *)
+                        ARCH="${{ runner.arch }}"
+                        ;;
+                  esac
+
+                  case "${{ runner.os }}" in
+                      Linux)
+                        TARGET="slashtime-${{ github.ref_name }}-${OS}-${ARCH}.tar.gz"
+                        ;;
+                      macOS)
+                        TARGET="slashtime-${{ github.ref_name }}-${OS}-${ARCH}.tar.gz"
+                        ;;
+                      Windows)
+                        TARGET="slashtime-${{ github.ref_name }}-${OS}-${ARCH}.zip"
+                        ;;
+                  esac
+
+                  echo "target=${TARGET}" >> $GITHUB_OUTPUT
+
+            - name: Compress binaries (Unix)
+              if: runner.os != 'Windows'
+              run: |
+                  tar -czf ${{ steps.prepare.outputs.target }} -C target/release slashtime-cli slashtime-gui
+
+            - name: Compress binaries (Windows)
+              if: runner.os == 'Windows'
+              shell: pwsh
+              run: |
+                  Compress-Archive -Path target/release/slashtime-cli.exe, target/release/slashtime-gui.exe -DestinationPath ${{ steps.prepare.outputs.target }}
+
+            - name: Upload binaries to Release
+              uses: softprops/action-gh-release@v3
+              with:
+                  tag_name: ${{ github.ref_name }}
+                  files: ${{ steps.prepare.outputs.target }}
