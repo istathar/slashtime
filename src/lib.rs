@@ -118,7 +118,7 @@ pub fn format_line(
         "{:22.22}  {}  {}  {}  {}",
         format_locality(target),
         format_time(&there),
-        format_date(&there),
+        format_date_full(&there),
         format_abbreviation(&target.abbreviation(when)?),
         format_offset(offset_seconds)
     ))
@@ -132,19 +132,25 @@ pub fn format_time(when: &DateTime) -> String {
     format!("{:02}:{:02}", when.hour(), when.minute())
 }
 
-// two digit year, as both the perl and the java original used; the century is
-// not in doubt and the column is narrow.
+// The date on its own. The day of the week is not here because the list sets
+// it beside the time on the line above, which leaves the column narrow enough
+// to carry the year in full.
 pub fn format_date(when: &DateTime) -> String {
     format!(
-        "{}, {:2} {} {:02}",
-        format_day(when.week_day()),
+        "{:2} {} {}",
         when.month_day(),
         format_month(when.month()),
-        when.year() % 100
+        when.year()
     )
 }
 
-fn format_day(day: u8) -> String {
+// with the weekday back in front, for a line that is going to be read
+// somewhere else, away from anything that would supply it
+fn format_date_full(when: &DateTime) -> String {
+    format!("{}, {}", format_day(when.week_day()), format_date(when))
+}
+
+pub fn format_day(day: u8) -> String {
     match day {
         0 => "Sun",
         1 => "Mon",
@@ -360,6 +366,19 @@ mod tests {
         assert_eq!(week_day(2026, 9, 17).unwrap(), 4); // a Thursday
         assert_eq!(week_day(2026, 9, 20).unwrap(), 0); // a Sunday
         assert_eq!(week_day(2000, 1, 1).unwrap(), 6); // a Saturday
+    }
+
+    // the screen keeps the short year the originals had; a line that leaves
+    // the program carries the century
+    #[test]
+    fn a_line_that_leaves_carries_its_century() {
+        let when = UtcDateTime::new(2026, 7, 1, 12, 0, 0, 0)
+            .unwrap()
+            .project(TimeZoneRef::utc())
+            .unwrap();
+
+        assert_eq!(format_date(&when), " 1 Jul 2026");
+        assert_eq!(format_date_full(&when), "Wed,  1 Jul 2026");
     }
 
     #[test]
