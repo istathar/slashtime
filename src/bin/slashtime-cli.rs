@@ -7,7 +7,7 @@ use crossterm::{
 use slashtime::{find_local, format_line};
 use std::path::PathBuf;
 
-fn main() -> Result<(), tz::TzError> {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     let now = tz::UtcDateTime::now()?;
 
     let matches = Command::new("slashtime-cli")

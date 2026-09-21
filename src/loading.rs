@@ -20,10 +20,7 @@ struct Place {
 // that. The home argument is the IANA name of a zone to mark as home, which
 // matters only when it differs from the machine's own time zone; pass None to
 // leave it unmarked.
-pub fn load_tzlist(
-    places: Option<&Path>,
-    home: Option<&str>,
-) -> Result<Vec<Locality>, tz::TzError> {
+pub fn load_tzlist(places: Option<&Path>, home: Option<&str>) -> Result<Vec<Locality>, tz::Error> {
     let now = tz::UtcDateTime::now()?;
     let lima = tz::TimeZone::local()?;
 
@@ -35,11 +32,10 @@ pub fn load_tzlist(
     };
 
     if !path.exists() {
-        return Err(std::io::Error::new(
+        return Err(tz::Error::Io(Box::new(std::io::Error::new(
             std::io::ErrorKind::NotFound,
             format!("tzlist file {} not found", path.display()),
-        )
-        .into());
+        ))));
     }
 
     let places = tzinfo_parser(&path).unwrap();
