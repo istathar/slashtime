@@ -85,17 +85,17 @@ const ICON_SIZE: f32 = 20.0;
 // which the time and date are then right aligned against.
 const OFFSET_COLUMN: f32 = 50.0;
 
-// The original asked for "DejaVu Sans, 11", which is no longer installed
-// anywhere by default. Noto Sans stands in for it: what matters is that its
-// numerals are all one width, so the clock does not shuffle sideways as the
-// minutes turn over, without it being a teletype monospace.
+// We use Noto Sans as a widely accepted libre font. The key metrics
+// consideration is that its numerals have a uniform width (without having the
+// blockiness of a typewriter face) so the clock does not shuffle sideways as
+// the minutes turn over.
 //
-// It is embedded rather than looked for on the machine. Every face has its own
-// line heights, so taking whatever happened to be installed would mean
-// measuring at startup and laying out differently from one machine to the
-// next; with the face fixed, the vertical layout above is a constant. Pinned
-// to Regular and subset to the Latin a tzlist can hold, it costs 29kB rather
-// than the 712kB of the full variable font. See share/fonts/OFL.txt.
+// The font is embedded rather than looked for on the machine. Every face has
+// its own line heights, so taking whatever happened to be installed would
+// mean measuring at startup and laying out differently from one machine to
+// the next; with the face fixed, the vertical layout above is a constant.
+// Pinned to Regular and subset to the Latin a tzlist can hold, it costs 29kB
+// rather than the 712kB of the full variable font. See share/fonts/OFL.txt.
 const FACE: &[u8] = include_bytes!("../../share/fonts/NotoSans-Regular-subset.ttf");
 
 // Put the face at the head of the family, leaving egui's built in fonts behind
@@ -263,17 +263,18 @@ impl Meeting {
 }
 
 // one location as it appears at a given moment, relative to a given pivot.
-// All of it is derived, so it is recomputed each pass rather than cached and
-// invalidated.
+// The names are borrowed from the location; what is formatted here depends
+// on the moment and the pivot, so it is recomputed each pass rather than
+// cached and invalidated.
 struct Reading<'a> {
     index: usize,
     location: &'a Locality,
     time: String,
-    day: String,
+    day: &'static str,
     date: String,
     offset: String,
     half: bool,
-    abbreviation: String,
+    abbreviation: &'a str,
     band: Band,
     key: u8,
     is_selected: bool,

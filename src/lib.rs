@@ -92,7 +92,7 @@ impl Locality {
 
     // the zone abbreviation in effect here at the given moment; "AEST" in
     // winter becomes "AEDT" once daylight savings starts.
-    pub fn abbreviation(&self, when: &UtcDateTime) -> Result<String, TzError> {
+    pub fn abbreviation(&self, when: &UtcDateTime) -> Result<&str, TzError> {
         let local = self.zone.find_local_time_type(when.unix_time())?;
 
         Ok(refine_zone_abbreviation(
@@ -119,7 +119,7 @@ pub fn format_line(
         format_locality(target),
         format_time(&there),
         format_date_full(&there),
-        format_abbreviation(&target.abbreviation(when)?),
+        format_abbreviation(target.abbreviation(when)?),
         format_offset(offset_seconds)
     ))
 }
@@ -150,7 +150,7 @@ fn format_date_full(when: &DateTime) -> String {
     format!("{}, {}", format_day(when.week_day()), format_date(when))
 }
 
-pub fn format_day(day: u8) -> String {
+pub fn format_day(day: u8) -> &'static str {
     match day {
         0 => "Sun",
         1 => "Mon",
@@ -161,7 +161,6 @@ pub fn format_day(day: u8) -> String {
         6 => "Sat",
         _ => "???",
     }
-    .to_string()
 }
 
 fn format_month(mon: u8) -> String {
@@ -186,7 +185,7 @@ fn format_month(mon: u8) -> String {
 // handle some known exceptions. Singapore's zoneinfo file, for example,
 // returns a code of "+08" which is annoying seeing as how there is a widely
 // used abbreviation for Singapre Time. UTC carries no designation at all.
-fn refine_zone_abbreviation(iana_zone: &str, code: &str) -> String {
+fn refine_zone_abbreviation<'a>(iana_zone: &str, code: &'a str) -> &'a str {
     match iana_zone {
         "UTC" => "UTC",
         "America/Sao_Paulo" => "BRT",
@@ -195,7 +194,6 @@ fn refine_zone_abbreviation(iana_zone: &str, code: &str) -> String {
         "Asia/Tashkent" => "UZT",
         _ => code,
     }
-    .to_string()
 }
 
 fn format_abbreviation(code: &str) -> String {
