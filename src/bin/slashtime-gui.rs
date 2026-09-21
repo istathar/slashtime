@@ -64,6 +64,14 @@ const CAPTION_LINE: f32 = 12.9375;
 const CAPTION_ABOVE: f32 = 3.0;
 const CAPTION_BELOW: f32 = 0.4375;
 
+// How wide the fixed pieces of the upper line are at the value size, for the
+// same reason. The weekday slot is the widest of the seven, which in this face
+// is Mon; Wed is a hair narrower. The ½ gets a slot of its own whether or not
+// a zone has one, so that the units column stays put all the way down.
+const WEEKDAY_WIDTH: f32 = 39.0625;
+const CLOCK_WIDTH: f32 = 37.5625;
+const HALF_WIDTH: f32 = 11.34375;
+
 // Take the slack the face already carries out of each gap, so that what is
 // left is the clear space actually asked for above.
 const LEAD: f32 = PADDING - VALUE_ABOVE;
@@ -414,33 +422,21 @@ fn row(ui: &mut egui::Ui, reading: &Reading, icons: &Icons) -> egui::Response {
     );
 
     // The day of the week hangs off the end of the time, in a slot wide enough
-    // for the widest of them so that the times stay in a column. The face
-    // keeps its numerals one width, but its letters are proportional, and Wed
-    // is wider than Fri.
-    let weekday = painter
-        .layout_no_wrap(", Wed".to_string(), value.clone(), foreground)
-        .size()
-        .x;
-
-    // where the time starts, which is a column of its own because the face
-    // keeps its numerals one width. The date hangs off it rather than off the
-    // end of the weekday, so that the two lines begin together.
-    let clock = middle
-        - weekday
-        - painter
-            .layout_no_wrap("00:00".to_string(), value.clone(), foreground)
-            .size()
-            .x;
+    // for the widest of them so that the times stay in a column. The date
+    // hangs off where the time starts rather than off the end of the weekday,
+    // so that the two lines begin together.
+    let weekday = middle - WEEKDAY_WIDTH;
+    let clock = weekday - CLOCK_WIDTH;
 
     painter.text(
-        egui::pos2(middle - weekday, upper),
+        egui::pos2(weekday, upper),
         egui::Align2::RIGHT_TOP,
         &reading.time,
         value.clone(),
         foreground,
     );
     painter.text(
-        egui::pos2(middle - weekday, upper),
+        egui::pos2(weekday, upper),
         egui::Align2::LEFT_TOP,
         &format!(", {}", reading.day),
         value.clone(),
@@ -454,15 +450,10 @@ fn row(ui: &mut egui::Ui, reading: &Reading, icons: &Icons) -> egui::Response {
         SUBDUED,
     );
 
-    // The ½ gets a slot of its own whether or not this zone has one, so that
-    // the units column stays put all the way down the list.
-    let slot = painter
-        .layout_no_wrap("½".to_string(), value.clone(), foreground)
-        .size()
-        .x;
+    let slot = right - HALF_WIDTH;
 
     painter.text(
-        egui::pos2(right - slot, upper),
+        egui::pos2(slot, upper),
         egui::Align2::RIGHT_TOP,
         &reading.offset,
         value.clone(),
@@ -471,7 +462,7 @@ fn row(ui: &mut egui::Ui, reading: &Reading, icons: &Icons) -> egui::Response {
 
     if reading.half {
         painter.text(
-            egui::pos2(right - slot, upper),
+            egui::pos2(slot, upper),
             egui::Align2::LEFT_TOP,
             "½",
             value,
@@ -479,7 +470,7 @@ fn row(ui: &mut egui::Ui, reading: &Reading, icons: &Icons) -> egui::Response {
         );
     }
     painter.text(
-        egui::pos2(right - slot, lower),
+        egui::pos2(slot, lower),
         egui::Align2::RIGHT_TOP,
         &reading.abbreviation,
         caption,
@@ -907,6 +898,37 @@ mod tests {
         }
 
         harness.run();
+    }
+
+    // The layout constants were measured off the embedded face, so measure
+    // them again: a new face, a new size, or egui changing how it lays text
+    // out will show up here rather than as a column quietly out of line.
+    #[test]
+    fn the_constants_still_match_the_face() {
+        let harness = harness();
+
+        let value = egui::FontId::proportional(VALUE_SIZE);
+        let caption = egui::FontId::proportional(CAPTION_SIZE);
+
+        harness.ctx.fonts_mut(|fonts| {
+            let mut width = |text: &str| {
+                fonts
+                    .layout_no_wrap(text.to_string(), value.clone(), PLAIN)
+                    .size()
+                    .x
+            };
+
+            let widest = (0..7)
+                .map(|day| width(&format!(", {}", format_day(day))))
+                .fold(0.0, f32::max);
+
+            assert_eq!(widest, WEEKDAY_WIDTH, "the widest weekday");
+            assert_eq!(width("00:00"), CLOCK_WIDTH, "the clock");
+            assert_eq!(width("½"), HALF_WIDTH, "the ½");
+
+            assert_eq!(fonts.row_height(&value), VALUE_LINE, "the value line");
+            assert_eq!(fonts.row_height(&caption), CAPTION_LINE, "the caption line");
+        });
     }
 
     #[test]
