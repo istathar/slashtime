@@ -15,16 +15,33 @@ struct Place {
     country_name: String,
 }
 
-// Load the user's tzlist into Localities. The home argument is the IANA name
-// of a zone to mark as home, which matters only when it differs from the
-// machine's own time zone; pass None to leave it unmarked.
-pub fn load_tzlist(home: Option<&str>) -> Result<Vec<Locality>, tz::TzError> {
+// Load the user's tzlist into Localities. The places argument is the file to
+// read, overriding the usual one in the config directory; pass None to use
+// that. The home argument is the IANA name of a zone to mark as home, which
+// matters only when it differs from the machine's own time zone; pass None to
+// leave it unmarked.
+pub fn load_tzlist(
+    places: Option<&Path>,
+    home: Option<&str>,
+) -> Result<Vec<Locality>, tz::TzError> {
     let now = tz::UtcDateTime::now()?;
     let lima = tz::TimeZone::local()?;
 
     // Ingest the user's tzinfo file.
 
-    let path = find_tzlist_file()?;
+    let path = match places {
+        Some(path) => path.to_path_buf(),
+        None => default_tzlist_file(),
+    };
+
+    if !path.exists() {
+        return Err(std::io::Error::new(
+            std::io::ErrorKind::NotFound,
+            format!("tzlist file {} not found", path.display()),
+        )
+        .into());
+    }
+
     let places = tzinfo_parser(&path).unwrap();
 
     // We now set about converting into Localities. First add an entry for
@@ -67,21 +84,13 @@ pub fn load_tzlist(home: Option<&str>) -> Result<Vec<Locality>, tz::TzError> {
     Ok(locations)
 }
 
-// return the path to the tzlist configuration file in the XDG_CONFIG_DIR.
-fn find_tzlist_file() -> Result<PathBuf, std::io::Error> {
-    let mut path =
-        dirs::config_dir().expect("XDG_CONFIG_DIR not set and default fallback not working either");
+// the path to the tzlist configuration file in the user's config directory,
+// which on Linux is $XDG_CONFIG_HOME or ~/.config.
+fn default_tzlist_file() -> PathBuf {
+    let mut path = dirs::config_dir().expect("unable to determine the user's config directory");
     path.push("slashtime");
     path.push("tzlist");
-
-    if path.exists() {
-        Ok(path)
-    } else {
-        Err(std::io::Error::new(
-            std::io::ErrorKind::NotFound,
-            "tzlist file not found",
-        ))
-    }
+    path
 }
 
 // parse a file containing three tab separated columns: first with a IANA zone

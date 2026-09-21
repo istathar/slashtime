@@ -1,8 +1,10 @@
+use clap::{value_parser, Arg, ArgAction, Command};
 use eframe::egui;
 use slashtime::{
     days_in_month, find_local, format_date, format_day, format_line, format_offset_parts,
     format_time, Band, Locality,
 };
+use std::path::PathBuf;
 use tz::{TzError, UtcDateTime};
 
 // The shading says how reachable someone is at their hour, so the list
@@ -568,10 +570,8 @@ struct Slashtime {
 }
 
 impl Slashtime {
-    fn new(ctx: &egui::Context, locations: Vec<Locality>) -> Self {
+    fn new(ctx: &egui::Context, locations: Vec<Locality>, pivot: usize) -> Self {
         install_fonts(ctx, &locations);
-
-        let pivot = find_local(&locations).unwrap_or(0);
 
         Slashtime {
             locations,
@@ -813,7 +813,40 @@ fn marble() -> egui::IconData {
 }
 
 fn main() -> eframe::Result {
-    let locations = slashtime::loading::load_tzlist(None).expect("unable to load tzlist");
+    let matches = Command::new("slashtime-gui")
+        .version(env!("CARGO_PKG_VERSION"))
+        .about("Show the time in various places.")
+        .arg(
+            Arg::new("places")
+                .long("places")
+                .value_name("filename")
+                .value_parser(value_parser!(PathBuf))
+                .action(ArgAction::Set)
+                .help("The tzlist file listing the places to show, rather than the one in the slashtime config directory."),
+        )
+        .arg(
+            Arg::new("home")
+                .help("The IANA name of a zone in the tzlist to measure offsets from, rather than the machine's own time zone."),
+        )
+        .get_matches();
+
+    let places = matches.get_one::<PathBuf>("places");
+    let locations = slashtime::loading::load_tzlist(places.map(PathBuf::as_path), None)
+        .expect("unable to load tzlist");
+
+    // Offsets are measured from the location in the machine's own time zone,
+    // unless a zone is named on the command line, in which case they are
+    // measured from there instead.
+    let pivot = match matches.get_one::<String>("home") {
+        Some(name) => locations
+            .iter()
+            .position(|location| location.iana_zone == *name)
+            .unwrap_or_else(|| {
+                eprintln!("Zone \"{}\" is not present in your tzlist", name);
+                std::process::exit(1);
+            }),
+        None => find_local(&locations).unwrap_or(0),
+    };
 
     // size the window to the list; there is nothing to scroll if it all fits
     let height = locations.len() as f32 * ROW_HEIGHT + 2.0;
@@ -833,7 +866,7 @@ fn main() -> eframe::Result {
     eframe::run_native(
         "slashtime",
         options,
-        Box::new(|cc| Ok(Box::new(Slashtime::new(&cc.egui_ctx, locations)))),
+        Box::new(|cc| Ok(Box::new(Slashtime::new(&cc.egui_ctx, locations, pivot)))),
     )
 }
 
@@ -875,7 +908,9 @@ mod tests {
             .build_ui_state(
                 move |ui, state: &mut Option<Slashtime>| {
                     state
-                        .get_or_insert_with(|| Slashtime::new(ui.ctx(), places.clone()))
+                        .get_or_insert_with(|| {
+                            Slashtime::new(ui.ctx(), places.clone(), find_local(&places).unwrap())
+                        })
                         .draw(ui);
                 },
                 None,
