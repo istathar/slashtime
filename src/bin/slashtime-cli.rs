@@ -7,7 +7,7 @@ use crossterm::{
 use slashtime::{find_local, format_line};
 use std::path::PathBuf;
 
-fn main() -> Result<(), tz::TzError> {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     let now = tz::UtcDateTime::now()?;
 
     let matches = Command::new("slashtime-cli")
@@ -28,7 +28,11 @@ fn main() -> Result<(), tz::TzError> {
         .get_matches();
 
     let places = matches.get_one::<PathBuf>("places");
-    let locations = slashtime::loading::load_tzlist(places.map(PathBuf::as_path), None)?;
+    let locations = slashtime::loading::load_tzlist(places.map(PathBuf::as_path), None, &now)
+        .unwrap_or_else(|e| {
+            eprintln!("Unable to load tzlist: {}", e);
+            std::process::exit(1);
+        });
 
     // Offsets are measured from the location in the machine's own time zone,
     // unless a zone is named on the command line, in which case they are

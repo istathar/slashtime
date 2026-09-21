@@ -831,8 +831,12 @@ fn main() -> eframe::Result {
         .get_matches();
 
     let places = matches.get_one::<PathBuf>("places");
-    let locations = slashtime::loading::load_tzlist(places.map(PathBuf::as_path), None)
-        .expect("unable to load tzlist");
+    let now = UtcDateTime::now().expect("system clock");
+    let locations = slashtime::loading::load_tzlist(places.map(PathBuf::as_path), None, &now)
+        .unwrap_or_else(|e| {
+            eprintln!("Unable to load tzlist: {}", e);
+            std::process::exit(1);
+        });
 
     // Offsets are measured from the location in the machine's own time zone,
     // unless a zone is named on the command line, in which case they are
