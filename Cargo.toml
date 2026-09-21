@@ -20,6 +20,12 @@ skrifa = "0.44"
 unicode-script = "0.5"
 clap = { version = "4.5", features = ["wrap_help"] }
 
+# Windows has no zoneinfo database, so a copy of the IANA data is embedded
+# when building there.
+[target.'cfg(windows)'.dependencies]
+tzdb_data = "0.2"
+iana-time-zone = "0.1"
+
 [dev-dependencies]
 egui_kittest = "0.36"
 

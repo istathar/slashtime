@@ -50,7 +50,7 @@ pub fn load_tzlist(
     home: Option<&str>,
     now: &tz::UtcDateTime,
 ) -> Result<Vec<Locality>, LoadError> {
-    let lima = tz::TimeZone::local().ok();
+    let lima = local_zone();
 
     // Ingest the user's tzinfo file.
 
@@ -83,7 +83,7 @@ pub fn load_tzlist(
     // Now add an entry for each of the places present in the tzinfo file.
 
     for place in places {
-        let zone = tz::TimeZone::from_posix_tz(&place.iana_zone)
+        let zone = find_zone(&place.iana_zone)
             .map_err(|e| LoadError::UnknownZone(place.iana_zone.clone(), e))?;
         let local = lima.as_ref() == Some(&zone);
         let away = home == Some(place.iana_zone.as_str());
@@ -104,6 +104,39 @@ pub fn load_tzlist(
     locations.sort_by_key(|location| location.offset(now).unwrap_or(0));
 
     Ok(locations)
+}
+
+// resolve an IANA zone name against the system's zoneinfo database.
+#[cfg(not(windows))]
+fn find_zone(name: &str) -> Result<tz::TimeZone, tz::Error> {
+    tz::TimeZone::from_posix_tz(name)
+}
+
+// Windows has no zoneinfo database, so resolve the name against the copy of
+// the IANA data embedded by the tzdb_data crate instead.
+#[cfg(windows)]
+fn find_zone(name: &str) -> Result<tz::TimeZone, tz::Error> {
+    let raw = tzdb_data::find_raw(name.as_bytes()).ok_or_else(|| {
+        tz::Error::Io(Box::new(std::io::Error::new(
+            std::io::ErrorKind::NotFound,
+            "not in the embedded time zone database",
+        )))
+    })?;
+    Ok(tz::TimeZone::from_tz_data(raw)?)
+}
+
+// the machine's own time zone, if it can be determined.
+#[cfg(not(windows))]
+fn local_zone() -> Option<tz::TimeZone> {
+    tz::TimeZone::local().ok()
+}
+
+// Windows names its zones differently; iana_time_zone maps the system's zone
+// to its IANA name, which is then resolved like any other.
+#[cfg(windows)]
+fn local_zone() -> Option<tz::TimeZone> {
+    let name = iana_time_zone::get_timezone().ok()?;
+    find_zone(&name).ok()
 }
 
 // the path to the tzlist configuration file in the user's config directory,
