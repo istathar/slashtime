@@ -368,8 +368,8 @@ mod tests {
         assert_eq!(week_day(2000, 1, 1).unwrap(), 6); // a Saturday
     }
 
-    // the screen keeps the short year the originals had; a line that leaves
-    // the program carries the century
+    // the screen keeps the weekday on the line above; a line that leaves the
+    // program carries it, and the century, itself
     #[test]
     fn a_line_that_leaves_carries_its_century() {
         let when = UtcDateTime::new(2026, 7, 1, 12, 0, 0, 0)

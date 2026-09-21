@@ -131,17 +131,18 @@ impl Icons {
     }
 
     // Which marker a row gets. A city in the meeting comes first while one is
-    // being planned, as that is the one thing that is not otherwise apparent;
-    // after that it is the order the original tested them in, where you are
-    // beating where you live, beating Zulu.
+    // being planned, as that is the one thing that is not otherwise apparent,
+    // and then the row everything is being measured from. The house is left
+    // behind on the row you belong to, which is how you find your way back
+    // after measuring from somewhere else. Zulu last, as the original had it.
     fn choose(&self, reading: &Reading) -> Option<&egui::TextureHandle> {
         let location = reading.location;
 
         if reading.is_meeting {
             Some(&self.meeting)
-        } else if location.is_local {
+        } else if reading.is_pivot {
             Some(&self.local)
-        } else if location.is_home {
+        } else if location.is_local || location.is_home {
             Some(&self.home)
         } else if location.is_zulu {
             Some(&self.zulu)
@@ -270,19 +271,21 @@ struct Reading<'a> {
     band: Band,
     key: u8,
     is_meeting: bool,
+    is_pivot: bool,
 }
 
 fn read<'a>(
     locations: &'a [Locality],
-    pivot: &Locality,
+    pivot: usize,
     when: &UtcDateTime,
     selected: &[usize],
 ) -> Result<Vec<Reading<'a>>, TzError> {
     let mut readings = Vec::with_capacity(locations.len());
+    let here = locations[pivot].offset(when)?;
 
     for (index, location) in locations.iter().enumerate() {
         let there = when.project(location.zone.as_ref())?;
-        let offset = format_offset_parts(location.offset(when)? - pivot.offset(when)?);
+        let offset = format_offset_parts(location.offset(when)? - here);
 
         readings.push(Reading {
             index,
@@ -296,6 +299,7 @@ fn read<'a>(
             band: location.band(when)?,
             key: location.sort_key(when)?,
             is_meeting: selected.contains(&index),
+            is_pivot: index == pivot,
         });
     }
 
@@ -578,12 +582,7 @@ impl Slashtime {
             egui::Color32::BLACK
         };
 
-        let readings = match read(
-            &self.locations,
-            &self.locations[self.pivot],
-            &when,
-            &self.selected,
-        ) {
+        let readings = match read(&self.locations, self.pivot, &when, &self.selected) {
             Ok(readings) => readings,
             Err(e) => {
                 ui.label(format!("Unable to read the zone database: {}", e));
@@ -858,13 +857,7 @@ mod tests {
         let slashtime = app(harness);
         let when = slashtime.showing(UtcDateTime::now().unwrap());
 
-        let readings = read(
-            &slashtime.locations,
-            &slashtime.locations[slashtime.pivot],
-            &when,
-            &[],
-        )
-        .unwrap();
+        let readings = read(&slashtime.locations, slashtime.pivot, &when, &[]).unwrap();
 
         let row = readings
             .iter()
@@ -1047,6 +1040,43 @@ mod tests {
             quoted.instant(&places[2]).unwrap(),
             when,
             "the moment moved"
+        );
+    }
+
+    // the pivot wears the marker for the clock everything is measured from,
+    // and the row the machine belongs to keeps the house
+    #[test]
+    fn the_local_marker_follows_the_pivot() {
+        let mut harness = harness();
+
+        let toronto = row_of(&harness, 1);
+
+        click_at(&mut harness, toronto);
+        click_at(&mut harness, toronto);
+
+        let slashtime = app(&harness);
+        assert_eq!(slashtime.pivot, 1, "the pivot did not move");
+
+        let when = slashtime.showing(UtcDateTime::now().unwrap());
+        let readings = read(&slashtime.locations, slashtime.pivot, &when, &[]).unwrap();
+
+        let marker = |index: usize| {
+            readings
+                .iter()
+                .find(|reading| reading.index == index)
+                .and_then(|reading| slashtime.icons.choose(reading))
+                .map(|texture| texture.id())
+        };
+
+        assert_eq!(
+            marker(1),
+            Some(slashtime.icons.local.id()),
+            "Toronto did not take the marker"
+        );
+        assert_eq!(
+            marker(0),
+            Some(slashtime.icons.home.id()),
+            "Sydney was left without the house"
         );
     }
 
