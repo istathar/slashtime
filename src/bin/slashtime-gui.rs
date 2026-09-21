@@ -18,7 +18,7 @@ const LOCAL: egui::Color32 = egui::Color32::from_rgb(0x00, 0x00, 0xff);
 const ZULU: egui::Color32 = egui::Color32::from_rgb(0x2f, 0xb9, 0x25);
 const LOCAL_DARK: egui::Color32 = egui::Color32::from_rgb(0x32, 0xfd, 0xff);
 const ZULU_DARK: egui::Color32 = egui::Color32::from_rgb(0xa0, 0xff, 0x97);
-const HOVER: egui::Color32 = egui::Color32::from_rgb(0x35, 0x84, 0xe4);
+const HOVER: egui::Color32 = egui::Color32::from_rgb(0x3f, 0x84, 0xb4);
 
 // the frame turns red while a meeting time is being planned, as the original
 // did, so the list is never mistaken for the actual time somewhere
@@ -66,6 +66,11 @@ const TO_CAPTION: f32 = VALUE_LINE - VALUE_BELOW + SEPARATION - CAPTION_ABOVE;
 const TRAIL: f32 = PADDING - CAPTION_BELOW;
 const ROW_HEIGHT: f32 = LEAD + TO_CAPTION + CAPTION_LINE + TRAIL;
 
+// the bar down the right hand edge that says a row is selected. It sits in
+// the margin the offset column already keeps clear, and runs the full height
+// so that a run of selected rows reads as one stroke.
+const MARK: f32 = 3.0;
+
 // the icon sits in a reserved column at the left, so that the city names line
 // up whether or not a given row has one.
 const ICON_COLUMN: f32 = 34.0;
@@ -111,13 +116,11 @@ fn install_fonts(ctx: &egui::Context) {
 const HOME_PNG: &[u8] = include_bytes!("../../share/slashtime/images/home.png");
 const LOCAL_PNG: &[u8] = include_bytes!("../../share/slashtime/images/local.png");
 const ZULU_PNG: &[u8] = include_bytes!("../../share/icons/hicolor/48x48/apps/slashtime.png");
-const MEETING_PNG: &[u8] = include_bytes!("../../share/slashtime/images/meeting.png");
 
 struct Icons {
     home: egui::TextureHandle,
     local: egui::TextureHandle,
     zulu: egui::TextureHandle,
-    meeting: egui::TextureHandle,
 }
 
 impl Icons {
@@ -126,21 +129,19 @@ impl Icons {
             home: texture(ctx, "home", HOME_PNG),
             local: texture(ctx, "local", LOCAL_PNG),
             zulu: texture(ctx, "zulu", ZULU_PNG),
-            meeting: texture(ctx, "meeting", MEETING_PNG),
         }
     }
 
-    // Which marker a row gets. A city in the meeting comes first while one is
-    // being planned, as that is the one thing that is not otherwise apparent,
-    // and then the row everything is being measured from. The house is left
-    // behind on the row you belong to, which is how you find your way back
-    // after measuring from somewhere else. Zulu last, as the original had it.
+    // Which marker a row gets. The row everything is being measured from comes
+    // first; the house is left behind on the row you belong to, which is how
+    // you find your way back after measuring from somewhere else. Zulu last,
+    // as the original had it. Being selected is not in here: that is a passing
+    // state of the list rather than something true about a place, so it is
+    // drawn as a bar down the edge of the row instead.
     fn choose(&self, reading: &Reading) -> Option<&egui::TextureHandle> {
         let location = reading.location;
 
-        if reading.is_meeting {
-            Some(&self.meeting)
-        } else if reading.is_pivot {
+        if reading.is_pivot {
             Some(&self.local)
         } else if location.is_local || location.is_home {
             Some(&self.home)
@@ -270,7 +271,7 @@ struct Reading<'a> {
     abbreviation: String,
     band: Band,
     key: u8,
-    is_meeting: bool,
+    is_selected: bool,
     is_pivot: bool,
 }
 
@@ -298,7 +299,7 @@ fn read<'a>(
             abbreviation: location.abbreviation(when)?,
             band: location.band(when)?,
             key: location.sort_key(when)?,
-            is_meeting: selected.contains(&index),
+            is_selected: selected.contains(&index),
             is_pivot: index == pivot,
         });
     }
@@ -361,6 +362,14 @@ fn row(ui: &mut egui::Ui, reading: &Reading, icons: &Icons) -> egui::Response {
     let painter = ui.painter();
 
     painter.rect_filled(rect, 0.0, background);
+
+    if reading.is_selected {
+        painter.rect_filled(
+            egui::Rect::from_min_max(egui::pos2(rect.right() - MARK, rect.top()), rect.max),
+            0.0,
+            HOVER,
+        );
+    }
 
     if let Some(icon) = icons.choose(reading) {
         let centre = egui::pos2(rect.left() + ICON_COLUMN / 2.0, rect.center().y);
@@ -517,6 +526,19 @@ impl Slashtime {
         }
     }
 
+    // Which rows are worth writing out: the ones picked out by hand, and
+    // failing that the two or three the eye goes to anyway. Leaving the
+    // default implicit is what keeps the list unmarked until someone asks for
+    // something, and the icon table answers the question rather than a second
+    // list of rules that could drift away from it.
+    fn marked(&self, reading: &Reading) -> bool {
+        if self.selected.is_empty() {
+            self.icons.choose(reading).is_some()
+        } else {
+            reading.is_selected
+        }
+    }
+
     // what the list is showing: the planned moment while there is one, and
     // otherwise the present
     fn showing(&self, now: UtcDateTime) -> UtcDateTime {
@@ -626,7 +648,6 @@ impl Slashtime {
         let mut chosen = self.pivot;
         let mut toggled = None;
         let icons = &self.icons;
-        let planning = self.meeting.is_some();
 
         egui::Frame::NONE
             .fill(frame)
@@ -643,44 +664,40 @@ impl Slashtime {
                         chosen = reading.index;
                     }
 
-                    // A single click adds a city to the block Enter prints,
-                    // or takes it out again. egui counts the second click of
-                    // a double click as a click as well, so re-pivoting
-                    // toggles twice and leaves the selection where it was;
-                    // the row stays put under the pointer in between because
-                    // the sort does not depend on the pivot.
-                    if planning && response.clicked() {
+                    // A single click adds a city to what Enter prints, or
+                    // takes it out again. egui counts the second click of a
+                    // double click as a click as well, so re-pivoting toggles
+                    // twice and leaves the selection where it was; the row
+                    // stays put under the pointer in between because the sort
+                    // does not depend on the pivot.
+                    if response.clicked() {
                         toggled = Some(reading.index);
                     }
                 }
             });
 
+        // Escape is the one key that means never mind: it puts the list back
+        // to the present and drops whatever was picked out.
         if escaped {
             self.meeting = None;
+            self.selected.clear();
         }
 
         let moved = chosen != self.pivot;
 
         self.pivot = chosen;
 
+        // the selection is not the planner's; a meeting is the same list of
+        // cities at another moment, so M only moves the moment
         if asked {
-            match self.meeting {
-                Some(_) => self.meeting = None,
-                None => {
-                    self.meeting = Meeting::new(&self.locations[self.pivot], &now);
-                    self.selected = vec![self.pivot];
-                }
-            }
+            self.meeting = match self.meeting {
+                Some(_) => None,
+                None => Meeting::new(&self.locations[self.pivot], &now),
+            };
         }
 
-        // both the moment and the selection belong to the mode, so leaving it
-        // by any route drops them together
-        if self.meeting.is_none() {
-            self.selected.clear();
-        }
-
-        // a click says which cities the meeting is being quoted to, which is
-        // a different thing from the pivot the offsets are measured against
+        // a click says which cities are wanted, which is a different thing
+        // from the pivot the offsets are measured against
         if let Some(index) = toggled {
             match self.selected.iter().position(|&each| each == index) {
                 Some(at) => {
@@ -690,7 +707,7 @@ impl Slashtime {
             }
         }
 
-        if planning && all {
+        if all {
             self.selected = (0..self.locations.len()).collect();
         }
 
@@ -714,11 +731,12 @@ impl Slashtime {
             }
         }
 
-        // Enter writes the selected cities out on the console and Ctrl+C puts
-        // the same lines on the clipboard; neither does anything unless a
-        // meeting is being planned and something is selected.
-        if planning && (entered || copied) {
-            let text = block(&readings, &self.locations[self.pivot], &when);
+        // Enter writes the marked rows out on the console and Ctrl+C puts the
+        // same lines on the clipboard.
+        if entered || copied {
+            let text = block(&readings, &self.locations[self.pivot], &when, |reading| {
+                self.marked(reading)
+            });
 
             if !text.is_empty() {
                 if entered {
@@ -739,12 +757,15 @@ impl Slashtime {
     }
 }
 
-// the selected cities as the command line tool would have written them, in
-// the order they are drawn in
-fn block(readings: &[Reading], pivot: &Locality, when: &UtcDateTime) -> String {
+// the wanted rows as the command line tool would have written them, in the
+// order they are drawn in
+fn block<F>(readings: &[Reading], pivot: &Locality, when: &UtcDateTime, wanted: F) -> String
+where
+    F: Fn(&Reading) -> bool,
+{
     readings
         .iter()
-        .filter(|reading| reading.is_meeting)
+        .filter(|reading| wanted(reading))
         .filter_map(|reading| format_line(reading.location, pivot, when).ok())
         .collect::<Vec<String>>()
         .join("\n")
@@ -891,24 +912,30 @@ mod tests {
         harness.key_press(egui::Key::M);
         harness.run();
         assert!(app(&harness).meeting.is_some(), "M did not open it");
-        assert_eq!(
-            app(&harness).selected,
-            vec![app(&harness).pivot],
-            "the pivot was not selected to begin with"
+        assert!(
+            app(&harness).selected.is_empty(),
+            "M helped itself to a selection"
         );
 
         harness.key_press(egui::Key::M);
         harness.run();
         assert!(app(&harness).meeting.is_none(), "M did not close it again");
 
+        // Escape means never mind: the moment and the selection both go
         harness.key_press(egui::Key::M);
         harness.run();
+
+        let london = row_of(&harness, 2);
+
+        click_at(&mut harness, london);
+        assert_eq!(app(&harness).selected, vec![2], "London did not join");
+
         harness.key_press(egui::Key::Escape);
         harness.run();
         assert!(app(&harness).meeting.is_none(), "Escape did not close it");
         assert!(
             app(&harness).selected.is_empty(),
-            "the selection outlived the mode"
+            "the selection survived Escape"
         );
     }
 
@@ -1043,6 +1070,58 @@ mod tests {
         );
     }
 
+    // what Enter would write out, as the app decides it
+    fn marked(harness: &Harness<'_, Option<Slashtime>>) -> String {
+        let slashtime = app(harness);
+        let when = slashtime.showing(UtcDateTime::now().unwrap());
+        let readings = read(&slashtime.locations, slashtime.pivot, &when, &[]).unwrap();
+
+        block(
+            &readings,
+            &slashtime.locations[slashtime.pivot],
+            &when,
+            |reading| slashtime.marked(reading),
+        )
+    }
+
+    // outside the planner the marked rows are the two or three the icons
+    // point at: where you are measuring from, where you belong, and Zulu
+    #[test]
+    fn the_marked_rows_are_the_ones_wearing_an_icon() {
+        let mut harness = harness();
+
+        let text = marked(&harness);
+        let lines: Vec<&str> = text.lines().collect();
+
+        assert_eq!(lines.len(), 2, "not Sydney and Zulu alone: {}", text);
+        assert!(
+            lines.iter().any(|line| line.starts_with("UTC,")),
+            "Zulu is missing: {}",
+            text
+        );
+        assert!(
+            lines.iter().any(|line| line.starts_with("Sydney,")),
+            "Sydney is missing: {}",
+            text
+        );
+
+        // measuring from somewhere else leaves the house behind, and that is
+        // the third row
+        let toronto = row_of(&harness, 1);
+
+        click_at(&mut harness, toronto);
+        click_at(&mut harness, toronto);
+
+        let text = marked(&harness);
+
+        assert_eq!(text.lines().count(), 3, "Toronto did not join: {}", text);
+        assert!(
+            text.lines().any(|line| line.starts_with("Toronto,")),
+            "Toronto is missing: {}",
+            text
+        );
+    }
+
     // the pivot wears the marker for the clock everything is measured from,
     // and the row the machine belongs to keeps the house
     #[test]
@@ -1114,10 +1193,10 @@ mod tests {
         let london = row_of(&harness, 2);
 
         click_at(&mut harness, london);
-        assert_eq!(app(&harness).selected, vec![0, 2], "London did not join");
+        assert_eq!(app(&harness).selected, vec![2], "London did not join");
 
         click_at(&mut harness, london);
-        assert_eq!(app(&harness).selected, vec![0], "London did not leave");
+        assert!(app(&harness).selected.is_empty(), "London did not leave");
     }
 
     // the second click of a double click is a click as well, so the two
@@ -1129,34 +1208,37 @@ mod tests {
         harness.key_press(egui::Key::M);
         harness.run();
 
+        // taking the whole list in by keyboard, so that the only clicks in
+        // this test are the two being measured
+        harness.key_press_modifiers(egui::Modifiers::COMMAND, egui::Key::A);
+        harness.run();
+
         let toronto = row_of(&harness, 1);
 
         click_at(&mut harness, toronto);
         click_at(&mut harness, toronto);
 
+        let mut after = app(&harness).selected.clone();
+        after.sort();
+
         assert_eq!(app(&harness).pivot, 1, "the pivot did not move");
-        assert_eq!(app(&harness).selected, vec![0], "the selection moved");
+        assert_eq!(after, vec![0, 1, 2, 3], "the selection moved");
     }
 
     #[test]
     fn ctrl_a_takes_in_every_city() {
         let mut harness = harness();
 
-        // nothing to take in outside the mode
-        harness.key_press_modifiers(egui::Modifiers::COMMAND, egui::Key::A);
-        harness.run();
-        assert!(
-            app(&harness).selected.is_empty(),
-            "the list marked itself up"
-        );
-
-        harness.key_press(egui::Key::M);
-        harness.run();
-
+        // no planner needed; the selection is the list's, not the mode's
         harness.key_press_modifiers(egui::Modifiers::COMMAND, egui::Key::A);
         harness.run();
 
         assert_eq!(app(&harness).selected, vec![0, 1, 2, 3]);
+
+        harness.key_press(egui::Key::Escape);
+        harness.run();
+
+        assert!(app(&harness).selected.is_empty(), "Escape left some behind");
     }
 
     // Asking to copy earns a repaint, and a whole run would draw again and
@@ -1178,33 +1260,32 @@ mod tests {
     }
 
     #[test]
-    fn copy_takes_the_selected_cities_and_nothing_else() {
+    fn copy_takes_the_same_lines_enter_prints() {
         let mut harness = harness();
 
-        // nothing to copy outside the mode
-        assert_eq!(copied(&mut harness), None, "the list was copied unasked");
+        // with nothing picked out it is the marked rows, as on the console
+        let text = copied(&mut harness).expect("nothing was copied");
 
-        harness.key_press(egui::Key::M);
-        harness.run();
+        assert_eq!(
+            text,
+            marked(&harness),
+            "the clipboard and the console differ"
+        );
+        assert_eq!(
+            text.lines().count(),
+            2,
+            "not Sydney and Zulu alone: {}",
+            text
+        );
 
         let london = row_of(&harness, 2);
 
         click_at(&mut harness, london);
 
         let text = copied(&mut harness).expect("nothing was copied");
-        let lines: Vec<&str> = text.lines().collect();
 
-        assert_eq!(lines.len(), 2, "not both cities: {}", text);
-        assert!(
-            lines.iter().any(|line| line.starts_with("London,")),
-            "London is missing: {}",
-            text
-        );
-        assert!(
-            lines.iter().any(|line| line.starts_with("Sydney,")),
-            "Sydney is missing: {}",
-            text
-        );
+        assert_eq!(text.lines().count(), 1, "not London alone: {}", text);
+        assert!(text.starts_with("London,"), "London is missing: {}", text);
     }
 
     // re-pivoting reads the meeting off the new clock at the time it is
