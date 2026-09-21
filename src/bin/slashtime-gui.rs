@@ -18,7 +18,12 @@ const LOCAL: egui::Color32 = egui::Color32::from_rgb(0x00, 0x00, 0xff);
 const ZULU: egui::Color32 = egui::Color32::from_rgb(0x2f, 0xb9, 0x25);
 const LOCAL_DARK: egui::Color32 = egui::Color32::from_rgb(0x32, 0xfd, 0xff);
 const ZULU_DARK: egui::Color32 = egui::Color32::from_rgb(0xa0, 0xff, 0x97);
-const HOVER: egui::Color32 = egui::Color32::from_rgb(0x3f, 0x84, 0xb4);
+const HOVER: egui::Color32 = egui::Color32::from_rgb(0x1c, 0x71, 0xd8);
+
+// How much of that colour is washed over the row under the pointer. The band
+// underneath is the data, so it is tinted rather than replaced: white, grey
+// and dark stay in that order, and every foreground goes on reading as it did.
+const TINT: f32 = 0.25;
 
 // the frame turns red while a meeting time is being planned, as the original
 // did, so the list is never mistaken for the actual time somewhere
@@ -363,6 +368,16 @@ fn row(ui: &mut egui::Ui, reading: &Reading, icons: &Icons) -> egui::Response {
 
     painter.rect_filled(rect, 0.0, background);
 
+    // The original highlighted whichever row the pointer was over and dropped
+    // the highlight again on the way out; there it was the theme's selection
+    // colour, reversing the whole row out. Washed over rather than replacing
+    // the band, it says the same thing without spending the shading to do it.
+    if response.hovered() {
+        painter.rect_filled(rect, 0.0, HOVER.gamma_multiply(TINT));
+    }
+
+    // Being selected outlasts the pointer, so it is put at the edge rather
+    // than across the row: a state you chose should not go on shouting.
     if reading.is_selected {
         painter.rect_filled(
             egui::Rect::from_min_max(egui::pos2(rect.right() - MARK, rect.top()), rect.max),
@@ -469,17 +484,6 @@ fn row(ui: &mut egui::Ui, reading: &Reading, icons: &Icons) -> egui::Response {
         caption,
         SUBDUED,
     );
-
-    // the original highlighted whichever row the pointer was over, and
-    // dropped the highlight again on the way out.
-    if response.hovered() {
-        painter.rect_stroke(
-            rect,
-            0.0,
-            egui::Stroke::new(1.0, HOVER),
-            egui::StrokeKind::Inside,
-        );
-    }
 
     response
 }
