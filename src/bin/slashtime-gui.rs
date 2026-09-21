@@ -3,7 +3,6 @@ use slashtime::{
     days_in_month, find_local, format_date, format_day, format_line, format_offset_parts,
     format_time, Band, Locality,
 };
-use std::path::{Path, PathBuf};
 use tz::{TzError, UtcDateTime};
 
 // The shading says how reachable someone is at their hour, so the list
@@ -483,29 +482,12 @@ fn row(ui: &mut egui::Ui, reading: &Reading, icons: &Icons) -> egui::Response {
     response
 }
 
-// Screenshots are written as a PPM, which needs no encoder, and converted
-// elsewhere if a real image format is wanted.
-fn write_ppm(path: &Path, image: &egui::ColorImage) -> std::io::Result<()> {
-    let [width, height] = image.size;
-
-    let mut out = Vec::with_capacity(width * height * 3 + 20);
-    out.extend_from_slice(format!("P6\n{} {}\n255\n", width, height).as_bytes());
-
-    for pixel in &image.pixels {
-        out.extend_from_slice(&[pixel.r(), pixel.g(), pixel.b()]);
-    }
-
-    std::fs::write(path, out)
-}
-
 struct Slashtime {
     locations: Vec<Locality>,
     pivot: usize,
     icons: Icons,
     meeting: Option<Meeting>,
     selected: Vec<usize>,
-    capture: Option<PathBuf>,
-    passes: u32,
 }
 
 impl Slashtime {
@@ -520,8 +502,6 @@ impl Slashtime {
             icons: Icons::load(ctx),
             meeting: None,
             selected: Vec::new(),
-            capture: std::env::var_os("SLASHTIME_SCREENSHOT").map(PathBuf::from),
-            passes: 0,
         }
     }
 
@@ -545,34 +525,6 @@ impl Slashtime {
             .as_ref()
             .and_then(|meeting| meeting.instant(&self.locations[self.pivot]))
             .unwrap_or(now)
-    }
-
-    // when SLASHTIME_SCREENSHOT names a file, draw a couple of passes to let
-    // the layout settle, ask for the window contents, write them out, and quit.
-    fn capture(&mut self, ctx: &egui::Context) {
-        let Some(path) = &self.capture else {
-            return;
-        };
-
-        self.passes += 1;
-
-        if self.passes == 2 {
-            ctx.send_viewport_cmd(egui::ViewportCommand::Screenshot(egui::UserData::default()));
-        }
-
-        let image = ctx.input(|state| {
-            state.events.iter().find_map(|event| match event {
-                egui::Event::Screenshot { image, .. } => Some(image.clone()),
-                _ => None,
-            })
-        });
-
-        if let Some(image) = image {
-            write_ppm(path, &image).expect("write screenshot");
-            ctx.send_viewport_cmd(egui::ViewportCommand::Close);
-        }
-
-        ctx.request_repaint();
     }
 }
 
@@ -746,8 +698,6 @@ impl Slashtime {
                 }
             }
         }
-
-        self.capture(ui.ctx());
 
         // the readouts only change on the minute, so there is no reason to
         // wake up any more often than that.
