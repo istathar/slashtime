@@ -1,8 +1,10 @@
+use clap::{value_parser, Arg, ArgAction, Command};
 use eframe::egui;
 use slashtime::{
     days_in_month, find_local, format_date, format_day, format_line, format_offset_parts,
     format_time, Band, Locality,
 };
+use std::path::PathBuf;
 use tz::{TzError, UtcDateTime};
 
 // The shading says how reachable someone is at their hour, so the list
@@ -99,26 +101,103 @@ const OFFSET_COLUMN: f32 = 50.0;
 // its own line heights, so taking whatever happened to be installed would
 // mean measuring at startup and laying out differently from one machine to
 // the next; with the face fixed, the vertical layout above is a constant.
-// Pinned to Regular and subset to the Latin a tzlist can hold, it costs 29kB
-// rather than the 712kB of the full variable font. See share/fonts/OFL.txt.
+// Pinned to Regular and subset to Latin, it costs 29kB rather than the 712kB
+// of the full variable font; names in other scripts are drawn from fonts the
+// system has. See share/fonts/OFL.txt.
 const FACE: &[u8] = include_bytes!("../../share/fonts/NotoSans-Regular-subset.ttf");
 
-// Put the face at the head of the family, leaving egui's built in fonts behind
-// it to cover anything it is missing.
-fn install_fonts(ctx: &egui::Context) {
+// Put the face at the head of the family, then any system fonts the city and
+// country names need, leaving egui's built in fonts behind them to cover
+// anything still missing. Row heights come from the first font in a family,
+// so the fallbacks do not disturb the vertical layout.
+fn install_fonts(ctx: &egui::Context, locations: &[Locality]) {
     let mut fonts = egui::FontDefinitions::default();
 
+    let mut names = vec!["sans".to_string()];
     fonts.font_data.insert(
         "sans".to_string(),
         std::sync::Arc::new(egui::FontData::from_static(FACE)),
     );
+
+    for (name, data) in fallback_fonts(locations) {
+        fonts
+            .font_data
+            .insert(name.clone(), std::sync::Arc::new(data));
+        names.push(name);
+    }
+
     fonts
         .families
         .entry(egui::FontFamily::Proportional)
         .or_default()
-        .insert(0, "sans".to_string());
+        .splice(0..0, names);
 
     ctx.set_fonts(fonts);
+}
+
+// Ask the system which font it would use for each script that appears in the
+// names but is missing from the embedded face. Usually nothing is missing and
+// the system is never asked. Latin is skipped, as the platform's choice for it
+// is some unrelated face, and so are Common and Inherited, which punctuation
+// and combining marks belong to.
+fn fallback_fonts(locations: &[Locality]) -> Vec<(String, egui::FontData)> {
+    use skrifa::MetadataProvider;
+    use unicode_script::{Script, UnicodeScript};
+
+    let charmap = skrifa::FontRef::new(FACE).expect("embedded face").charmap();
+
+    let mut scripts = Vec::new();
+    for c in locations
+        .iter()
+        .flat_map(|place| place.city_name.chars().chain(place.country_name.chars()))
+    {
+        let script = c.script();
+        if charmap.map(c).is_none()
+            && !matches!(script, Script::Common | Script::Inherited | Script::Latin)
+            && !scripts.contains(&script)
+        {
+            scripts.push(script);
+        }
+    }
+
+    let mut result: Vec<(String, egui::FontData)> = Vec::new();
+    if scripts.is_empty() {
+        return result;
+    }
+
+    let mut collection = fontique::Collection::new(fontique::CollectionOptions::default());
+
+    for script in scripts {
+        let key = fontique::FallbackKey::new(
+            fontique::Script::from_str_unchecked(script.short_name()),
+            None,
+        );
+        let Some(id) = collection.fallback_families(key).next() else {
+            continue;
+        };
+        let Some(family) = collection.family(id) else {
+            continue;
+        };
+
+        // Han and Hangul, for one, usually resolve to the same family
+        let name = family.name().to_string();
+        if result.iter().any(|(n, _)| *n == name) {
+            continue;
+        }
+
+        let Some(font) = family.default_font() else {
+            continue;
+        };
+        let Some(blob) = font.load(None) else {
+            continue;
+        };
+
+        let mut data = egui::FontData::from_owned(blob.as_ref().to_vec());
+        data.index = font.index();
+        result.push((name, data));
+    }
+
+    result
 }
 
 // the icons are embedded rather than read from disk; they are tiny, and this
@@ -491,10 +570,8 @@ struct Slashtime {
 }
 
 impl Slashtime {
-    fn new(ctx: &egui::Context, locations: Vec<Locality>) -> Self {
-        install_fonts(ctx);
-
-        let pivot = find_local(&locations).unwrap_or(0);
+    fn new(ctx: &egui::Context, locations: Vec<Locality>, pivot: usize) -> Self {
+        install_fonts(ctx, &locations);
 
         Slashtime {
             locations,
@@ -736,7 +813,40 @@ fn marble() -> egui::IconData {
 }
 
 fn main() -> eframe::Result {
-    let locations = slashtime::loading::load_tzlist(None).expect("unable to load tzlist");
+    let matches = Command::new("slashtime-gui")
+        .version(env!("CARGO_PKG_VERSION"))
+        .about("Show the time in various places.")
+        .arg(
+            Arg::new("places")
+                .long("places")
+                .value_name("filename")
+                .value_parser(value_parser!(PathBuf))
+                .action(ArgAction::Set)
+                .help("The tzlist file listing the places to show, rather than the one in the slashtime config directory."),
+        )
+        .arg(
+            Arg::new("home")
+                .help("The IANA name of a zone in the tzlist to measure offsets from, rather than the machine's own time zone."),
+        )
+        .get_matches();
+
+    let places = matches.get_one::<PathBuf>("places");
+    let locations = slashtime::loading::load_tzlist(places.map(PathBuf::as_path), None)
+        .expect("unable to load tzlist");
+
+    // Offsets are measured from the location in the machine's own time zone,
+    // unless a zone is named on the command line, in which case they are
+    // measured from there instead.
+    let pivot = match matches.get_one::<String>("home") {
+        Some(name) => locations
+            .iter()
+            .position(|location| location.iana_zone == *name)
+            .unwrap_or_else(|| {
+                eprintln!("Zone \"{}\" is not present in your tzlist", name);
+                std::process::exit(1);
+            }),
+        None => find_local(&locations).unwrap_or(0),
+    };
 
     // size the window to the list; there is nothing to scroll if it all fits
     let height = locations.len() as f32 * ROW_HEIGHT + 2.0;
@@ -756,7 +866,7 @@ fn main() -> eframe::Result {
     eframe::run_native(
         "slashtime",
         options,
-        Box::new(|cc| Ok(Box::new(Slashtime::new(&cc.egui_ctx, locations)))),
+        Box::new(|cc| Ok(Box::new(Slashtime::new(&cc.egui_ctx, locations, pivot)))),
     )
 }
 
@@ -798,7 +908,9 @@ mod tests {
             .build_ui_state(
                 move |ui, state: &mut Option<Slashtime>| {
                     state
-                        .get_or_insert_with(|| Slashtime::new(ui.ctx(), places.clone()))
+                        .get_or_insert_with(|| {
+                            Slashtime::new(ui.ctx(), places.clone(), find_local(&places).unwrap())
+                        })
                         .draw(ui);
                 },
                 None,
