@@ -10,8 +10,9 @@ fn main() -> Result<(), tz::TzError> {
 
     let locations = slashtime::loading::load_tzlist(None)?;
 
-    // Offsets are measured from wherever you are, unless you name a zone on
-    // the command line, in which case they are measured from there instead.
+    // Offsets are measured from the location in the machine's own time zone,
+    // unless a zone is named on the command line, in which case they are
+    // measured from there instead.
 
     let pivot = match std::env::args().nth(1) {
         Some(name) => locations

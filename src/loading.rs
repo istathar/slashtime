@@ -16,8 +16,8 @@ struct Place {
 }
 
 // Load the user's tzlist into Localities. The home argument is the IANA name
-// of the zone you normally live in, which matters only when you are away from
-// it; pass None to leave it unmarked.
+// of a zone to mark as home, which matters only when it differs from the
+// machine's own time zone; pass None to leave it unmarked.
 pub fn load_tzlist(home: Option<&str>) -> Result<Vec<Locality>, tz::TzError> {
     let now = tz::UtcDateTime::now()?;
     let lima = tz::TimeZone::local()?;

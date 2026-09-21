@@ -1,6 +1,5 @@
 use tz::DateTime;
 use tz::TimeZone;
-use tz::TimeZoneRef;
 use tz::TzError;
 use tz::UtcDateTime;
 
@@ -32,8 +31,8 @@ pub enum Band {
     Night,
 }
 
-// the original reckoned the day in half hours from midnight, which is enough
-// resolution for the zones that are offset by thirty minutes.
+// the day in half hours from midnight, which is enough resolution for the
+// zones that are offset by thirty minutes.
 fn halves_since_midnight(there: &DateTime) -> u8 {
     there.hour() * 2 + if there.minute() >= 30 { 1 } else { 0 }
 }
@@ -104,8 +103,8 @@ impl Locality {
 
 // Output a single line with all the relevant information. The target is the
 // location being represented, and pivot is the location its offset is
-// measured from. That is usually wherever you are now, but the whole point of
-// the program is that you can measure from somewhere else instead.
+// measured from. That is usually the location in the machine's own time zone,
+// but the whole point of the program is that it can be somewhere else instead.
 pub fn format_line(
     target: &Locality,
     pivot: &Locality,
@@ -228,15 +227,8 @@ pub fn format_offset(offset_seconds: i32) -> String {
     format!("{:>3}{}", text, if half { '½' } else { ' ' })
 }
 
-// which day of the week a date falls on, Sunday counting as zero, so that a
-// calendar knows how far into the first row to begin
-pub fn week_day(year: i32, month: u8, day: u8) -> Result<u8, TzError> {
-    let noon = DateTime::find(year, month, day, 12, 0, 0, 0, TimeZoneRef::utc())?;
-
-    Ok(noon.earliest().map_or(0, |when| when.week_day()))
-}
-
-// how many days a month has, which a calendar needs in order to lay itself out
+// how many days a month has, so that stepping a date by days or months never
+// lands on one that does not exist
 pub fn days_in_month(year: i32, month: u8) -> u8 {
     match month {
         1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
@@ -259,6 +251,7 @@ pub fn find_local(locations: &[Locality]) -> Option<usize> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use tz::TimeZoneRef;
 
     fn locality(iana_zone: &str) -> Locality {
         Locality {
@@ -357,13 +350,6 @@ mod tests {
         let when = sydney.instant(2026, 4, 5, 2, 30).unwrap().unwrap();
 
         assert_eq!(sydney.offset(&when).unwrap(), 11 * 3600);
-    }
-
-    #[test]
-    fn dates_fall_on_the_right_weekday() {
-        assert_eq!(week_day(2026, 9, 17).unwrap(), 4); // a Thursday
-        assert_eq!(week_day(2026, 9, 20).unwrap(), 0); // a Sunday
-        assert_eq!(week_day(2000, 1, 1).unwrap(), 6); // a Saturday
     }
 
     // the screen keeps the weekday on the line above; a line that leaves the

@@ -6,8 +6,8 @@ use slashtime::{
 use std::path::{Path, PathBuf};
 use tz::{TzError, UtcDateTime};
 
-// the palette carried over from the java-gnome original. The list deliberately
-// ignores the desktop theme; here the shading is data, not chrome.
+// The shading says how reachable someone is at their hour, so the list
+// deliberately ignores the desktop theme; here colour is data, not chrome.
 const WORK: egui::Color32 = egui::Color32::from_rgb(0xff, 0xff, 0xff);
 const CIVIL: egui::Color32 = egui::Color32::from_rgb(0xdd, 0xdd, 0xdd);
 const NIGHT: egui::Color32 = egui::Color32::from_rgb(0x77, 0x77, 0x77);
@@ -23,23 +23,21 @@ const HOVER: egui::Color32 = egui::Color32::from_rgb(0x1c, 0x71, 0xd8);
 // How much of that colour is washed over the row under the pointer. The band
 // underneath is the data, so it is tinted rather than replaced: white, grey
 // and dark stay in that order, and every foreground goes on reading as it did.
-const TINT: f32 = 0.25;
+const HOVER_OPACITY: f32 = 0.25;
 
-// the frame turns red while a meeting time is being planned, as the original
-// did, so the list is never mistaken for the actual time somewhere
+// the frame turns red while a meeting is being planned, so the list is never
+// mistaken for the actual time somewhere
 const WRONG: egui::Color32 = egui::Color32::from_rgb(0xd0, 0x18, 0x18);
 
-// This has to match the basename of the installed .desktop file, which is how
-// a wayland compositor works out which icon belongs to the window; there is no
-// other route, as wayland ignores icons set on the window itself.
+// The Application Identifier has to match the basename of the installed
+// .desktop file so that the wayland compositor works out which icon belongs
+// to the window.
 //
-// Note that eframe only sends the app id at all when built with its "wayland"
-// feature, which Cargo.toml enables explicitly. Drop that feature and this
-// becomes a silent no-op rather than a compile error.
+// eframe only sends an Application Identifier when built with the "wayland"
+// feature enabled, which Cargo.toml does explicitly.
 const APP_ID: &str = "org.aesiniath.Slashtime";
 
-// the original window was about seven times as tall as it was wide with a
-// list this long, and fifteen years of muscle memory is worth honouring.
+// an aspect ratio of approximately 7:1 given a list of 20 or so cities.
 const WIDTH: f32 = 272.0;
 
 const VALUE_SIZE: f32 = 14.7;
@@ -125,7 +123,7 @@ fn install_fonts(ctx: &egui::Context) {
 }
 
 // the icons are embedded rather than read from disk; they are tiny, and this
-// saves the program having to work out where it was installed.
+// keeps the program from having on-disk dependencies.
 const HOME_PNG: &[u8] = include_bytes!("../../share/slashtime/images/home.png");
 const LOCAL_PNG: &[u8] = include_bytes!("../../share/slashtime/images/local.png");
 const ZULU_PNG: &[u8] = include_bytes!("../../share/icons/hicolor/48x48/apps/slashtime.png");
@@ -145,12 +143,14 @@ impl Icons {
         }
     }
 
-    // Which marker a row gets. The row everything is being measured from comes
-    // first; the house is left behind on the row you belong to, which is how
-    // you find your way back after measuring from somewhere else. Zulu last,
-    // as the original had it. Being selected is not in here: that is a passing
-    // state of the list rather than something true about a place, so it is
-    // drawn as a bar down the edge of the row instead.
+    // Which icon a row gets, in order of precedence. The pivot, which the
+    // offsets are measured from, gets the local icon. A location in the
+    // machine's own time zone, or the home location if one was given, gets
+    // the home icon, so it can still be found after pivoting elsewhere. The
+    // Zulu row comes last, as it is already picked out in green. Selection is
+    // not an icon: it is a passing state of the list rather than something
+    // true about a place, so it is drawn as a bar down the edge of the row
+    // instead.
     fn choose(&self, reading: &Reading) -> Option<&egui::TextureHandle> {
         let location = reading.location;
 
@@ -184,9 +184,8 @@ fn step_month(year: i32, month: u8, by: i32) -> (i32, u8) {
     (months.div_euclid(12), (months.rem_euclid(12) + 1) as u8)
 }
 
-// A meeting is a wall clock reading on the pivot's clock: say what time you
-// want it to be there, and the instant that turns out to be is what the whole
-// list is then shown at.
+// A meeting is a wall clock reading on the pivot's clock, which the keys step
+// back and forth. The instant it names is what the whole list is shown at.
 struct Meeting {
     year: i32,
     month: u8,
@@ -209,7 +208,8 @@ impl Meeting {
         })
     }
 
-    // start from the hour just gone where the meeting is, as the original did
+    // a new meeting starts at the top of the current hour on the place's
+    // clock, as meetings are mostly held on the hour
     fn new(place: &Locality, now: &UtcDateTime) -> Option<Self> {
         let mut meeting = Meeting::at(place, now)?;
 
@@ -323,7 +323,11 @@ fn read<'a>(
     Ok(readings)
 }
 
-// background comes from the hour, foreground from which location this is.
+// The background shows whether it is working hours, civil hours, or night at
+// that location, as Band classifies the time of day there. The text is blue
+// for a location in the machine's own time zone and green for Zulu, each in a
+// lighter shade over the night band so that it can still be read; every other
+// row is black.
 fn colours(reading: &Reading) -> (egui::Color32, egui::Color32) {
     let background = match reading.band {
         Band::Work => WORK,
@@ -352,9 +356,10 @@ fn colours(reading: &Reading) -> (egui::Color32, egui::Color32) {
     (background, foreground)
 }
 
-// Each row is painted into an exact rectangle rather than laid out from its
-// contents, so that the shaded bands line up and reach both edges regardless
-// of how long a city name happens to be.
+// Each row is painted into an exact rectangle of the size we've statically
+// determined (rather than laid out from its contents as full capability GUI
+// toolkit like GTK would do), so that the shaded bands line up and reach both
+// edges regardless of how long a city name happens to be.
 fn row(ui: &mut egui::Ui, reading: &Reading, icons: &Icons) -> egui::Response {
     let (rect, response) = ui.allocate_exact_size(
         egui::vec2(ui.available_width(), ROW_HEIGHT),
@@ -377,12 +382,10 @@ fn row(ui: &mut egui::Ui, reading: &Reading, icons: &Icons) -> egui::Response {
 
     painter.rect_filled(rect, 0.0, background);
 
-    // The original highlighted whichever row the pointer was over and dropped
-    // the highlight again on the way out; there it was the theme's selection
-    // colour, reversing the whole row out. Washed over rather than replacing
-    // the band, it says the same thing without spending the shading to do it.
+    // the row under the pointer gets a translucent layer of the hover colour,
+    // so that the band beneath still shows through
     if response.hovered() {
-        painter.rect_filled(rect, 0.0, HOVER.gamma_multiply(TINT));
+        painter.rect_filled(rect, 0.0, HOVER.gamma_multiply(HOVER_OPACITY));
     }
 
     // Being selected outlasts the pointer, so it is put at the edge rather
@@ -535,8 +538,8 @@ impl Slashtime {
         }
     }
 
-    // what the list is showing: the planned moment while there is one, and
-    // otherwise the present
+    // what the list is showing: the meeting while there is one, and otherwise
+    // the present
     fn showing(&self, now: UtcDateTime) -> UtcDateTime {
         self.meeting
             .as_ref()
@@ -608,9 +611,7 @@ impl Slashtime {
             }
         };
 
-        // the readings borrow the location list, so the new pivot is parked
-        // here until the loop is done with it.
-        // M puts the list into planning mode and takes it out again, Escape
+        // M puts the list into meeting mode and takes it out again, Escape
         // only ever leaves, Q gives up altogether.
         let (asked, escaped, quit, entered, copied, all, days, months, minutes) =
             ui.ctx().input(|state| {
@@ -641,6 +642,8 @@ impl Slashtime {
             ui.ctx().send_viewport_cmd(egui::ViewportCommand::Close);
         }
 
+        // the readings borrow the location list, so the new pivot is parked
+        // here until the loop is done with it.
         let mut chosen = self.pivot;
         let mut toggled = None;
         let icons = &self.icons;
@@ -683,7 +686,7 @@ impl Slashtime {
 
         self.pivot = chosen;
 
-        // the selection is not the planner's; a meeting is the same list of
+        // the selection is not the meeting's; a meeting is the same list of
         // cities at another moment, so M only moves the moment
         if asked {
             self.meeting = match self.meeting {
@@ -791,8 +794,8 @@ fn main() -> eframe::Result {
     let options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
             .with_inner_size([WIDTH, height])
-            // as the original did: no decorations, the thin black border
-            // around the list is the whole frame.
+            // no decorations: the thin border around the list is the whole
+            // frame, and it is the frame that turns red during a meeting.
             .with_decorations(false)
             .with_resizable(false)
             .with_icon(marble())
@@ -834,24 +837,16 @@ mod tests {
 
     // The harness has a Ui but no window, so the app is built on the first
     // pass, once there is a Context to load the face and the icons from.
-    fn harness<'a>() -> Harness<'a, Option<Slashtime>> {
+    fn new_harness<'a>() -> Harness<'a, Option<Slashtime>> {
         let places = places();
 
-        let size = egui::vec2(WIDTH + 16.0, 700.0);
-
         let mut harness = Harness::builder()
-            .with_size(size)
+            .with_size(egui::vec2(WIDTH + 16.0, 700.0))
             // a double click needs both releases inside egui's 0.3s window,
             // and the harness steps a quarter of a second at a time by default
             .with_step_dt(1.0 / 60.0)
             .build_ui_state(
                 move |ui, state: &mut Option<Slashtime>| {
-                    // The harness sizes its frame to whatever the app drew last
-                    // pass, which once the list alone had been drawn left the
-                    // planner outside the region clicks are accepted in. A real
-                    // window does not do this, so hold the Ui open.
-                    ui.set_min_size(size);
-
                     state
                         .get_or_insert_with(|| Slashtime::new(ui.ctx(), places.clone()))
                         .draw(ui);
@@ -869,7 +864,7 @@ mod tests {
 
     // Where on screen a given location has been drawn. The list sorts itself
     // by the time of day, so this moves about with the clock, and again once
-    // the planner pins the list to a moment other than the present.
+    // a meeting pins the list to a moment other than the present.
     fn row_of(harness: &Harness<'_, Option<Slashtime>>, index: usize) -> f32 {
         let slashtime = app(harness);
         let when = slashtime.showing(UtcDateTime::now().unwrap());
@@ -905,7 +900,7 @@ mod tests {
     // out will show up here rather than as a column quietly out of line.
     #[test]
     fn the_constants_still_match_the_face() {
-        let harness = harness();
+        let harness = new_harness();
 
         let value = egui::FontId::proportional(VALUE_SIZE);
         let caption = egui::FontId::proportional(CAPTION_SIZE);
@@ -933,7 +928,7 @@ mod tests {
 
     #[test]
     fn m_toggles_planning_and_escape_leaves_it() {
-        let mut harness = harness();
+        let mut harness = new_harness();
         assert!(app(&harness).meeting.is_none());
 
         harness.key_press(egui::Key::M);
@@ -980,7 +975,7 @@ mod tests {
 
     #[test]
     fn the_arrow_keys_move_the_planned_moment() {
-        let mut harness = harness();
+        let mut harness = new_harness();
 
         harness.key_press(egui::Key::M);
         harness.run();
@@ -1003,7 +998,7 @@ mod tests {
     // page keys step a month, not a week
     #[test]
     fn the_page_keys_move_a_month() {
-        let mut harness = harness();
+        let mut harness = new_harness();
 
         harness.key_press(egui::Key::M);
         harness.run();
@@ -1111,11 +1106,12 @@ mod tests {
         )
     }
 
-    // outside the planner the marked rows are the two or three the icons
-    // point at: where you are measuring from, where you belong, and Zulu
+    // outside a meeting the marked rows are the two or three the icons
+    // point at: the pivot, the location in the machine's own time zone, and
+    // Zulu
     #[test]
     fn the_marked_rows_are_the_ones_wearing_an_icon() {
-        let mut harness = harness();
+        let mut harness = new_harness();
 
         let text = marked(&harness);
         let lines: Vec<&str> = text.lines().collect();
@@ -1153,7 +1149,7 @@ mod tests {
     // and the row the machine belongs to keeps the house
     #[test]
     fn the_local_marker_follows_the_pivot() {
-        let mut harness = harness();
+        let mut harness = new_harness();
 
         let toronto = row_of(&harness, 1);
 
@@ -1189,7 +1185,7 @@ mod tests {
     // clicking a row says which cities are in the meeting
     #[test]
     fn only_a_click_changes_the_selection() {
-        let mut harness = harness();
+        let mut harness = new_harness();
 
         harness.key_press(egui::Key::M);
         harness.run();
@@ -1211,7 +1207,7 @@ mod tests {
 
     #[test]
     fn a_click_takes_a_city_in_and_out_again() {
-        let mut harness = harness();
+        let mut harness = new_harness();
 
         harness.key_press(egui::Key::M);
         harness.run();
@@ -1230,7 +1226,7 @@ mod tests {
     // cancel and a re-pivot leaves the selection alone
     #[test]
     fn a_double_click_moves_the_pivot_and_nothing_else() {
-        let mut harness = harness();
+        let mut harness = new_harness();
 
         harness.key_press(egui::Key::M);
         harness.run();
@@ -1254,9 +1250,9 @@ mod tests {
 
     #[test]
     fn ctrl_a_takes_in_every_city() {
-        let mut harness = harness();
+        let mut harness = new_harness();
 
-        // no planner needed; the selection is the list's, not the mode's
+        // no meeting needed; the selection is the list's, not the mode's
         harness.key_press_modifiers(egui::Modifiers::COMMAND, egui::Key::A);
         harness.run();
 
@@ -1288,7 +1284,7 @@ mod tests {
 
     #[test]
     fn copy_takes_the_same_lines_enter_prints() {
-        let mut harness = harness();
+        let mut harness = new_harness();
 
         // with nothing picked out it is the marked rows, as on the console
         let text = copied(&mut harness).expect("nothing was copied");
@@ -1319,7 +1315,7 @@ mod tests {
     // already showing, so the list does not move
     #[test]
     fn a_re_pivot_keeps_the_planned_instant() {
-        let mut harness = harness();
+        let mut harness = new_harness();
 
         harness.key_press(egui::Key::M);
         harness.run();
