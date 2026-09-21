@@ -1,4 +1,4 @@
-use super::{refine_zone_abbreviation, Locality};
+use super::Locality;
 use csv::ReaderBuilder;
 use serde::Deserialize;
 use std::fs::File;
@@ -15,9 +15,12 @@ struct Place {
     country_name: String,
 }
 
-pub fn load_tzlist() -> Result<Vec<Locality>, tz::TzError> {
+// Load the user's tzlist into Localities. The home argument is the IANA name
+// of a zone to mark as home, which matters only when it differs from the
+// machine's own time zone; pass None to leave it unmarked.
+pub fn load_tzlist(home: Option<&str>) -> Result<Vec<Locality>, tz::TzError> {
+    let now = tz::UtcDateTime::now()?;
     let lima = tz::TimeZone::local()?;
-    let local_offset = lima.find_current_local_time_type()?.ut_offset();
 
     // Ingest the user's tzinfo file.
 
@@ -31,40 +34,35 @@ pub fn load_tzlist() -> Result<Vec<Locality>, tz::TzError> {
 
     locations.push(Locality {
         zone: tz::TimeZone::utc(),
-        is_zulu: true,
-        is_home: false,
-        offset_zulu: 0,
-        offset_local: -local_offset,
+        iana_zone: "UTC".to_string(),
         city_name: "Zulu".to_string(),
         country_name: "Universal Time".to_string(),
-        abbreviation: "UTC".to_string(),
+        is_zulu: true,
+        is_local: false,
+        is_home: false,
     });
 
     // Now add an entry for each of the places present in the tzinfo file.
 
     for place in places {
-        let tz = tz::TimeZone::from_posix_tz(&place.iana_zone)?;
-        let local = tz.find_current_local_time_type()?;
-        let offset = local.ut_offset();
-        let code = refine_zone_abbreviation(&place.iana_zone, local.time_zone_designation());
-
-        let home = tz == lima;
+        let zone = tz::TimeZone::from_posix_tz(&place.iana_zone)?;
+        let local = zone == lima;
+        let away = home == Some(place.iana_zone.as_str());
 
         locations.push(Locality {
-            zone: tz,
+            zone,
             is_zulu: false,
-            is_home: home,
-            offset_zulu: offset,
-            offset_local: offset - local_offset,
+            is_local: local,
+            is_home: away,
+            iana_zone: place.iana_zone,
             city_name: place.city_name,
             country_name: place.country_name,
-            abbreviation: code,
         });
     }
 
-    // Order the locations by offset.
+    // Order the locations by their offset from UTC as at now.
 
-    locations.sort();
+    locations.sort_by_key(|location| location.offset(&now).unwrap_or(0));
 
     Ok(locations)
 }

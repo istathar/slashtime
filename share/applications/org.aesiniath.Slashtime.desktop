@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=Slashtime
+GenericName=Time Zones
+Comment=View the time at locations around the world
+Exec=slashtime-gui
+Icon=slashtime
+Terminal=false
+Categories=Utility;Clock;
+Keywords=time;timezone;clock;world;
+StartupWMClass=org.aesiniath.Slashtime

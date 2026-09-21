@@ -18,7 +18,7 @@ RUNNING
 
 If you just built it locally, then you can run it in-place:
 
-	$ target/debug/slashtime
+	$ target/debug/slashtime-gui
 
 
 Places list

@@ -3,35 +3,51 @@ use crossterm::{
     style::{Color, Print, ResetColor, SetForegroundColor},
     terminal::{Clear, ClearType},
 };
-use slashtime::{find_home, format_line};
+use slashtime::{find_local, format_line};
 
 fn main() -> Result<(), tz::TzError> {
     let now = tz::UtcDateTime::now()?;
 
-    let locations = slashtime::loading::load_tzlist()?;
-    let home = find_home(&locations).unwrap();
+    let locations = slashtime::loading::load_tzlist(None)?;
+
+    // Offsets are measured from the location in the machine's own time zone,
+    // unless a zone is named on the command line, in which case they are
+    // measured from there instead.
+
+    let pivot = match std::env::args().nth(1) {
+        Some(name) => locations
+            .iter()
+            .position(|location| location.iana_zone == name)
+            .unwrap_or_else(|| {
+                eprintln!("Zone \"{}\" is not present in your tzlist", name);
+                std::process::exit(1);
+            }),
+        None => find_local(&locations).unwrap(),
+    };
+    let pivot = &locations[pivot];
 
     // Output the formatted locality, time, date, and offest for each location.
 
     let mut out = std::io::stdout();
 
     for location in &locations {
-        let there = now.project(location.zone.as_ref())?;
+        let line = format_line(location, pivot, &now)?;
+
         if location.is_zulu {
             // using the macro
             queue!(
                 out,
                 SetForegroundColor(Color::DarkGreen),
-                Print(format_line(&location, &home, &there)),
+                Print(line),
                 Clear(ClearType::UntilNewLine),
                 ResetColor,
                 Print("\n"),
             )?;
-        } else if location.is_home {
+        } else if location.is_local {
             queue!(
                 out,
                 SetForegroundColor(Color::DarkCyan),
-                Print(format_line(&location, &home, &there)),
+                Print(line),
                 Clear(ClearType::UntilNewLine),
                 ResetColor,
                 Print("\n")
@@ -39,7 +55,7 @@ fn main() -> Result<(), tz::TzError> {
         } else {
             queue!(
                 out,
-                Print(format_line(&location, &home, &there)),
+                Print(line),
                 Clear(ClearType::UntilNewLine),
                 ResetColor,
                 Print("\n"),
