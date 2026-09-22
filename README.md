@@ -5,7 +5,7 @@ places. What differentiates it from other world clock programs is that
 Slashtime shows the offset from your current location, not from UTC.
 
 <p align="center">
-<img width=544 height=1880 src="images/Screenshot.png">
+<img width=272 height=940 src="images/Screenshot.png">
 </p>
 
 # CONFIGURATION
