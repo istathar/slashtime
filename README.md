@@ -4,6 +4,10 @@ This is **slashtime**, a small program which displays the time in various
 places. What differentiates it from other world clock programs is that
 Slashtime shows the offset from your current location, not from UTC.
 
+<p align="center">
+<img width=544 height=1880 src="images/Screenshot.png">
+</p>
+
 # CONFIGURATION
 
 
