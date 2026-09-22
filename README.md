@@ -52,6 +52,9 @@ but ideally you would install to your user's directory
 
     $ cargo install --path .
 
+If you want the application to be available in your desktop's menus, copy the
+files in the _share/_ tree to _~/.local/share/_ or _~/usr/local/_.
+
 ## HISTORY
 
 Circa 2002, a Debian package called **gworldclock** came with a short shell
